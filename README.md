@@ -19,11 +19,23 @@
 
 ## Overview
 
-This repository provides **device-specific** and **common** optimization scripts for Windows 11 and Fedora 44 (Linux). Each supported device has its own branch containing full optimization suites, while the `main` branch provides:
+This repository provides **device-specific** and **common** optimization scripts for **Windows 11** and **ALL major Linux distributions**. Each supported device has its own branch containing full optimization suites, while the `main` branch provides:
 
 1. **Quick single-line commands** to run all optimizations instantly.
 2. **Common optimization modules** shared across all devices.
 3. **Documentation** for every optimization applied.
+
+### 🐧 Supported Linux Distros
+
+| Distro Family | Tested On | Package Manager |
+|---------------|-----------|------------------|
+| **Fedora / RHEL / CentOS** | Fedora 44 | `dnf` |
+| **Ubuntu / Debian / Mint** | Ubuntu 24.04+ | `apt` |
+| **Arch / Manjaro / EndeavourOS** | Arch Linux | `pacman` |
+| **openSUSE** | Tumbleweed / Leap | `zypper` |
+| **Alpine** | Alpine 3.x | `apk` |
+
+> Scripts auto-detect your distro and use the correct package manager, service names, and config paths.
 
 ---
 
@@ -31,28 +43,28 @@ This repository provides **device-specific** and **common** optimization scripts
 
 | # | Device | Model | Processor | RAM | OS Targets |
 |---|--------|-------|-----------|-----|------------|
-| 1 | **Lenovo ThinkPad T490s** | T490s | Intel i7-8665U @ 1.90 GHz | 32 GB | Windows 11 / Fedora 44 |
-| 2 | **DCL DC253D** | DC253D | 13th Gen Intel i3-1315U @ 1.20 GHz | 8 GB | Windows 11 / Fedora 44 |
+| 1 | **Lenovo ThinkPad T490s** | T490s | Intel i7-8665U @ 1.90 GHz | 32 GB | Windows 11 / Any Linux |
+| 2 | **DCL DC253D** | DC253D | 13th Gen Intel i3-1315U @ 1.20 GHz | 8 GB | Windows 11 / Any Linux |
 
 ---
 
 ## Quick Start — Single-Line Commands
 
-### 🐧 Fedora 44 (Linux Terminal)
+### 🐧 Linux (Any Distro — Fedora, Ubuntu, Arch, openSUSE, etc.)
 
 **Lenovo ThinkPad T490s:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/fedora-thinkpad-t490s.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/linux-thinkpad-t490s.sh | sudo bash
 ```
 
 **DCL DC253D:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/fedora-dcl-dc253d.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/linux-dcl-dc253d.sh | sudo bash
 ```
 
 **Common Optimizations Only (Any Device):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/fedora-common.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/linux-common.sh | sudo bash
 ```
 
 ### 🪟 Windows 11 (PowerShell — Run as Administrator)
@@ -97,11 +109,11 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 main                          ← You are here (Quick commands + Common optimizations)
 │
 ├── Lenovo-ThinkPad-T490s     ← Full optimization suite for ThinkPad T490s
-│   ├── linux/                   (Fedora 44 scripts)
+│   ├── linux/                   (All Linux distros)
 │   └── windows/                 (Windows 11 scripts)
 │
 └── DCL-DC253D                ← Full optimization suite for DCL DC253D
-    ├── linux/                   (Fedora 44 scripts)
+    ├── linux/                   (All Linux distros)
     └── windows/                 (Windows 11 scripts)
 ```
 
