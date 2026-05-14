@@ -3,11 +3,18 @@
 # Device-Base-Optimization — Common Linux Optimizations
 # Works on: Fedora, Ubuntu/Debian, Arch, openSUSE, RHEL, CentOS, Mint, etc.
 # Run as root: curl -fsSL <url> | sudo bash
+#
+# FIXED:
+#   • earlyoom conflict → systemd-oomd (Fedora 41+ default)
+#   • sysctl.conf deprecated → sysctl.d drop-in (idempotent)
+#   • power-profiles-daemon conflict → detect & disable
+#   • Browser DoH → CleanBrowsing via managed policies
 ###############################################################################
 set -euo pipefail
 
 BACKUP_DIR="/opt/device-optimization/backups/$(date +%Y%m%d_%H%M%S)"
 LOG="/var/log/device-optimization.log"
+SYSCTL_DROP="/etc/sysctl.d/99-optimization.conf"
 mkdir -p "$BACKUP_DIR"
 exec > >(tee -a "$LOG") 2>&1
 
@@ -16,6 +23,14 @@ ok()     { echo -e "\033[1;32m  ✔ $1\033[0m"; }
 warn()   { echo -e "\033[1;33m  ⚠ $1\033[0m"; }
 fail()   { echo -e "\033[1;31m  ✘ $1\033[0m"; }
 backup_file() { [ -f "$1" ] && cp -a "$1" "$BACKUP_DIR/$(basename "$1").bak" && ok "Backed up $1"; }
+
+# Idempotent sysctl writer — writes to /etc/sysctl.d/ (not deprecated sysctl.conf)
+sysctl_set() {
+    local key="$1" val="$2"
+    if ! grep -q "^${key}" "$SYSCTL_DROP" 2>/dev/null; then
+        echo "${key} = ${val}" >> "$SYSCTL_DROP"
+    fi
+}
 
 ###############################################################################
 # DISTRO DETECTION — universal package manager
@@ -92,16 +107,17 @@ pkg_cleanup() {
 }
 
 # Map package names per distro (handles naming differences)
+# FIX: Removed earlyoom — conflicts with systemd-oomd on Fedora 41+
 map_packages() {
     local category="$1"
     case "$category" in
         core)
             if command -v dnf &>/dev/null || command -v yum &>/dev/null; then
-                echo "tuned tuned-utils irqbalance earlyoom thermald powertop tlp tlp-rdw firewalld hdparm"
+                echo "tuned tuned-utils irqbalance thermald powertop tlp tlp-rdw firewalld hdparm"
             elif command -v apt-get &>/dev/null; then
-                echo "tuned irqbalance earlyoom thermald powertop tlp firewalld hdparm"
+                echo "tuned irqbalance thermald powertop tlp firewalld hdparm"
             elif command -v pacman &>/dev/null; then
-                echo "irqbalance earlyoom thermald powertop tlp firewalld hdparm"
+                echo "irqbalance thermald powertop tlp firewalld hdparm"
             elif command -v zypper &>/dev/null; then
                 echo "tuned irqbalance thermald powertop tlp firewalld hdparm"
             else
@@ -159,56 +175,68 @@ if command -v tuned-adm &>/dev/null; then
     tuned-adm profile balanced 2>/dev/null || true
     ok "tuned → balanced profile"
 fi
-# earlyoom — prevents OOM freezes
-if command -v earlyoom &>/dev/null; then
-    systemctl enable --now earlyoom 2>/dev/null || true
-    ok "earlyoom enabled"
+
+# FIX: Detect and disable power-profiles-daemon (conflicts with tuned)
+if systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
+    warn "Disabling power-profiles-daemon (conflicts with tuned)"
+    systemctl disable --now power-profiles-daemon 2>/dev/null || true
+fi
+# Install tuned-ppd as compatibility bridge if available
+pkg_install tuned-ppd 2>/dev/null || true
+
+# FIX: Use systemd-oomd instead of earlyoom (Fedora 41+ default OOM daemon)
+# earlyoom polls memory at intervals — running both causes conflicts / kill storms
+if systemctl is-active --quiet earlyoom 2>/dev/null; then
+    warn "Disabling earlyoom (conflicts with systemd-oomd)"
+    systemctl disable --now earlyoom 2>/dev/null || true
+fi
+# Enable systemd-oomd (uses PSI — Pressure Stall Information)
+if systemctl list-unit-files systemd-oomd.service &>/dev/null; then
+    systemctl enable --now systemd-oomd 2>/dev/null || true
+    ok "systemd-oomd enabled (PSI-based OOM protection)"
 else
-    warn "earlyoom not available — skipping (install manually if desired)"
+    # Fallback: earlyoom for older distros without systemd-oomd
+    if command -v earlyoom &>/dev/null; then
+        systemctl enable --now earlyoom 2>/dev/null || true
+        ok "earlyoom enabled (fallback — no systemd-oomd available)"
+    else
+        warn "No OOM daemon available — install systemd-oomd or earlyoom"
+    fi
 fi
 
+# FIX: Use sysctl.d drop-in instead of deprecated /etc/sysctl.conf
 backup_file /etc/sysctl.conf
-# Check if already applied to avoid duplicates
-if ! grep -q "Device-Base-Optimization — Performance" /etc/sysctl.conf 2>/dev/null; then
-    cat >> /etc/sysctl.conf << 'EOF'
-
-### Device-Base-Optimization — Performance ###
-vm.swappiness=10
-vm.dirty_ratio=15
-vm.dirty_background_ratio=5
-vm.vfs_cache_pressure=50
-fs.inotify.max_user_watches=524288
-fs.inotify.max_user_instances=1024
-EOF
-fi
-sysctl -p 2>/dev/null || true
-ok "CPU + kernel sysctl tuned"
+touch "$SYSCTL_DROP"
+sysctl_set vm.swappiness                 10
+sysctl_set vm.dirty_ratio                15
+sysctl_set vm.dirty_background_ratio     5
+sysctl_set vm.vfs_cache_pressure         50
+sysctl_set fs.inotify.max_user_watches   524288
+sysctl_set fs.inotify.max_user_instances 1024
+sysctl --system 2>/dev/null || true
+ok "CPU + kernel sysctl tuned (via sysctl.d drop-in)"
 
 banner "3/8 — NETWORK (TCP BBR)"
-if ! grep -q "Device-Base-Optimization — Network" /etc/sysctl.conf 2>/dev/null; then
-    cat >> /etc/sysctl.conf << 'EOF'
+# FIX: Use sysctl.d drop-in for network settings
+sysctl_set net.core.default_qdisc               fq
+sysctl_set net.ipv4.tcp_congestion_control       bbr
+sysctl_set net.core.rmem_max                    16777216
+sysctl_set net.core.wmem_max                    16777216
+sysctl_set "net.ipv4.tcp_rmem"                  "4096 87380 16777216"
+sysctl_set "net.ipv4.tcp_wmem"                  "4096 65536 16777216"
+sysctl_set net.ipv4.tcp_fastopen                3
+sysctl_set net.ipv4.tcp_slow_start_after_idle   0
+sysctl_set net.ipv4.tcp_mtu_probing             1
+sysctl_set net.ipv4.conf.all.rp_filter          1
+sysctl_set net.ipv4.icmp_echo_ignore_broadcasts 1
+sysctl_set net.ipv4.conf.all.accept_redirects   0
+sysctl_set net.ipv6.conf.all.accept_redirects   0
+sysctl --system 2>/dev/null || true
+ok "TCP BBR + network hardening applied (via sysctl.d)"
 
-### Device-Base-Optimization — Network ###
-net.core.default_qdisc=fq
-net.ipv4.tcp_congestion_control=bbr
-net.core.rmem_max=16777216
-net.core.wmem_max=16777216
-net.ipv4.tcp_rmem=4096 87380 16777216
-net.ipv4.tcp_wmem=4096 65536 16777216
-net.ipv4.tcp_fastopen=3
-net.ipv4.tcp_slow_start_after_idle=0
-net.ipv4.tcp_mtu_probing=1
-net.ipv4.conf.all.rp_filter=1
-net.ipv4.icmp_echo_ignore_broadcasts=1
-net.ipv4.conf.all.accept_redirects=0
-net.ipv6.conf.all.accept_redirects=0
-EOF
-fi
-sysctl -p 2>/dev/null || true
-ok "TCP BBR + network hardening applied"
+banner "4/8 — DNS SECURITY (System + Browser DoH)"
 
-banner "4/8 — DNS SECURITY (Block Malware & Adult)"
-# Works on any distro with systemd-resolved
+## Layer 1: System DNS ##
 if systemctl is-active systemd-resolved &>/dev/null || systemctl is-enabled systemd-resolved &>/dev/null; then
     mkdir -p /etc/systemd/resolved.conf.d
     cat > /etc/systemd/resolved.conf.d/dns-security.conf << 'EOF'
@@ -222,7 +250,7 @@ EOF
     systemctl enable --now systemd-resolved 2>/dev/null || true
     systemctl restart systemd-resolved 2>/dev/null || true
     ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 2>/dev/null || true
-    ok "DNS → CleanBrowsing Family Filter (via systemd-resolved)"
+    ok "System DNS → CleanBrowsing Family Filter (via systemd-resolved)"
 elif [ -f /etc/NetworkManager/NetworkManager.conf ]; then
     # Fallback: NetworkManager DNS
     mkdir -p /etc/NetworkManager/conf.d
@@ -231,7 +259,7 @@ elif [ -f /etc/NetworkManager/NetworkManager.conf ]; then
 servers=185.228.168.168,185.228.169.168,1.1.1.3,1.0.0.3
 EOF
     systemctl restart NetworkManager 2>/dev/null || true
-    ok "DNS → CleanBrowsing Family Filter (via NetworkManager)"
+    ok "System DNS → CleanBrowsing Family Filter (via NetworkManager)"
 else
     # Last resort: direct resolv.conf
     backup_file /etc/resolv.conf
@@ -243,8 +271,39 @@ nameserver 1.1.1.3
 EOF
     # Prevent overwrite
     chattr +i /etc/resolv.conf 2>/dev/null || true
-    ok "DNS → CleanBrowsing Family Filter (via resolv.conf)"
+    ok "System DNS → CleanBrowsing Family Filter (via resolv.conf)"
 fi
+
+## Layer 2: Browser DoH → CleanBrowsing ##
+DOH_URL="https://doh.cleanbrowsing.org/doh/family-filter/"
+
+# Firefox policy (all install locations)
+for dir in /etc/firefox/policies /usr/lib/firefox/distribution /usr/lib64/firefox/distribution; do
+    mkdir -p "$dir" 2>/dev/null || true
+    cat > "$dir/policies.json" << FFEOF
+{
+  "policies": {
+    "DNSOverHTTPS": {
+      "Enabled": true,
+      "ProviderURL": "${DOH_URL}",
+      "Locked": true
+    }
+  }
+}
+FFEOF
+done 2>/dev/null || true
+
+# Chrome / Chromium / Edge / Brave policies
+for dir in /etc/opt/chrome/policies/managed /etc/chromium/policies/managed /etc/chromium-browser/policies/managed /etc/opt/edge/policies/managed /etc/brave/policies/managed; do
+    mkdir -p "$dir" 2>/dev/null || true
+    cat > "$dir/dns-security.json" << CREOF
+{
+  "DnsOverHttpsMode": "secure",
+  "DnsOverHttpsTemplates": "${DOH_URL}"
+}
+CREOF
+done 2>/dev/null || true
+ok "Browser DoH → CleanBrowsing Family Filter (all browsers)"
 
 banner "5/8 — SOUND (PipeWire + Above 100%)"
 # PipeWire config — works on any distro with PipeWire
@@ -333,6 +392,7 @@ ok "Cleaned"
 banner "✅ COMMON OPTIMIZATIONS COMPLETE"
 echo "  Distro:  $DISTRO_NAME"
 echo "  Backup:  $BACKUP_DIR"
+echo "  Sysctl:  $SYSCTL_DROP"
 echo "  Log:     $LOG"
 echo ""
 echo "  🔄 Reboot recommended: sudo reboot"

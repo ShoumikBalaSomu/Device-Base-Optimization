@@ -3,11 +3,12 @@
 # DNS Security — Block malware, adult content, phishing
 # Works on ALL Linux distros (Fedora, Ubuntu, Debian, Arch, openSUSE, etc.)
 #
-# SCOPE: SYSTEM-LEVEL DNS ONLY
+# SCOPE: SYSTEM-LEVEL DNS + BROWSER DoH ENFORCEMENT
 #   • Sets CleanBrowsing Family Filter for ALL OS-level DNS resolution
 #     (CLI tools, apps, background services, package managers, etc.)
-#   • Browser DoH is intentionally NOT touched — users are free to use
-#     any DoH provider (Cloudflare, Google, NextDNS, etc.) in their browser
+#   • Forces browser DoH to use CleanBrowsing Family Filter endpoint
+#     (Firefox, Chrome, Chromium, Edge — via managed policies)
+#   • Browsers still get encrypted DNS (DoH) but through CleanBrowsing
 ###############################################################################
 set -euo pipefail
 
@@ -15,6 +16,9 @@ ok()   { echo -e "\033[1;32m  ✔ $1\033[0m"; }
 warn() { echo -e "\033[1;33m  ⚠ $1\033[0m"; }
 banner() { echo -e "\n\033[1;36m[══ $1 ══]\033[0m"; }
 
+########################################
+# Layer 1: System DNS (OS-level)
+########################################
 banner "SYSTEM DNS — CleanBrowsing Family Filter"
 
 # Method 1: systemd-resolved (Fedora, Ubuntu 18+, Arch, etc.)
@@ -62,11 +66,72 @@ EOF
     ok "System DNS → CleanBrowsing (via resolv.conf)"
 fi
 
+########################################
+# Layer 2: Browser DoH → CleanBrowsing
+########################################
+banner "BROWSER DoH — CleanBrowsing Family Filter"
+
+DOH_URL="https://doh.cleanbrowsing.org/doh/family-filter/"
+
+# --- Firefox (all distros: deb, rpm, snap, flatpak) ---
+firefox_policy() {
+    local dir="$1"
+    mkdir -p "$dir"
+    cat > "$dir/policies.json" << FFEOF
+{
+  "policies": {
+    "DNSOverHTTPS": {
+      "Enabled": true,
+      "ProviderURL": "${DOH_URL}",
+      "Locked": true
+    }
+  }
+}
+FFEOF
+}
+
+# Standard Firefox install locations
+firefox_policy "/etc/firefox/policies"
+firefox_policy "/usr/lib/firefox/distribution"
+firefox_policy "/usr/lib64/firefox/distribution"
+# Snap Firefox
+firefox_policy "/etc/firefox/policies" 2>/dev/null || true
+# Flatpak Firefox
+if [ -d /var/lib/flatpak/app/org.mozilla.firefox ]; then
+    FLATPAK_FF=$(find /var/lib/flatpak/app/org.mozilla.firefox -name "files" -type d 2>/dev/null | head -1)
+    [ -n "$FLATPAK_FF" ] && firefox_policy "$FLATPAK_FF/lib/firefox/distribution" 2>/dev/null || true
+fi
+ok "Firefox DoH → CleanBrowsing (policy locked)"
+
+# --- Chrome / Chromium / Edge ---
+chromium_policy() {
+    local dir="$1"
+    mkdir -p "$dir"
+    cat > "$dir/dns-security.json" << CREOF
+{
+  "DnsOverHttpsMode": "secure",
+  "DnsOverHttpsTemplates": "${DOH_URL}"
+}
+CREOF
+}
+
+# Google Chrome
+chromium_policy "/etc/opt/chrome/policies/managed"
+# Chromium
+chromium_policy "/etc/chromium/policies/managed"
+chromium_policy "/etc/chromium-browser/policies/managed"
+# Microsoft Edge
+chromium_policy "/etc/opt/edge/policies/managed"
+# Brave
+chromium_policy "/etc/brave/policies/managed"
+ok "Chrome/Chromium/Edge/Brave DoH → CleanBrowsing (policy locked)"
+
 echo ""
-ok "🛡️  System DNS → CleanBrowsing Family Filter"
-echo "  • Malware, phishing, and adult content blocked at OS level"
-echo "  • All apps, CLI tools, and system services use filtered DNS"
-echo "  • Browser DoH: user's choice — not restricted by this script"
+ok "🛡️  DNS Security — Full Coverage"
+echo "  • System DNS  → CleanBrowsing Family Filter (DoT encrypted)"
+echo "  • Browser DoH → CleanBrowsing Family Filter (DoH encrypted)"
+echo "  • All traffic is filtered AND encrypted"
 echo ""
-echo "  Verify: dig +short pornhub.com   # should return 0.0.0.0 or fail"
+echo "  Verify system: dig +short pornhub.com   # should return 0.0.0.0 or fail"
+echo "  Verify browser: visit chrome://policy or about:policies"
 echo "  Status: resolvectl status"
