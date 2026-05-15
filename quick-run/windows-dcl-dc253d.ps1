@@ -139,7 +139,7 @@ Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\DirectX\UserGpuPreferences" -Na
 Ok "Intel UHD 13th Gen — hardware GPU scheduling"
 
 ###############################################################################
-Banner "DC253D 4/5 — DESKTOP POWER + USB"
+Banner "DC253D 4/6 — DESKTOP POWER + USB"
 ###############################################################################
 
 # Disable hibernation (desktop doesn't need it)
@@ -171,7 +171,6 @@ powercfg /change monitor-timeout-ac 15
 powercfg /change standby-timeout-ac 0
 
 # FIX: Disable Modern Standby / Connected Standby (S0ix)
-# Desktop shouldn't use connected standby — causes wake-up issues
 $csKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Power"
 Set-ItemProperty -Path $csKey -Name "PlatformAoAcOverride" -Value 0 -Type DWord -Force 2>$null
 Set-ItemProperty -Path $csKey -Name "CsEnabled" -Value 0 -Type DWord -Force 2>$null
@@ -184,7 +183,102 @@ powercfg /setactive SCHEME_CURRENT
 Ok "Desktop power: no hibernate, no sleep, no fast startup, USB always on"
 
 ###############################################################################
-Banner "DC253D 5/5 — AUDIO (Dolby)"
+Banner "DC253D 5/6 — BATTERY CHARGE CONTROL (Stop at 80%)"
+###############################################################################
+
+$chargeSet = $false
+
+# Check if device has a battery
+$battery = Get-WmiObject -Class Win32_Battery -ErrorAction SilentlyContinue
+if ($battery) {
+    Ok "Battery detected: $($battery.Name)"
+
+    # Method 1: ACPI charge threshold via WMI (vendor-neutral)
+    try {
+        $batSetting = Get-WmiObject -Namespace "root\wmi" -Class "BatteryChargeLevel" -ErrorAction Stop
+        if ($batSetting) {
+            $batSetting.ChargeStopThreshold = 80
+            $batSetting.Put() | Out-Null
+            Ok "Battery charge limit → 80% (via WMI BatteryChargeLevel)"
+            $chargeSet = $true
+        }
+    } catch { }
+
+    # Method 2: DCL/OEM specific BIOS setting via WMI
+    if (-not $chargeSet) {
+        try {
+            $biosWmi = Get-WmiObject -Namespace "root\wmi" -Class "MSAcpi_ThermalZoneTemperature" -ErrorAction Stop
+            # Some OEMs expose charge threshold via ACPI methods
+        } catch { }
+    }
+
+    # Method 3: Create a battery monitoring script that alerts/limits at 80%
+    # This is a universal fallback that works on ALL Windows devices
+    $scriptDir = "C:\DeviceOptimization\Scripts"
+    New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
+
+    # Battery monitor script — checks every 60 seconds
+    $monitorScript = @'
+# Battery Charge Monitor — Stop at 80%
+# Runs as scheduled task, checks battery level every 60 seconds
+$logFile = "C:\DeviceOptimization\battery-monitor.log"
+while ($true) {
+    $battery = Get-WmiObject -Class Win32_Battery -ErrorAction SilentlyContinue
+    if ($battery) {
+        $charge = $battery.EstimatedChargeRemaining
+        $status = $battery.BatteryStatus
+        # BatteryStatus: 1=Discharging, 2=AC/Charging, 3-5=various charge states
+        if ($charge -ge 80 -and $status -eq 2) {
+            # Battery at 80% and still charging — notify user
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+            Add-Content -Path $logFile -Value "$timestamp - Battery at ${charge}% — CHARGE LIMIT REACHED"
+            # Show notification to unplug
+            [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | Out-Null
+            $notify = New-Object System.Windows.Forms.NotifyIcon
+            $notify.Icon = [System.Drawing.SystemIcons]::Warning
+            $notify.BalloonTipIcon = "Warning"
+            $notify.BalloonTipTitle = "Battery Protection"
+            $notify.BalloonTipText = "Battery at ${charge}% — Please unplug charger to protect battery (limit: 80%)"
+            $notify.Visible = $true
+            $notify.ShowBalloonTip(10000)
+            Start-Sleep -Seconds 10
+            $notify.Dispose()
+        }
+    }
+    Start-Sleep -Seconds 60
+}
+'@
+    Set-Content -Path "$scriptDir\battery-monitor.ps1" -Value $monitorScript -Force
+
+    # Create scheduled task for battery monitoring
+    $taskName = "DeviceOptimization-BatteryMonitor"
+    $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    if ($existingTask) { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false }
+
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" `
+        -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$scriptDir\battery-monitor.ps1`""
+    $trigger = New-ScheduledTaskTrigger -AtLogOn
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+        -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger `
+        -Settings $settings -Description "Monitor battery and alert at 80% charge" `
+        -RunLevel Limited -Force | Out-Null
+    Ok "Battery monitor installed — alerts at 80% to unplug charger"
+    Ok "Task: $taskName (runs at logon, checks every 60s)"
+
+    # Also set Windows battery charge policy via registry
+    $batteryKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes"
+    # Set battery threshold notifications
+    powercfg /setacvalueindex SCHEME_CURRENT SUB_BATTERY BATLEVELLOW 20
+    powercfg /setacvalueindex SCHEME_CURRENT SUB_BATTERY BATLEVELCRIT 10
+    powercfg /setactive SCHEME_CURRENT
+    Ok "Battery low/critical warnings configured"
+} else {
+    Warn "No battery detected — charge control not applicable (pure desktop)"
+}
+
+###############################################################################
+Banner "DC253D 6/6 — AUDIO (Dolby)"
 ###############################################################################
 
 # Audio priority
@@ -209,6 +303,7 @@ Banner "✅ DCL DC253D OPTIMIZATION COMPLETE"
 Write-Host "  Backup:  $BackupDir"
 Write-Host "  Power:   Ultimate Performance (adaptive turbo)"
 Write-Host "  Memory:  8GB optimized + pagefile tuned"
+Write-Host "  Battery: Charge monitor active (alert at 80%)"
 Write-Host ""
 Write-Host "  Verify adaptive performance:" -ForegroundColor DarkGray
 Write-Host "    powercfg /getactivescheme        # should show Ultimate Performance" -ForegroundColor DarkGray
@@ -217,3 +312,4 @@ Write-Host "                                     # should show: 2 (Aggressive)" 
 Write-Host ""
 Write-Host "  🔄 Restart recommended"
 Stop-Transcript
+

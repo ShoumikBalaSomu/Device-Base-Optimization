@@ -176,13 +176,22 @@ if command -v tuned-adm &>/dev/null; then
     ok "tuned → balanced profile"
 fi
 
-# FIX: Detect and disable power-profiles-daemon (conflicts with tuned)
-if systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
-    warn "Disabling power-profiles-daemon (conflicts with tuned)"
-    systemctl disable --now power-profiles-daemon 2>/dev/null || true
-fi
-# Install tuned-ppd as compatibility bridge if available
+# FIX: Use tuned-ppd as bridge (provides power-profiles-daemon D-Bus API via tuned)
+# This lets GNOME/KDE power mode switching work with tuned profiles
 pkg_install tuned-ppd 2>/dev/null || true
+if systemctl list-unit-files tuned-ppd.service &>/dev/null 2>&1; then
+    # tuned-ppd available — it replaces power-profiles-daemon's D-Bus API
+    if systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
+        systemctl disable --now power-profiles-daemon 2>/dev/null || true
+    fi
+    # Unmask if previously masked by our script
+    systemctl unmask power-profiles-daemon 2>/dev/null || true
+    systemctl enable --now tuned-ppd 2>/dev/null || true
+    ok "tuned-ppd bridge active (GUI power modes → tuned profiles)"
+else
+    # No tuned-ppd — keep power-profiles-daemon if present
+    warn "tuned-ppd not available — power-profiles-daemon untouched"
+fi
 
 # FIX: Use systemd-oomd instead of earlyoom (Fedora 41+ default OOM daemon)
 # earlyoom polls memory at intervals — running both causes conflicts / kill storms
