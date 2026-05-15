@@ -8,7 +8,7 @@
 #   • earlyoom conflict → systemd-oomd (Fedora 41+ default)
 #   • sysctl.conf deprecated → sysctl.d drop-in (idempotent)
 #   • power-profiles-daemon conflict → detect & disable
-#   • Browser DoH → CleanBrowsing via managed policies
+#   • Browser DoH → user's choice (no managed policies)
 ###############################################################################
 set -euo pipefail
 
@@ -225,7 +225,7 @@ sysctl_set fs.inotify.max_user_instances 1024
 sysctl --system 2>/dev/null || true
 ok "CPU + kernel sysctl tuned (via sysctl.d drop-in)"
 
-banner "3/8 — NETWORK (TCP BBR)"
+banner "3/7 — NETWORK (TCP BBR)"
 # FIX: Use sysctl.d drop-in for network settings
 sysctl_set net.core.default_qdisc               fq
 sysctl_set net.ipv4.tcp_congestion_control       bbr
@@ -243,61 +243,7 @@ sysctl_set net.ipv6.conf.all.accept_redirects   0
 sysctl --system 2>/dev/null || true
 ok "TCP BBR + network hardening applied (via sysctl.d)"
 
-banner "4/8 — DNS SECURITY (System-Level)"
-
-## Layer 1: System DNS — CleanBrowsing Family Filter ##
-if systemctl is-active systemd-resolved &>/dev/null || systemctl is-enabled systemd-resolved &>/dev/null; then
-    mkdir -p /etc/systemd/resolved.conf.d
-    cat > /etc/systemd/resolved.conf.d/dns-security.conf << 'EOF'
-[Resolve]
-DNS=185.228.168.168#family-filter-dns.cleanbrowsing.org 185.228.169.168#family-filter-dns.cleanbrowsing.org
-FallbackDNS=1.1.1.3#family.cloudflare-dns.com 1.0.0.3#family.cloudflare-dns.com
-DNSOverTLS=opportunistic
-DNSSEC=allow-downgrade
-Domains=~.
-EOF
-    systemctl enable --now systemd-resolved 2>/dev/null || true
-    systemctl restart systemd-resolved 2>/dev/null || true
-    ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf 2>/dev/null || true
-    ok "System DNS → CleanBrowsing Family Filter (via systemd-resolved)"
-elif [ -f /etc/NetworkManager/NetworkManager.conf ]; then
-    # Fallback: NetworkManager DNS
-    mkdir -p /etc/NetworkManager/conf.d
-    cat > /etc/NetworkManager/conf.d/dns-security.conf << 'EOF'
-[global-dns-domain-*]
-servers=185.228.168.168,185.228.169.168,1.1.1.3,1.0.0.3
-EOF
-    systemctl restart NetworkManager 2>/dev/null || true
-    ok "System DNS → CleanBrowsing Family Filter (via NetworkManager)"
-else
-    # Last resort: direct resolv.conf
-    backup_file /etc/resolv.conf
-    cat > /etc/resolv.conf << 'EOF'
-# Device-Base-Optimization — DNS Security
-nameserver 185.228.168.168
-nameserver 185.228.169.168
-nameserver 1.1.1.3
-EOF
-    # Prevent overwrite
-    chattr +i /etc/resolv.conf 2>/dev/null || true
-    ok "System DNS → CleanBrowsing Family Filter (via resolv.conf)"
-fi
-
-## Cleanup: Remove old browser DoH managed policies (user's choice now) ##
-# Firefox — remove managed DoH policies
-for dir in /etc/firefox/policies /usr/lib/firefox/distribution /usr/lib64/firefox/distribution; do
-    if [ -f "$dir/policies.json" ] && grep -q "DNSOverHTTPS" "$dir/policies.json" 2>/dev/null; then
-        rm -f "$dir/policies.json"
-    fi
-done 2>/dev/null || true
-
-# Chrome / Chromium / Edge / Brave — remove managed DoH policies
-for dir in /etc/opt/chrome/policies/managed /etc/chromium/policies/managed /etc/chromium-browser/policies/managed /etc/opt/edge/policies/managed /etc/brave/policies/managed; do
-    [ -f "$dir/dns-security.json" ] && rm -f "$dir/dns-security.json"
-done 2>/dev/null || true
-ok "System DNS → CleanBrowsing | Browser DoH → user's choice"
-
-banner "5/8 — SOUND (PipeWire + Above 100%)"
+banner "4/7 — SOUND (PipeWire + Above 100%)"
 # PipeWire config — works on any distro with PipeWire
 if command -v pipewire &>/dev/null || [ -d /etc/pipewire ]; then
     mkdir -p /etc/pipewire/pipewire.conf.d /etc/wireplumber/wireplumber.conf.d
@@ -339,7 +285,7 @@ else
     warn "No PipeWire or PulseAudio found — skipping audio config"
 fi
 
-banner "6/8 — DISPLAY (Intel GPU)"
+banner "5/7 — DISPLAY (Intel GPU)"
 # i915 module config — universal
 mkdir -p /etc/modprobe.d
 cat > /etc/modprobe.d/i915-optimization.conf << 'EOF'
@@ -353,7 +299,7 @@ echo 'export VDPAU_DRIVER=va_gl' >> /etc/profile.d/vaapi.sh
 chmod +x /etc/profile.d/vaapi.sh
 ok "Intel i915 GPU + VA-API acceleration"
 
-banner "7/8 — FIREWALL"
+banner "6/7 — FIREWALL"
 if command -v firewall-cmd &>/dev/null; then
     systemctl enable --now firewalld 2>/dev/null || true
     firewall-cmd --set-default-zone=public 2>/dev/null || true
@@ -376,12 +322,12 @@ else
     warn "No firewall tool found — install firewalld or ufw"
 fi
 
-banner "8/8 — CLEANUP"
+banner "7/7 — CLEANUP"
 pkg_cleanup
 journalctl --vacuum-size=100M 2>/dev/null || true
 ok "Cleaned"
 
-banner "✅ COMMON OPTIMIZATIONS COMPLETE"
+banner "✅ COMMON OPTIMIZATIONS COMPLETE (7 steps)"
 echo "  Distro:  $DISTRO_NAME"
 echo "  Backup:  $BACKUP_DIR"
 echo "  Sysctl:  $SYSCTL_DROP"

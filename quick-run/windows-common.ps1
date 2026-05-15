@@ -44,49 +44,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multi
 Ok "TCP/IP stack optimized"
 
 # ═══════════════════════════════════════════
-Banner "3/8 — DNS SECURITY (System-Level)"
-# ═══════════════════════════════════════════
-
-## Layer 1: System DNS — CleanBrowsing Family Filter ##
-$adapters = Get-NetAdapter | Where-Object { $_.Status -eq "Up" }
-foreach ($adapter in $adapters) {
-    Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ServerAddresses @("185.228.168.168","185.228.169.168","1.1.1.3","1.0.0.3") -ErrorAction SilentlyContinue
-}
-# Enable Windows DoH
-Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" -Name "EnableAutoDoh" -Value 2 -Type DWord -Force 2>$null
-# Register CleanBrowsing + Cloudflare Family as DoH providers
-netsh dns add encryption server=185.228.168.168 dohtemplate=https://doh.cleanbrowsing.org/doh/family-filter/ 2>$null
-netsh dns add encryption server=185.228.169.168 dohtemplate=https://doh.cleanbrowsing.org/doh/family-filter/ 2>$null
-netsh dns add encryption server=1.1.1.3 dohtemplate=https://family.cloudflare-dns.com/dns-query 2>$null
-ipconfig /flushdns | Out-Null
-Ok "System DNS → CleanBrowsing Family Filter (DoH encrypted)"
-
-## Cleanup: Remove old browser DoH managed policies (user's choice now) ##
-# Chrome
-$chromeKey = "HKLM:\SOFTWARE\Policies\Google\Chrome"
-if (Test-Path $chromeKey) {
-    Remove-ItemProperty -Path $chromeKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path $chromeKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
-}
-# Edge
-$edgeKey = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
-if (Test-Path $edgeKey) {
-    Remove-ItemProperty -Path $edgeKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path $edgeKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
-}
-# Firefox
-$firefoxKey = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\DNSOverHTTPS"
-if (Test-Path $firefoxKey) { Remove-Item -Path $firefoxKey -Recurse -Force -ErrorAction SilentlyContinue }
-# Brave
-$braveKey = "HKLM:\SOFTWARE\Policies\BraveSoftware\Brave"
-if (Test-Path $braveKey) {
-    Remove-ItemProperty -Path $braveKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path $braveKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
-}
-Ok "System DNS → CleanBrowsing | Browser DoH → user's choice"
-
-# ═══════════════════════════════════════════
-Banner "4/8 — DISPLAY OPTIMIZATION"
+Banner "3/7 — DISPLAY OPTIMIZATION"
 # ═══════════════════════════════════════════
 # Enable hardware-accelerated GPU scheduling
 Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -Value 2 -Type DWord -Force
@@ -98,7 +56,7 @@ Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothingType" -
 Ok "GPU scheduling + font rendering optimized"
 
 # ═══════════════════════════════════════════
-Banner "5/8 — SOUND ENHANCEMENT"
+Banner "4/7 — SOUND ENHANCEMENT"
 # ═══════════════════════════════════════════
 # Enable spatial sound
 $audioKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render"
@@ -116,7 +74,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multi
 Ok "Audio priority maximized"
 
 # ═══════════════════════════════════════════
-Banner "6/8 — DISABLE TELEMETRY & BLOAT"
+Banner "5/7 — DISABLE TELEMETRY & BLOAT"
 # ═══════════════════════════════════════════
 # Disable telemetry
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Value 0 -Type DWord -Force
@@ -131,7 +89,7 @@ if ($disk) { Set-Service -Name "SysMain" -StartupType Disabled -ErrorAction Sile
 Ok "Telemetry disabled, bloat reduced"
 
 # ═══════════════════════════════════════════
-Banner "7/8 — SECURITY HARDENING"
+Banner "6/7 — SECURITY HARDENING"
 # ═══════════════════════════════════════════
 # Enable Windows Firewall
 Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
@@ -142,7 +100,7 @@ Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart -Err
 Ok "Firewall on, SMBv1 disabled, RDP blocked"
 
 # ═══════════════════════════════════════════
-Banner "8/8 — SYSTEM CLEANUP"
+Banner "7/7 — SYSTEM CLEANUP"
 # ═══════════════════════════════════════════
 # Disk cleanup
 cleanmgr /d C /sagerun:1 2>$null
@@ -151,7 +109,7 @@ Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 Ok "System cleaned"
 
-Banner "✅ COMMON WINDOWS OPTIMIZATIONS COMPLETE"
+Banner "✅ COMMON WINDOWS OPTIMIZATIONS COMPLETE (7 steps)"
 Write-Host "  Backup: $BackupDir"
 Write-Host "  🔄 Restart recommended"
 
