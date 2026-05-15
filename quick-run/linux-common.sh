@@ -234,9 +234,9 @@ sysctl_set net.ipv6.conf.all.accept_redirects   0
 sysctl --system 2>/dev/null || true
 ok "TCP BBR + network hardening applied (via sysctl.d)"
 
-banner "4/8 — DNS SECURITY (System + Browser DoH)"
+banner "4/8 — DNS SECURITY (System-Level)"
 
-## Layer 1: System DNS ##
+## Layer 1: System DNS — CleanBrowsing Family Filter ##
 if systemctl is-active systemd-resolved &>/dev/null || systemctl is-enabled systemd-resolved &>/dev/null; then
     mkdir -p /etc/systemd/resolved.conf.d
     cat > /etc/systemd/resolved.conf.d/dns-security.conf << 'EOF'
@@ -274,36 +274,19 @@ EOF
     ok "System DNS → CleanBrowsing Family Filter (via resolv.conf)"
 fi
 
-## Layer 2: Browser DoH → CleanBrowsing ##
-DOH_URL="https://doh.cleanbrowsing.org/doh/family-filter/"
-
-# Firefox policy (all install locations)
+## Cleanup: Remove old browser DoH managed policies (user's choice now) ##
+# Firefox — remove managed DoH policies
 for dir in /etc/firefox/policies /usr/lib/firefox/distribution /usr/lib64/firefox/distribution; do
-    mkdir -p "$dir" 2>/dev/null || true
-    cat > "$dir/policies.json" << FFEOF
-{
-  "policies": {
-    "DNSOverHTTPS": {
-      "Enabled": true,
-      "ProviderURL": "${DOH_URL}",
-      "Locked": true
-    }
-  }
-}
-FFEOF
+    if [ -f "$dir/policies.json" ] && grep -q "DNSOverHTTPS" "$dir/policies.json" 2>/dev/null; then
+        rm -f "$dir/policies.json"
+    fi
 done 2>/dev/null || true
 
-# Chrome / Chromium / Edge / Brave policies
+# Chrome / Chromium / Edge / Brave — remove managed DoH policies
 for dir in /etc/opt/chrome/policies/managed /etc/chromium/policies/managed /etc/chromium-browser/policies/managed /etc/opt/edge/policies/managed /etc/brave/policies/managed; do
-    mkdir -p "$dir" 2>/dev/null || true
-    cat > "$dir/dns-security.json" << CREOF
-{
-  "DnsOverHttpsMode": "secure",
-  "DnsOverHttpsTemplates": "${DOH_URL}"
-}
-CREOF
+    [ -f "$dir/dns-security.json" ] && rm -f "$dir/dns-security.json"
 done 2>/dev/null || true
-ok "Browser DoH → CleanBrowsing Family Filter (all browsers)"
+ok "System DNS → CleanBrowsing | Browser DoH → user's choice"
 
 banner "5/8 — SOUND (PipeWire + Above 100%)"
 # PipeWire config — works on any distro with PipeWire

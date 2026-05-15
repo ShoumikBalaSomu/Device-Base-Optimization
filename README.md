@@ -10,8 +10,8 @@
 - [Supported Devices](#supported-devices)
 - [Quick Start — Single-Line Commands](#quick-start--single-line-commands)
 - [Feature Highlights](#feature-highlights)
-- [Branch Structure](#branch-structure)
 - [Common Optimizations](#common-optimizations)
+- [DNS Security Architecture](#dns-security-architecture)
 - [Safety & Rollback](#safety--rollback)
 - [License](#license)
 
@@ -19,11 +19,12 @@
 
 ## Overview
 
-This repository provides **device-specific** and **common** optimization scripts for **Windows 11** and **ALL major Linux distributions**. Each supported device has its own branch containing full optimization suites, while the `main` branch provides:
+This repository provides **device-specific** and **common** optimization scripts for **Windows 11** and **ALL major Linux distributions**:
 
 1. **Quick single-line commands** to run all optimizations instantly.
 2. **Common optimization modules** shared across all devices.
-3. **Documentation** for every optimization applied.
+3. **Device-specific tuning** for supported hardware.
+4. **Documentation** for every optimization applied.
 
 ### 🐧 Supported Linux Distros
 
@@ -96,26 +97,11 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 | 🖼️ Max Picture Quality | ✅ | ✅ | Intel GPU tuning, color profiles, refresh rate optimization |
 | 🔊 Max Sound | ✅ | ✅ | PipeWire/PulseAudio tuning, Dolby Atmos config |
 | 🔊 Above 100% Volume | ✅ | ❌ | PipeWire amplification up to 150% safely |
-| 🛡️ CoreDNS Security | ✅ | ✅ | Block malware, adult content, ads via DNS filtering |
+| 🛡️ DNS Security | ✅ | ✅ | System-level DNS filtering (CleanBrowsing Family Filter) |
+| 🌐 Browser DoH Freedom | ✅ | ✅ | Users can choose their own DoH provider in browser settings |
 | 🎬 Dolby Vision + Atmos | ✅ | ✅ | HDR/Dolby Vision profiles, Atmos spatial audio |
 | 🔌 Battery Protection | ✅ | ✅ | Charge limit technology, thermal management |
 | 🧹 System Cleanup | ✅ | ✅ | Remove bloatware, disable telemetry, free resources |
-
----
-
-## Branch Structure
-
-```
-main                          ← You are here (Quick commands + Common optimizations)
-│
-├── Lenovo-ThinkPad-T490s     ← Full optimization suite for ThinkPad T490s
-│   ├── linux/                   (All Linux distros)
-│   └── windows/                 (Windows 11 scripts)
-│
-└── DCL-DC253D                ← Full optimization suite for DCL DC253D
-    ├── linux/                   (All Linux distros)
-    └── windows/                 (Windows 11 scripts)
-```
 
 ---
 
@@ -125,8 +111,8 @@ The `common/` directory contains optimizations applicable to **all devices**:
 
 | Module | File | Description |
 |--------|------|-------------|
-| DNS Security | `common/linux/dns-security.sh` | CoreDNS setup blocking malware & adult content |
-| DNS Security | `common/windows/dns-security.ps1` | Windows DNS filtering configuration |
+| DNS Security | `common/linux/dns-security.sh` | System-level DNS filtering (browser DoH = user's choice) |
+| DNS Security | `common/windows/dns-security.ps1` | Windows DNS filtering (browser DoH = user's choice) |
 | Network Tuning | `common/linux/network-optimize.sh` | TCP BBR, buffer tuning, MTU optimization |
 | Network Tuning | `common/windows/network-optimize.ps1` | Windows TCP/IP stack optimization |
 | Sound Enhancement | `common/linux/sound-enhance.sh` | PipeWire above 100%, Dolby Atmos profiles |
@@ -135,6 +121,31 @@ The `common/` directory contains optimizations applicable to **all devices**:
 | Display Quality | `common/windows/display-optimize.ps1` | Windows display and HDR optimization |
 | System Cleanup | `common/linux/system-cleanup.sh` | Remove unnecessary services, free resources |
 | System Cleanup | `common/windows/system-cleanup.ps1` | Windows debloat, disable telemetry |
+
+---
+
+## DNS Security Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              DNS Security Model                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  Layer 1: SYSTEM DNS (enforced)                 │
+│  ├─ CleanBrowsing Family Filter (DoT)           │
+│  ├─ Blocks: malware, adult content, phishing    │
+│  ├─ Covers: all OS apps, CLI, services          │
+│  └─ Fallback: Cloudflare Family (1.1.1.3)       │
+│                                                 │
+│  Layer 2: BROWSER DoH (user's choice)           │
+│  ├─ No managed policies deployed                │
+│  ├─ Users can configure any DoH provider        │
+│  └─ Default: follows system DNS                 │
+│                                                 │
+└─────────────────────────────────────────────────┘
+```
+
+> **Note:** System-level DNS filtering catches all non-browser traffic. Browser DoH is left to the user's preference — they can use Cloudflare, Google, Quad9, or any provider they choose.
 
 ---
 

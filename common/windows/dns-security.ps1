@@ -1,12 +1,12 @@
 <#
     DNS Security — Block malware, adult content, phishing
 
-    SCOPE: SYSTEM-LEVEL DNS + BROWSER DoH ENFORCEMENT
+    SCOPE: SYSTEM-LEVEL DNS ONLY
       • Sets CleanBrowsing Family Filter for all Windows DNS resolution
         (apps, background services, Windows Update, etc.)
-      • Forces browser DoH to use CleanBrowsing Family Filter endpoint
-        (Chrome, Firefox, Edge, Brave — via Group Policy registry keys)
-      • Browsers still get encrypted DNS (DoH) but through CleanBrowsing
+      • Browser DoH is LEFT TO THE USER'S CHOICE
+        (users can configure Chrome/Firefox/Edge DoH to any provider they want)
+      • Any previously deployed browser managed policies are cleaned up
 #>
 
 function Write-OK   { param($msg) Write-Host "  ✔ $msg" -ForegroundColor Green }
@@ -42,47 +42,48 @@ netsh dns add encryption server=1.0.0.3 `
 ipconfig /flushdns | Out-Null
 Write-OK "Windows system DoH → CleanBrowsing Family Filter"
 
-########## Layer 2: Browser DoH → CleanBrowsing ##########
+########## Cleanup: Remove old browser DoH managed policies ##########
+# Previously deployed policies locked browser DoH — now removed so users can choose
 
 Write-Host ""
-Write-Host "╚══ BROWSER DoH — CleanBrowsing Family Filter ══" -ForegroundColor Cyan
+Write-Host "╚══ BROWSER DoH — Removing managed policies (user's choice now) ══" -ForegroundColor Cyan
 
-$dohUrl = "https://doh.cleanbrowsing.org/doh/family-filter/"
-
-# --- Google Chrome ---
+# --- Google Chrome: Remove DoH policy keys ---
 $chromeKey = "HKLM:\SOFTWARE\Policies\Google\Chrome"
-New-Item -Path $chromeKey -Force | Out-Null
-Set-ItemProperty -Path $chromeKey -Name "DnsOverHttpsMode" -Value "secure" -Type String -Force
-Set-ItemProperty -Path $chromeKey -Name "DnsOverHttpsTemplates" -Value $dohUrl -Type String -Force
-Write-OK "Chrome DoH → CleanBrowsing (policy locked)"
+if (Test-Path $chromeKey) {
+    Remove-ItemProperty -Path $chromeKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $chromeKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+    Write-OK "Chrome DoH policy removed (user's choice)"
+}
 
-# --- Microsoft Edge ---
+# --- Microsoft Edge: Remove DoH policy keys ---
 $edgeKey = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
-New-Item -Path $edgeKey -Force | Out-Null
-Set-ItemProperty -Path $edgeKey -Name "DnsOverHttpsMode" -Value "secure" -Type String -Force
-Set-ItemProperty -Path $edgeKey -Name "DnsOverHttpsTemplates" -Value $dohUrl -Type String -Force
-Write-OK "Edge DoH → CleanBrowsing (policy locked)"
+if (Test-Path $edgeKey) {
+    Remove-ItemProperty -Path $edgeKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $edgeKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+    Write-OK "Edge DoH policy removed (user's choice)"
+}
 
-# --- Mozilla Firefox ---
+# --- Mozilla Firefox: Remove DoH policy keys ---
 $firefoxKey = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\DNSOverHTTPS"
-New-Item -Path $firefoxKey -Force | Out-Null
-Set-ItemProperty -Path $firefoxKey -Name "Enabled" -Value 1 -Type DWord -Force
-Set-ItemProperty -Path $firefoxKey -Name "ProviderURL" -Value $dohUrl -Type String -Force
-Set-ItemProperty -Path $firefoxKey -Name "Locked" -Value 1 -Type DWord -Force
-Write-OK "Firefox DoH → CleanBrowsing (policy locked)"
+if (Test-Path $firefoxKey) {
+    Remove-Item -Path $firefoxKey -Recurse -Force -ErrorAction SilentlyContinue
+    Write-OK "Firefox DoH policy removed (user's choice)"
+}
 
-# --- Brave Browser ---
+# --- Brave Browser: Remove DoH policy keys ---
 $braveKey = "HKLM:\SOFTWARE\Policies\BraveSoftware\Brave"
-New-Item -Path $braveKey -Force | Out-Null
-Set-ItemProperty -Path $braveKey -Name "DnsOverHttpsMode" -Value "secure" -Type String -Force
-Set-ItemProperty -Path $braveKey -Name "DnsOverHttpsTemplates" -Value $dohUrl -Type String -Force
-Write-OK "Brave DoH → CleanBrowsing (policy locked)"
+if (Test-Path $braveKey) {
+    Remove-ItemProperty -Path $braveKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $braveKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+    Write-OK "Brave DoH policy removed (user's choice)"
+}
 
 Write-Host ""
-Write-OK "🛡️  DNS Security — Full Coverage"
+Write-OK "🛡️  DNS Security — System-Level Coverage"
 Write-Host "  • System DNS  → CleanBrowsing Family Filter (DoH encrypted)" -ForegroundColor Gray
-Write-Host "  • Browser DoH → CleanBrowsing Family Filter (DoH locked)" -ForegroundColor Gray
-Write-Host "  • All traffic is filtered AND encrypted" -ForegroundColor Gray
+Write-Host "  • Browser DoH → user's choice (configure in browser settings)" -ForegroundColor Gray
+Write-Host "  • System traffic is filtered AND encrypted" -ForegroundColor Gray
+Write-Host "  • Users can set any DoH provider in their browser preferences" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Verify system:  nslookup pornhub.com   # should return 0.0.0.0 or fail" -ForegroundColor DarkGray
-Write-Host "  Verify browser: chrome://policy or about:policies" -ForegroundColor DarkGray

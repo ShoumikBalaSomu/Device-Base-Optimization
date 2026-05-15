@@ -3,12 +3,12 @@
 # DNS Security — Block malware, adult content, phishing
 # Works on ALL Linux distros (Fedora, Ubuntu, Debian, Arch, openSUSE, etc.)
 #
-# SCOPE: SYSTEM-LEVEL DNS + BROWSER DoH ENFORCEMENT
+# SCOPE: SYSTEM-LEVEL DNS ONLY
 #   • Sets CleanBrowsing Family Filter for ALL OS-level DNS resolution
 #     (CLI tools, apps, background services, package managers, etc.)
-#   • Forces browser DoH to use CleanBrowsing Family Filter endpoint
-#     (Firefox, Chrome, Chromium, Edge — via managed policies)
-#   • Browsers still get encrypted DNS (DoH) but through CleanBrowsing
+#   • Browser DoH is LEFT TO THE USER'S CHOICE
+#     (users can configure Firefox/Chrome/Edge DoH to any provider they want)
+#   • Any previously deployed browser managed policies are cleaned up
 ###############################################################################
 set -euo pipefail
 
@@ -67,71 +67,49 @@ EOF
 fi
 
 ########################################
-# Layer 2: Browser DoH → CleanBrowsing
+# Cleanup: Remove old browser DoH managed policies
+# (previously deployed — now removed so users can choose their own DoH)
 ########################################
-banner "BROWSER DoH — CleanBrowsing Family Filter"
+banner "BROWSER DoH — Removing managed policies (user's choice now)"
 
-DOH_URL="https://doh.cleanbrowsing.org/doh/family-filter/"
+# Remove Firefox managed DoH policies
+for dir in /etc/firefox/policies /usr/lib/firefox/distribution /usr/lib64/firefox/distribution; do
+    if [ -f "$dir/policies.json" ]; then
+        # Only remove if it contains our DNSOverHTTPS policy
+        if grep -q "DNSOverHTTPS" "$dir/policies.json" 2>/dev/null; then
+            rm -f "$dir/policies.json"
+            ok "Removed Firefox DoH policy from $dir"
+        fi
+    fi
+done
 
-# --- Firefox (all distros: deb, rpm, snap, flatpak) ---
-firefox_policy() {
-    local dir="$1"
-    mkdir -p "$dir"
-    cat > "$dir/policies.json" << FFEOF
-{
-  "policies": {
-    "DNSOverHTTPS": {
-      "Enabled": true,
-      "ProviderURL": "${DOH_URL}",
-      "Locked": true
-    }
-  }
-}
-FFEOF
-}
-
-# Standard Firefox install locations
-firefox_policy "/etc/firefox/policies"
-firefox_policy "/usr/lib/firefox/distribution"
-firefox_policy "/usr/lib64/firefox/distribution"
-# Snap Firefox
-firefox_policy "/etc/firefox/policies" 2>/dev/null || true
-# Flatpak Firefox
+# Remove Flatpak Firefox policies
 if [ -d /var/lib/flatpak/app/org.mozilla.firefox ]; then
     FLATPAK_FF=$(find /var/lib/flatpak/app/org.mozilla.firefox -name "files" -type d 2>/dev/null | head -1)
-    [ -n "$FLATPAK_FF" ] && firefox_policy "$FLATPAK_FF/lib/firefox/distribution" 2>/dev/null || true
+    if [ -n "$FLATPAK_FF" ] && [ -f "$FLATPAK_FF/lib/firefox/distribution/policies.json" ]; then
+        if grep -q "DNSOverHTTPS" "$FLATPAK_FF/lib/firefox/distribution/policies.json" 2>/dev/null; then
+            rm -f "$FLATPAK_FF/lib/firefox/distribution/policies.json"
+            ok "Removed Flatpak Firefox DoH policy"
+        fi
+    fi
 fi
-ok "Firefox DoH → CleanBrowsing (policy locked)"
 
-# --- Chrome / Chromium / Edge ---
-chromium_policy() {
-    local dir="$1"
-    mkdir -p "$dir"
-    cat > "$dir/dns-security.json" << CREOF
-{
-  "DnsOverHttpsMode": "secure",
-  "DnsOverHttpsTemplates": "${DOH_URL}"
-}
-CREOF
-}
+# Remove Chrome/Chromium/Edge/Brave managed DoH policies
+for dir in /etc/opt/chrome/policies/managed /etc/chromium/policies/managed /etc/chromium-browser/policies/managed /etc/opt/edge/policies/managed /etc/brave/policies/managed; do
+    if [ -f "$dir/dns-security.json" ]; then
+        rm -f "$dir/dns-security.json"
+        ok "Removed managed DoH policy from $dir"
+    fi
+done
 
-# Google Chrome
-chromium_policy "/etc/opt/chrome/policies/managed"
-# Chromium
-chromium_policy "/etc/chromium/policies/managed"
-chromium_policy "/etc/chromium-browser/policies/managed"
-# Microsoft Edge
-chromium_policy "/etc/opt/edge/policies/managed"
-# Brave
-chromium_policy "/etc/brave/policies/managed"
-ok "Chrome/Chromium/Edge/Brave DoH → CleanBrowsing (policy locked)"
+ok "Browser DoH → user's choice (no managed policies)"
 
 echo ""
-ok "🛡️  DNS Security — Full Coverage"
+ok "🛡️  DNS Security — System-Level Coverage"
 echo "  • System DNS  → CleanBrowsing Family Filter (DoT encrypted)"
-echo "  • Browser DoH → CleanBrowsing Family Filter (DoH encrypted)"
-echo "  • All traffic is filtered AND encrypted"
+echo "  • Browser DoH → user's choice (configure in browser settings)"
+echo "  • System traffic is filtered AND encrypted"
+echo "  • Users can set any DoH provider in their browser preferences"
 echo ""
 echo "  Verify system: dig +short pornhub.com   # should return 0.0.0.0 or fail"
-echo "  Verify browser: visit chrome://policy or about:policies"
 echo "  Status: resolvectl status"

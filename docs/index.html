@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device-Base-Optimization — OS Optimization Toolkit</title>
+    <meta name="description" content="Professional-grade OS optimization toolkit for maximum performance, battery longevity, network speed, audio/visual excellence, and security — tailored per-device.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --border: rgba(99, 102, 241, 0.2);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --green: #10b981;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --cyan: #06b6d4;
+            --pink: #ec4899;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image: radial-gradient(circle at 1px 1px, rgba(99,102,241,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .bg-glow {
+            position: fixed; top: -40%; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 800px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+            z-index: 0; pointer-events: none;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+        /* Hero */
+        .hero { text-align: center; padding: 100px 0 60px; }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            background: rgba(99,102,241,0.15); border: 1px solid var(--border);
+            font-size: 0.8rem; color: var(--accent-light); margin-bottom: 24px;
+            letter-spacing: 0.5px; font-weight: 500;
+        }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; }
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--accent-light), var(--cyan), var(--pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.15rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto 32px; }
+        .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+            border-radius: 10px; font-weight: 600; font-size: 0.95rem;
+            text-decoration: none; transition: all 0.25s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #4f46e5);
+            color: white; border: none;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.35); }
+        .btn-outline {
+            background: transparent; color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { border-color: var(--accent-light); background: rgba(99,102,241,0.08); }
+
+        /* Sections */
+        section { padding: 60px 0; }
+        .section-title {
+            font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; text-align: center;
+        }
+        .section-sub { color: var(--text-secondary); text-align: center; margin-bottom: 40px; font-size: 1rem; }
+
+        /* Device Cards */
+        .devices-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .device-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 28px; backdrop-filter: blur(12px); transition: all 0.3s ease;
+        }
+        .device-card:hover { border-color: var(--accent-light); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(99,102,241,0.15); }
+        .device-card .icon { font-size: 2rem; margin-bottom: 12px; }
+        .device-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+        .device-card .specs { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px; }
+        .device-card .os-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+        .os-tag {
+            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500;
+            background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2);
+        }
+
+        /* Quick Start */
+        .quick-start-tabs { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border);
+            background: transparent; color: var(--text-secondary); cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; font-family: inherit; transition: all 0.2s;
+        }
+        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .tab-btn:hover:not(.active) { border-color: var(--accent-light); color: var(--text-primary); }
+        .code-block {
+            background: #0d1117; border: 1px solid rgba(99,102,241,0.15); border-radius: 12px;
+            padding: 20px; position: relative; display: none;
+        }
+        .code-block.active { display: block; }
+        .code-block pre {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            color: var(--green); overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+        }
+        .code-block .label {
+            position: absolute; top: 8px; right: 12px; font-size: 0.7rem;
+            color: var(--text-muted); font-family: 'Inter', sans-serif;
+        }
+        .copy-btn {
+            position: absolute; top: 8px; right: 60px; padding: 4px 10px;
+            background: rgba(99,102,241,0.2); border: 1px solid var(--border);
+            border-radius: 6px; color: var(--accent-light); cursor: pointer;
+            font-size: 0.7rem; font-family: inherit; transition: all 0.2s;
+        }
+        .copy-btn:hover { background: var(--accent); color: white; }
+
+        /* Features */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+        .feature {
+            display: flex; gap: 14px; padding: 20px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+        .feature:hover { border-color: var(--accent-light); }
+        .feature .emoji { font-size: 1.5rem; flex-shrink: 0; }
+        .feature h4 { font-size: 0.95rem; margin-bottom: 4px; }
+        .feature p { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* DNS Architecture */
+        .dns-box {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 32px; max-width: 700px; margin: 0 auto; backdrop-filter: blur(12px);
+        }
+        .dns-layer {
+            padding: 16px; border-radius: 10px; margin-bottom: 12px;
+        }
+        .dns-layer.system { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+        .dns-layer.browser { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); }
+        .dns-layer h4 { font-size: 0.95rem; margin-bottom: 6px; }
+        .dns-layer ul { list-style: none; padding: 0; }
+        .dns-layer li { font-size: 0.85rem; color: var(--text-secondary); padding: 2px 0; }
+        .dns-layer li::before { content: "→ "; color: var(--accent-light); font-weight: 600; }
+
+        /* Footer */
+        footer {
+            text-align: center; padding: 40px 0; border-top: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+        footer a { color: var(--accent-light); text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero { padding: 60px 0 40px; }
+            section { padding: 40px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <header class="hero">
+        <div class="container">
+            <span class="hero-badge">⚡ Open Source · MIT Licensed</span>
+            <h1><span class="gradient">Device-Base-Optimization</span></h1>
+            <p>Professional-grade OS optimization toolkit for maximum performance, battery longevity, network speed, and security — tailored per-device.</p>
+            <div class="hero-actions">
+                <a href="https://github.com/ShoumikBalaSomu/Device-Base-Optimization" class="btn btn-primary">
+                    ⭐ View on GitHub
+                </a>
+                <a href="#quick-start" class="btn btn-outline">🚀 Quick Start</a>
+            </div>
+        </div>
+    </header>
+
+    <section id="devices">
+        <div class="container">
+            <h2 class="section-title">Supported Devices</h2>
+            <p class="section-sub">Optimized for specific hardware — runs on any Linux distro or Windows 11</p>
+            <div class="devices-grid">
+                <div class="device-card">
+                    <div class="icon">💻</div>
+                    <h3>Lenovo ThinkPad T490s</h3>
+                    <div class="specs">Intel i7-8665U · 32GB RAM · Intel UHD 620</div>
+                    <div class="os-tags">
+                        <span class="os-tag">🐧 Any Linux</span>
+                        <span class="os-tag">🪟 Windows 11</span>
+                    </div>
+                </div>
+                <div class="device-card">
+                    <div class="icon">🖥️</div>
+                    <h3>DCL DC253D</h3>
+                    <div class="specs">13th Gen Intel i3-1315U · 8GB RAM · Desktop</div>
+                    <div class="os-tags">
+                        <span class="os-tag">🐧 Any Linux</span>
+                        <span class="os-tag">🪟 Windows 11</span>
+                    </div>
+                </div>
+                <div class="device-card">
+                    <div class="icon">🔧</div>
+                    <h3>Any Device (Common)</h3>
+                    <div class="specs">Universal optimizations for any hardware</div>
+                    <div class="os-tags">
+                        <span class="os-tag">Fedora</span>
+                        <span class="os-tag">Ubuntu</span>
+                        <span class="os-tag">Arch</span>
+                        <span class="os-tag">openSUSE</span>
+                        <span class="os-tag">Alpine</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quick-start">
+        <div class="container">
+            <h2 class="section-title">Quick Start</h2>
+            <p class="section-sub">One command to optimize your device — copy and run</p>
+            <div class="quick-start-tabs">
+                <button class="tab-btn active" onclick="showTab('t490s-linux')">🐧 T490s Linux</button>
+                <button class="tab-btn" onclick="showTab('dc253d-linux')">🐧 DC253D Linux</button>
+                <button class="tab-btn" onclick="showTab('common-linux')">🐧 Common Linux</button>
+                <button class="tab-btn" onclick="showTab('t490s-win')">🪟 T490s Windows</button>
+                <button class="tab-btn" onclick="showTab('dc253d-win')">🪟 DC253D Windows</button>
+                <button class="tab-btn" onclick="showTab('common-win')">🪟 Common Windows</button>
+            </div>
+            <div class="code-block active" id="t490s-linux">
+                <span class="label">bash</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/linux-thinkpad-t490s.sh | sudo bash</pre>
+            </div>
+            <div class="code-block" id="dc253d-linux">
+                <span class="label">bash</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/linux-dcl-dc253d.sh | sudo bash</pre>
+            </div>
+            <div class="code-block" id="common-linux">
+                <span class="label">bash</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/linux-common.sh | sudo bash</pre>
+            </div>
+            <div class="code-block" id="t490s-win">
+                <span class="label">powershell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/windows-thinkpad-t490s.ps1 | iex</pre>
+            </div>
+            <div class="code-block" id="dc253d-win">
+                <span class="label">powershell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/windows-dcl-dc253d.ps1 | iex</pre>
+            </div>
+            <div class="code-block" id="common-win">
+                <span class="label">powershell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/quick-run/windows-common.ps1 | iex</pre>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <h2 class="section-title">Features</h2>
+            <p class="section-sub">Comprehensive optimizations across every layer of your system</p>
+            <div class="features-grid">
+                <div class="feature"><div class="emoji">⚡</div><div><h4>Max Performance</h4><p>CPU governor, I/O scheduler, kernel tuning</p></div></div>
+                <div class="feature"><div class="emoji">🔋</div><div><h4>Battery Longevity</h4><p>60-80% charge thresholds, TLP, adaptive power</p></div></div>
+                <div class="feature"><div class="emoji">🌐</div><div><h4>Network Speed</h4><p>TCP BBR, buffer tuning, MTU optimization</p></div></div>
+                <div class="feature"><div class="emoji">🛡️</div><div><h4>DNS Security</h4><p>System-level CleanBrowsing filtering</p></div></div>
+                <div class="feature"><div class="emoji">🌐</div><div><h4>Browser DoH Freedom</h4><p>Users choose their own DoH provider</p></div></div>
+                <div class="feature"><div class="emoji">🖼️</div><div><h4>Display Quality</h4><p>Intel GPU, DRI3, TearFree, HDR profiles</p></div></div>
+                <div class="feature"><div class="emoji">🔊</div><div><h4>Sound Excellence</h4><p>PipeWire 48kHz, volume up to 150%</p></div></div>
+                <div class="feature"><div class="emoji">🎬</div><div><h4>Dolby Vision + Atmos</h4><p>HDR/Dolby Vision, Atmos spatial audio</p></div></div>
+                <div class="feature"><div class="emoji">🧹</div><div><h4>System Cleanup</h4><p>Remove bloatware, disable telemetry</p></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="dns">
+        <div class="container">
+            <h2 class="section-title">DNS Security Architecture</h2>
+            <p class="section-sub">System-level protection with browser freedom</p>
+            <div class="dns-box">
+                <div class="dns-layer system">
+                    <h4>🔒 Layer 1: System DNS (Enforced)</h4>
+                    <ul>
+                        <li>CleanBrowsing Family Filter via DNS-over-TLS</li>
+                        <li>Blocks malware, adult content, phishing</li>
+                        <li>Covers all OS apps, CLI tools, services</li>
+                        <li>Fallback: Cloudflare Family (1.1.1.3)</li>
+                    </ul>
+                </div>
+                <div class="dns-layer browser">
+                    <h4>🌐 Layer 2: Browser DoH (User's Choice)</h4>
+                    <ul>
+                        <li>No managed policies — no restrictions</li>
+                        <li>Users can configure any DoH provider</li>
+                        <li>Default: follows system DNS settings</li>
+                        <li>Cloudflare, Google, Quad9, or any custom</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>MIT License · Built with ❤️ by <a href="https://github.com/ShoumikBalaSomu">ShoumikBalaSomu</a></p>
+        </div>
+    </footer>
+
+    <script>
+        function showTab(id) {
+            document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+        }
+        function copyCode(btn) {
+            const pre = btn.parentElement.querySelector('pre');
+            navigator.clipboard.writeText(pre.textContent).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+    </script>
+</body>
+</html>

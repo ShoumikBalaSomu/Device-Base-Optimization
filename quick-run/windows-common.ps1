@@ -44,10 +44,10 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multi
 Ok "TCP/IP stack optimized"
 
 # ═══════════════════════════════════════════
-Banner "3/8 — DNS SECURITY (System + Browser DoH)"
+Banner "3/8 — DNS SECURITY (System-Level)"
 # ═══════════════════════════════════════════
 
-## Layer 1: System DNS ##
+## Layer 1: System DNS — CleanBrowsing Family Filter ##
 $adapters = Get-NetAdapter | Where-Object { $_.Status -eq "Up" }
 foreach ($adapter in $adapters) {
     Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ServerAddresses @("185.228.168.168","185.228.169.168","1.1.1.3","1.0.0.3") -ErrorAction SilentlyContinue
@@ -61,35 +61,29 @@ netsh dns add encryption server=1.1.1.3 dohtemplate=https://family.cloudflare-dn
 ipconfig /flushdns | Out-Null
 Ok "System DNS → CleanBrowsing Family Filter (DoH encrypted)"
 
-## Layer 2: Browser DoH → CleanBrowsing ##
-$dohUrl = "https://doh.cleanbrowsing.org/doh/family-filter/"
-
-# Google Chrome
+## Cleanup: Remove old browser DoH managed policies (user's choice now) ##
+# Chrome
 $chromeKey = "HKLM:\SOFTWARE\Policies\Google\Chrome"
-New-Item -Path $chromeKey -Force | Out-Null
-Set-ItemProperty -Path $chromeKey -Name "DnsOverHttpsMode" -Value "secure" -Type String -Force
-Set-ItemProperty -Path $chromeKey -Name "DnsOverHttpsTemplates" -Value $dohUrl -Type String -Force
-
-# Microsoft Edge
+if (Test-Path $chromeKey) {
+    Remove-ItemProperty -Path $chromeKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $chromeKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+}
+# Edge
 $edgeKey = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
-New-Item -Path $edgeKey -Force | Out-Null
-Set-ItemProperty -Path $edgeKey -Name "DnsOverHttpsMode" -Value "secure" -Type String -Force
-Set-ItemProperty -Path $edgeKey -Name "DnsOverHttpsTemplates" -Value $dohUrl -Type String -Force
-
-# Mozilla Firefox
+if (Test-Path $edgeKey) {
+    Remove-ItemProperty -Path $edgeKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $edgeKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+}
+# Firefox
 $firefoxKey = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\DNSOverHTTPS"
-New-Item -Path $firefoxKey -Force | Out-Null
-Set-ItemProperty -Path $firefoxKey -Name "Enabled" -Value 1 -Type DWord -Force
-Set-ItemProperty -Path $firefoxKey -Name "ProviderURL" -Value $dohUrl -Type String -Force
-Set-ItemProperty -Path $firefoxKey -Name "Locked" -Value 1 -Type DWord -Force
-
+if (Test-Path $firefoxKey) { Remove-Item -Path $firefoxKey -Recurse -Force -ErrorAction SilentlyContinue }
 # Brave
 $braveKey = "HKLM:\SOFTWARE\Policies\BraveSoftware\Brave"
-New-Item -Path $braveKey -Force | Out-Null
-Set-ItemProperty -Path $braveKey -Name "DnsOverHttpsMode" -Value "secure" -Type String -Force
-Set-ItemProperty -Path $braveKey -Name "DnsOverHttpsTemplates" -Value $dohUrl -Type String -Force
-
-Ok "Browser DoH → CleanBrowsing Family Filter (Chrome/Edge/Firefox/Brave)"
+if (Test-Path $braveKey) {
+    Remove-ItemProperty -Path $braveKey -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $braveKey -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+}
+Ok "System DNS → CleanBrowsing | Browser DoH → user's choice"
 
 # ═══════════════════════════════════════════
 Banner "4/8 — DISPLAY OPTIMIZATION"
