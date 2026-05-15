@@ -12,6 +12,7 @@
 - [Feature Highlights](#feature-highlights)
 - [Common Optimizations](#common-optimizations)
 - [Safety & Rollback](#safety--rollback)
+- [Troubleshooting: Fixing DNS Issues](#🛠️-troubleshooting-fixing-dns-issues)
 - [License](#license)
 
 ---
@@ -136,6 +137,47 @@ sudo /opt/device-optimization/rollback.sh
 # Windows (PowerShell as Admin)
 C:\DeviceOptimization\rollback.ps1
 ```
+
+---
+
+## 🛠️ Troubleshooting: Fixing DNS Issues
+
+If you used a previous version of this toolkit and are experiencing DNS instability (e.g., websites not loading, slow resolution), follow these steps to reset your DNS configuration:
+
+### 🐧 Linux
+The previous config used `systemd-resolved`, `NetworkManager`, or direct `resolv.conf` edits.
+
+1. **Remove configuration files:**
+   ```bash
+   sudo rm -f /etc/systemd/resolved.conf.d/dns-security.conf
+   sudo rm -f /etc/NetworkManager/conf.d/dns-security.conf
+   ```
+2. **Unlock and reset resolv.conf (if applicable):**
+   ```bash
+   sudo chattr -i /etc/resolv.conf
+   sudo systemctl restart systemd-resolved
+   # Or for NetworkManager:
+   sudo systemctl restart NetworkManager
+   ```
+
+### 🪟 Windows
+The previous config set static DNS servers and enabled encrypted DNS (DoH).
+
+1. **Reset DNS server addresses:**
+   Run in PowerShell as Administrator:
+   ```powershell
+   Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | ForEach-Object {
+       Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ResetServerAddresses
+   }
+   ```
+2. **Reset Encryption (DoH):**
+   ```powershell
+   netsh dns delete encryption server=185.228.168.168
+   netsh dns delete encryption server=185.228.169.168
+   netsh dns delete encryption server=1.1.1.3
+   netsh dns delete encryption server=1.0.0.3
+   ipconfig /flushdns
+   ```
 
 ---
 
