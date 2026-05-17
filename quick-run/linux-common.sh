@@ -226,6 +226,14 @@ sysctl --system 2>/dev/null || true
 ok "CPU + kernel sysctl tuned (via sysctl.d drop-in)"
 
 banner "3/7 — NETWORK (TCP BBR)"
+# ==============================================================================
+echo "  🧹 Removing old Browser DoH policies (unlocking browser settings)..."
+rm -f /etc/opt/chrome/policies/managed/dns-doh.json 2>/dev/null || true
+rm -f /etc/chromium/policies/managed/dns-doh.json 2>/dev/null || true
+rm -f /etc/opt/edge/policies/managed/dns-doh.json 2>/dev/null || true
+rm -f /etc/brave/policies/managed/dns-doh.json 2>/dev/null || true
+echo "  ✔ Browser DoH unlocked"
+
 # FIX: Use sysctl.d drop-in for network settings
 sysctl_set net.core.default_qdisc               fq
 sysctl_set net.ipv4.tcp_congestion_control       bbr

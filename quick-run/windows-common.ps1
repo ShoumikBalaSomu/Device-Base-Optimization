@@ -29,6 +29,17 @@ Ok "High Performance power plan active"
 # ═══════════════════════════════════════════
 Banner "2/8 — NETWORK OPTIMIZATION"
 # ═══════════════════════════════════════════
+Write-Host "  🧹 Removing old Browser DoH policies (unlocking browser settings)..."
+$browsers = @("Google\Chrome", "Microsoft\Edge", "BraveSoftware\Brave")
+foreach ($b in $browsers) {
+    $p = "HKLM:\SOFTWARE\Policies\$b"
+    if (Test-Path $p) {
+        Remove-ItemProperty -Path $p -Name "DnsOverHttpsMode" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path $p -Name "DnsOverHttpsTemplates" -ErrorAction SilentlyContinue
+    }
+}
+Ok "Browser DoH settings unlocked"
+
 # TCP optimization
 netsh int tcp set global autotuninglevel=normal
 netsh int tcp set global chimney=disabled
@@ -57,7 +68,21 @@ Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothingType" -
 # Install Dolby Vision & HEVC Extensions
 Write-Host "  🎬 Installing Dolby Vision & HEVC Extensions..."
 winget install --id "9pltg1lwphlf" --source msstore --accept-package-agreements --accept-source-agreements --silent 2>$null
+$winget1 = $LASTEXITCODE
 winget install --id "9NMZLZ57R3T7" --source msstore --accept-package-agreements --accept-source-agreements --silent 2>$null
+
+if ($winget1 -ne 0) {
+    Write-Host "  ⚠ Winget failed to install Dolby Vision. Adding fallback Python tool..." -ForegroundColor Yellow
+    $fallbackDir = "C:\DeviceOptimization\Scripts\DolbyVision"
+    New-Item -Path $fallbackDir -ItemType Directory -Force | Out-Null
+    try {
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/balu100/dolby-vision-for-windows/main/enable_dolby_vision_hdmi.py" -OutFile "$fallbackDir\enable_dolby_vision_hdmi.py" -UseBasicParsing
+        Write-Host "  ✔ Fallback script downloaded to $fallbackDir\enable_dolby_vision_hdmi.py" -ForegroundColor Green
+    } catch {
+        Write-Host "  ⚠ Failed to download fallback script." -ForegroundColor Red
+    }
+}
+
 Write-Host "  💡 Note: To fully enable Dolby Vision on non-supported monitors, refer to: https://github.com/balu100/dolby-vision-for-windows"
 
 Ok "GPU scheduling + font rendering + Dolby Vision extensions optimized"
