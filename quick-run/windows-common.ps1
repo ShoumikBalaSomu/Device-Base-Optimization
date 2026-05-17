@@ -53,7 +53,14 @@ Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_FSEBehavior
 # Visual quality
 Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothing" -Value "2" -Type String -Force
 Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothingType" -Value 2 -Type DWord -Force
-Ok "GPU scheduling + font rendering optimized"
+
+# Install Dolby Vision & HEVC Extensions
+Write-Host "  🎬 Installing Dolby Vision & HEVC Extensions..."
+winget install --id "9pltg1lwphlf" --source msstore --accept-package-agreements --accept-source-agreements --silent 2>$null
+winget install --id "9NMZLZ57R3T7" --source msstore --accept-package-agreements --accept-source-agreements --silent 2>$null
+Write-Host "  💡 Note: To fully enable Dolby Vision on non-supported monitors, refer to: https://github.com/balu100/dolby-vision-for-windows"
+
+Ok "GPU scheduling + font rendering + Dolby Vision extensions optimized"
 
 # ═══════════════════════════════════════════
 Banner "4/7 — SOUND ENHANCEMENT"

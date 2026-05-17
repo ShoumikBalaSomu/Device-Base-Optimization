@@ -58,13 +58,19 @@ $hdrKey = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\VideoSettings"
 New-Item -Path $hdrKey -Force | Out-Null
 Set-ItemProperty -Path $hdrKey -Name "EnableHDRForPlayback" -Value 1 -Type DWord -Force
 
+# Install Dolby Vision & HEVC Extensions
+Write-Host "  🎬 Installing Dolby Vision & HEVC Extensions..."
+winget install --id "9pltg1lwphlf" --source msstore --accept-package-agreements --accept-source-agreements --silent 2>$null
+winget install --id "9NMZLZ57R3T7" --source msstore --accept-package-agreements --accept-source-agreements --silent 2>$null
+Write-Host "  💡 Note: To fully enable Dolby Vision on non-supported monitors, refer to: https://github.com/balu100/dolby-vision-for-windows"
+
 # Dolby Atmos — ensure service is running
 $dolbyServices = @("DolbyDAXAPI", "Dolby DAX API Service")
 foreach ($svc in $dolbyServices) {
     $s = Get-Service -Name $svc -ErrorAction SilentlyContinue
     if ($s) { Set-Service -Name $svc -StartupType Automatic; Start-Service $svc -ErrorAction SilentlyContinue }
 }
-Ok "HDR + Dolby Atmos configured"
+Ok "HDR + Dolby Vision + Atmos configured"
 
 Banner "T490s 4/5 — THERMAL MANAGEMENT"
 # Intelligent Thermal Management for ThinkPad
