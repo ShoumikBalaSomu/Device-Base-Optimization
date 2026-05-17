@@ -179,7 +179,7 @@ fi
 # FIX: Use tuned-ppd as bridge (provides power-profiles-daemon D-Bus API via tuned)
 # This lets GNOME/KDE power mode switching work with tuned profiles
 pkg_install tuned-ppd 2>/dev/null || true
-if systemctl list-unit-files tuned-ppd.service &>/dev/null 2>&1; then
+if systemctl list-unit-files tuned-ppd.service &>/dev/null 2>&1 || command -v tuned-ppd &>/dev/null; then
     # tuned-ppd available — it replaces power-profiles-daemon's D-Bus API
     if systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
         systemctl disable --now power-profiles-daemon 2>/dev/null || true
@@ -190,7 +190,7 @@ if systemctl list-unit-files tuned-ppd.service &>/dev/null 2>&1; then
     ok "tuned-ppd bridge active (GUI power modes → tuned profiles)"
 else
     # No tuned-ppd — keep power-profiles-daemon if present
-    warn "tuned-ppd not available — power-profiles-daemon untouched"
+    warn "tuned-ppd not available — power-profiles-daemon untouched so GUI slider works."
 fi
 
 # FIX: Use systemd-oomd instead of earlyoom (Fedora 41+ default OOM daemon)

@@ -70,13 +70,15 @@ if systemctl is-enabled --quiet power-profiles-daemon 2>/dev/null | grep -q mask
     ok "Unmasked power-profiles-daemon (was incorrectly masked)"
 fi
 
-# Stop original power-profiles-daemon if running (tuned-ppd replaces it)
+# Stop original power-profiles-daemon if running ONLY IF tuned-ppd is installed
 # tuned-ppd provides the same D-Bus API but routes to tuned profiles
-if systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
-    # Only stop the original ppd, not tuned-ppd
-    if ! systemctl is-active --quiet tuned-ppd 2>/dev/null; then
+if systemctl list-unit-files tuned-ppd.service &>/dev/null || command -v tuned-ppd &>/dev/null; then
+    if systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
         systemctl disable --now power-profiles-daemon 2>/dev/null || true
     fi
+else
+    warn "tuned-ppd not available. Keeping power-profiles-daemon active so GUI slider works."
+    # If tuned is also running, they might fight. We let tuned run in balanced mode.
 fi
 
 # FIX: Use systemd-oomd instead of earlyoom (Fedora 41+ default OOM daemon)

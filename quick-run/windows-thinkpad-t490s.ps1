@@ -74,6 +74,10 @@ if ($winget1 -ne 0) {
     } catch {
         Write-Host "  ⚠ Failed to download fallback script." -ForegroundColor Red
     }
+
+    Write-Host "  🎬 Installing Alternative Dolby Vision Player (mpv.net)..."
+    winget install mpv.net --accept-package-agreements --accept-source-agreements --silent 2>$null
+    Write-Host "  ✔ mpv.net installed. Use it to play Dolby Vision videos without native OS support." -ForegroundColor Green
 }
 
 Write-Host "  💡 Note: To fully enable Dolby Vision on non-supported monitors, refer to: https://github.com/balu100/dolby-vision-for-windows"
