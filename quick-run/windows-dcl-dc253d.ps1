@@ -2,15 +2,15 @@
 .SYNOPSIS
     Device-Base-Optimization — DCL DC253D (Windows 11)
 .DESCRIPTION
-    13th Gen Intel i3-1315U | 8GB RAM | Desktop
+    13th Gen Intel i3-1315U | 8GB RAM | Laptop
     Runs common optimizations + DC253D-specific tuning
 
     FIXED:
+      • Restored Laptop Power Logic (sleep, battery scaling, selective suspend)
       • Added Intel Dynamic Tuning / DPTF adaptive power management
       • Added processor performance boost mode (aggressive turbo)
       • Added core parking optimization for hybrid P+E cores
-      • Added USB power management (always-on for desktop)
-      • Added Modern Standby / Connected Standby optimization
+      • Ensured Modern Standby / Connected Standby is available
 #>
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -30,20 +30,16 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 Banner "DC253D 1/5 — ADAPTIVE PERFORMANCE (i3-1315U Hybrid)"
 ###############################################################################
 
-# Ultimate Performance power plan (hidden by default — must duplicate first)
-$ultimateGUID = "e9a42b02-d5df-448d-aa00-03f14749eb61"
-powercfg /duplicatescheme $ultimateGUID 2>$null
-powercfg /setactive $ultimateGUID 2>$null
-# Fallback: High Performance if Ultimate not available
-if ($LASTEXITCODE -ne 0) {
-    powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c 2>$null
-    Warn "Ultimate Performance not available — using High Performance"
-}
-Ok "Power plan: Ultimate Performance"
+# Balanced Performance power plan
+$balancedGUID = "381b4222-f694-41f0-9685-ff5bb260df2e"
+powercfg /setactive $balancedGUID 2>$null
+Ok "Power plan: Balanced (Laptop Optimized)"
 
-# CPU always at max (desktop — no battery concern)
+# CPU scaling for battery life and thermals
 powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
-powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 30
+powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 80
+powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 5
+powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 5
 
 # FIX: Processor Performance Boost Mode → Aggressive (for turbo)
 # 0=Disabled, 1=Enabled, 2=Aggressive, 3=Efficient Aggressive
@@ -139,48 +135,41 @@ Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\DirectX\UserGpuPreferences" -Na
 Ok "Intel UHD 13th Gen — hardware GPU scheduling"
 
 ###############################################################################
-Banner "DC253D 4/6 — DESKTOP POWER + USB"
+Banner "DC253D 4/6 — LAPTOP POWER + USB"
 ###############################################################################
 
-# Disable hibernation (desktop doesn't need it)
-powercfg /hibernate off
+# Enable hibernation
+powercfg /hibernate on
 
-# FIX: Disable USB selective suspend (desktop — always powered)
-powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
+# Enable USB selective suspend (save battery)
+powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
+powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
 
-# FIX: USB power management — never suspend USB devices
+# USB power management cleanup
 $usbKey = "HKLM:\SYSTEM\CurrentControlSet\Services\USB"
-New-Item -Path $usbKey -Force | Out-Null
-Set-ItemProperty -Path $usbKey -Name "DisableSelectiveSuspend" -Value 1 -Type DWord -Force
-
-# FIX: Disable USB auto-suspend for all USB root hubs
-Get-PnpDevice -Class USB -ErrorAction SilentlyContinue | Where-Object {
-    $_.FriendlyName -like "*Root Hub*" -or $_.FriendlyName -like "*USB Hub*"
-} | ForEach-Object {
-    $instanceId = $_.InstanceId
-    $powerKey = "HKLM:\SYSTEM\CurrentControlSet\Enum\$instanceId\Device Parameters"
-    if (Test-Path $powerKey) {
-        Set-ItemProperty -Path $powerKey -Name "EnhancedPowerManagementEnabled" -Value 0 -Type DWord -Force 2>$null
-        Set-ItemProperty -Path $powerKey -Name "SelectiveSuspendEnabled" -Value 0 -Type DWord -Force 2>$null
-    }
+if (Test-Path $usbKey) {
+    Remove-ItemProperty -Path $usbKey -Name "DisableSelectiveSuspend" -ErrorAction SilentlyContinue
 }
-Ok "USB power: always-on, no selective suspend"
 
-# Turn off display after 15 min, never sleep
-powercfg /change monitor-timeout-ac 15
-powercfg /change standby-timeout-ac 0
+Ok "USB power: selective suspend enabled"
 
-# FIX: Disable Modern Standby / Connected Standby (S0ix)
+# Turn off display: 10m AC / 5m DC | Sleep: 30m AC / 15m DC
+powercfg /change monitor-timeout-ac 10
+powercfg /change monitor-timeout-dc 5
+powercfg /change standby-timeout-ac 30
+powercfg /change standby-timeout-dc 15
+
+# Enable Modern Standby / Connected Standby (S0ix)
 $csKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Power"
-Set-ItemProperty -Path $csKey -Name "PlatformAoAcOverride" -Value 0 -Type DWord -Force 2>$null
-Set-ItemProperty -Path $csKey -Name "CsEnabled" -Value 0 -Type DWord -Force 2>$null
+Set-ItemProperty -Path $csKey -Name "PlatformAoAcOverride" -Value 1 -Type DWord -Force 2>$null
+Set-ItemProperty -Path $csKey -Name "CsEnabled" -Value 1 -Type DWord -Force 2>$null
 
-# FIX: Disable Fast Startup (causes issues with desktop always-on power)
+# Enable Fast Startup
 $shutdownKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power"
-Set-ItemProperty -Path $shutdownKey -Name "HiberbootEnabled" -Value 0 -Type DWord -Force
+Set-ItemProperty -Path $shutdownKey -Name "HiberbootEnabled" -Value 1 -Type DWord -Force
 
 powercfg /setactive SCHEME_CURRENT
-Ok "Desktop power: no hibernate, no sleep, no fast startup, USB always on"
+Ok "Laptop power: sleep/hibernate enabled, fast startup on, screen timeouts set"
 
 ###############################################################################
 Banner "DC253D 5/6 — BATTERY CHARGE CONTROL (Stop at 80%)"

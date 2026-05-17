@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ###############################################################################
 # Device-Base-Optimization — DCL DC253D (ALL Linux Distros)
-# 13th Gen Intel i3-1315U | 8GB RAM | Desktop
+# 13th Gen Intel i3-1315U | 8GB RAM | Laptop
 # Works on: Fedora, Ubuntu/Debian, Arch, openSUSE, RHEL, CentOS, Mint, etc.
 #
 # FIXED:
@@ -280,9 +280,48 @@ EOF
     systemctl enable battery-charge-limit.service 2>/dev/null || true
     ok "Charge limit persisted via systemd (survives reboot)"
 else
-    warn "No battery sysfs detected — charge limit not applicable (pure desktop)"
-    warn "If device has a battery, ensure ACPI battery driver is loaded"
+    warn "No battery sysfs detected natively — applying software fallback"
 fi
+
+# Method 3: Software Alert via notify-send (Universal Fallback for AMI BIOS / Generic Laptops)
+cat > /usr/local/bin/battery-alert.sh << 'EOF'
+#!/usr/bin/env bash
+while true; do
+    for bat in /sys/class/power_supply/BAT*/; do
+        if [ -d "$bat" ]; then
+            status=$(cat "${bat}status" 2>/dev/null || echo "Unknown")
+            capacity=$(cat "${bat}capacity" 2>/dev/null || echo 0)
+            if [ "$status" = "Charging" ] && [ "$capacity" -ge 80 ]; then
+                # Get the active user's DBUS session to show notification
+                ACTIVE_USER=$(who | grep -E "\:0|tty" | head -n 1 | awk '{print $1}')
+                if [ -n "$ACTIVE_USER" ]; then
+                    USER_ID=$(id -u "$ACTIVE_USER")
+                    sudo -u "$ACTIVE_USER" DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${USER_ID}/bus notify-send -u critical "Battery Protection" "Battery is at ${capacity}%. Please unplug the charger to protect battery lifespan." 2>/dev/null || true
+                fi
+            fi
+        fi
+    done
+    sleep 60
+done
+EOF
+chmod +x /usr/local/bin/battery-alert.sh
+
+cat > /etc/systemd/system/battery-alert.service << 'EOF'
+[Unit]
+Description=Battery 80% Alert Monitor
+After=graphical.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/battery-alert.sh
+Restart=on-failure
+
+[Install]
+WantedBy=graphical.target
+EOF
+systemctl daemon-reload
+systemctl enable --now battery-alert.service 2>/dev/null || true
+ok "Battery software monitor installed (alerts at 80% via notify-send)"
 
 # Install TLP for battery management if battery exists
 if ls /sys/class/power_supply/BAT* 1>/dev/null 2>&1; then
