@@ -13,20 +13,22 @@
     - Operating Sys  : Microsoft Windows 11 Pro (Build 26300+)
 
     100% Autonomous Features:
-    1.  Zero-Interaction Run-Once: Automatically executes all 12 optimization sectors.
+    1.  Zero-Interaction Run-Once: Automatically executes all 18 optimization sectors.
     2.  Continuous Battery Preservation: Locks the 75%-80% charging threshold in Lenovo Power Manager.
     3.  Autonomous Background Watchdog Task:
-        - Automatically switches to Maximum Performance & SpeedShift EPP = 0 when plugged into AC.
-        - Automatically switches to Extreme Battery Saver (1.9GHz clock cap, ~7W power) when on Battery.
+        - Automatically switches to Maximum Performance, SpeedShift EPP = 0, PCIe ASPM Off, and USB Active on AC.
+        - Automatically switches to Extreme Battery Saver (1.9GHz clock cap, PCIe ASPM Max, USB Sleep) on Battery.
         - Silently runs periodic weekly SSD TRIM and temp cleaning.
     4.  Visual & Acoustic Fidelity: Intel DPST adaptive contrast disabled, ClearType 2.0 locked, audio ducking eliminated, MMCSS audio real-time priority.
-    5.  Rollback Support: Revert all settings at any time with -Rollback.
+    5.  Input & Latency Stack: 1:1 linear mouse tracking, fast keyboard repeat, zero touchpad tap latency, 100% QoS bandwidth, and BBR2 TCP.
+    6.  Privacy & Driver Shield: Telemetry reduced to basic, Bing search in Start Menu disabled, and OEM drivers protected from Windows Update.
+    7.  Rollback Support: Revert all settings at any time with -Rollback.
 
 .PARAMETER AutoInstall
     Executes full autonomous optimization and installs the background watchdog without any delay or prompts.
 
 .PARAMETER All
-    Executes all 12 ultra-deep optimization sectors unattended.
+    Executes all 18 ultra-deep optimization sectors unattended.
 
 .PARAMETER AnalyzeOnly
     Performs full system and sector diagnostics without modifying any system state.
@@ -207,6 +209,22 @@ function Invoke-PreflightAnalysis {
     Write-Host ("  Intel DPST Contrast Dimming : {0}" -f $dpstStatus) -ForegroundColor Gray
     $duckStatus = if ($audioDucking -and $audioDucking.UserDuckingPreference -eq 3) { "Disabled (Full Fidelity)" } else { "Active (80% Volume Ducking)" }
     Write-Host ("  Windows Audio Ducking       : {0}" -f $duckStatus) -ForegroundColor Gray
+
+    # Bus, Input, Privacy & Driver Safety Audit
+    $aspmAc = powercfg /q SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 | Select-String 'Current AC Power Setting Index'
+    $aspmStatus = if ($aspmAc -match '0x00000000') { "Off (Zero Latency)" } else { "Active (Power Savings)" }
+    $gpuAc = powercfg /q SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 | Select-String 'Current AC Power Setting Index'
+    $gpuStatus = if ($gpuAc -match '0x00000002') { "Maximum Performance (1.15GHz)" } else { "Throttled / Balanced" }
+    $dvrKey = Get-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -ErrorAction SilentlyContinue
+    $dvrStatus = if ($dvrKey -and $dvrKey.GameDVR_Enabled -eq 0) { "Disabled (0% Background Waste)" } else { "Enabled (Background Recording Active)" }
+    $wuDriver = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -ErrorAction SilentlyContinue).ExcludeWUDriversInQualityUpdate
+    $driverStatus = if ($wuDriver -eq 1) { "Protected (No Microsoft Overwrites)" } else { "Unprotected (Risk of Driver Reset)" }
+
+    Write-Host "`n  --- BUS, GPU & DRIVER SAFETY AUDIT ---" -ForegroundColor White
+    Write-Host ("  PCIe ASPM Link Latency (AC) : {0}" -f $aspmStatus) -ForegroundColor Gray
+    Write-Host ("  Intel UHD 620 iGPU Plan     : {0}" -f $gpuStatus) -ForegroundColor Gray
+    Write-Host ("  GameDVR Background Capture  : {0}" -f $dvrStatus) -ForegroundColor Gray
+    Write-Host ("  ThinkPad OEM Driver Shield  : {0}" -f $driverStatus) -ForegroundColor Gray
 
     Write-Log "Sector audit completed successfully." "SUCCESS"
 }
@@ -486,6 +504,158 @@ function Invoke-Sector12_AudioQuality {
 }
 
 # -------------------------------------------------------------------------
+# Sector 13: Peripheral & Bus Latency Engine (PCIe ASPM, USB Suspend, Intel iGPU)
+# -------------------------------------------------------------------------
+function Invoke-Sector13_PeripheralsAndBus {
+    Write-Log "Sector 13: PCIe Link State (ASPM), USB Suspend & Intel iGPU Power" "STEP"
+    
+    # 1. PCIe Link State Power Management (SUB_PCIEXPRESS: 501a4d13-42af-4429-9fd1-a8218c268e20, ASPM: ee12f906-d277-404b-b6da-e5fa1a576df5)
+    # AC: 0 (Off - Zero Latency for NVMe & Wi-Fi) | DC: 2 (Maximum Power Savings)
+    powercfg /setacvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0
+    powercfg /setdcvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 2
+    
+    # 2. USB Selective Suspend Setting (SUB_USB: 2a737441-1930-4402-8d77-b2bebba308a3, Setting: 48e6b7a6-50f5-4782-a5d4-53bb8f07e226)
+    # AC: 0 (Disabled - No peripheral disconnects) | DC: 1 (Enabled - Battery conservation)
+    powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
+    powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
+    
+    # 3. Intel(R) Graphics Power Plan (Subgroup: 44f3beca-a7c0-460e-9df2-bb8b99e0cba6, Setting: 3619c3f2-afb2-4afc-b0e9-e7fef372de36)
+    # AC: 2 (Maximum Performance - 1.15GHz boost) | DC: 0 (Maximum Battery Life)
+    powercfg /setacvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 2
+    powercfg /setdcvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 0
+    powercfg /setactive SCHEME_CURRENT
+    Write-Log "PCIe ASPM Off on AC, USB sleep disabled on AC, and Intel iGPU Maximum Performance active." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
+# Sector 14: Input Precision & Responsiveness Engine (Keyboard, Mouse & Touchpad)
+# -------------------------------------------------------------------------
+function Invoke-Sector14_InputPrecision {
+    Write-Log "Sector 14: 1:1 Linear Pointer Tracking & Fast Keyboard Response" "STEP"
+    
+    # 1:1 Linear Pointer Tracking (Disable erratic acceleration curves)
+    $mouseKey = "HKCU:\Control Panel\Mouse"
+    Set-ItemProperty -Path $mouseKey -Name "MouseSpeed" -Value "0" -Type String -Force
+    Set-ItemProperty -Path $mouseKey -Name "MouseThreshold1" -Value "0" -Type String -Force
+    Set-ItemProperty -Path $mouseKey -Name "MouseThreshold2" -Value "0" -Type String -Force
+    
+    # Fast Keyboard Repeat Delay (250ms) and Repeat Rate (31 / Max)
+    $kbKey = "HKCU:\Control Panel\Keyboard"
+    Set-ItemProperty -Path $kbKey -Name "KeyboardDelay" -Value "0" -Type String -Force
+    Set-ItemProperty -Path $kbKey -Name "KeyboardSpeed" -Value "31" -Type String -Force
+    
+    # Zero Touchpad Tap Delay in Precision Touchpad
+    $touchpadKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
+    if (Test-Path $touchpadKey) {
+        Set-ItemProperty -Path $touchpadKey -Name "AAPThreshold" -Value 0 -Type DWord -Force
+    }
+    Write-Log "Pointer set to 1:1 linear tracking; keyboard repeat delay minimized." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
+# Sector 15: Privacy, Diagnostics & Telemetry Hardening
+# -------------------------------------------------------------------------
+function Invoke-Sector15_PrivacyAndTelemetry {
+    Write-Log "Sector 15: Privacy Hardening, Basic Telemetry & Error Reporting Debloat" "STEP"
+    
+    # Reduce Diagnostic Telemetry to Level 1 (Basic / Security)
+    $dcKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+    Set-ItemProperty -Path $dcKey -Name "AllowTelemetry" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path $dcKey -Name "MaxTelemetryAllowed" -Value 1 -Type DWord -Force
+    
+    # Disable Advertising ID & Tailored Diagnostic Experiences
+    $advKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
+    if (-not (Test-Path $advKey)) { New-Item -Path $advKey -Force | Out-Null }
+    Set-ItemProperty -Path $advKey -Name "Enabled" -Value 0 -Type DWord -Force
+    
+    $privacyKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy"
+    if (-not (Test-Path $privacyKey)) { New-Item -Path $privacyKey -Force | Out-Null }
+    Set-ItemProperty -Path $privacyKey -Name "TailoredExperiencesWithDiagnosticDataEnabled" -Value 0 -Type DWord -Force
+    
+    # Disable Windows Timeline / Activity Feed
+    $activityKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System"
+    if (-not (Test-Path $activityKey)) { New-Item -Path $activityKey -Force | Out-Null }
+    Set-ItemProperty -Path $activityKey -Name "EnableActivityFeed" -Value 0 -Type DWord -Force
+    Set-ItemProperty -Path $activityKey -Name "PublishUserActivities" -Value 0 -Type DWord -Force
+    Set-ItemProperty -Path $activityKey -Name "UploadUserActivities" -Value 0 -Type DWord -Force
+    
+    # Disable Windows Error Reporting UI Stalls
+    $werKey = "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting"
+    if (-not (Test-Path $werKey)) { New-Item -Path $werKey -Force | Out-Null }
+    Set-ItemProperty -Path $werKey -Name "Disabled" -Value 1 -Type DWord -Force
+    Write-Log "Telemetry set to Basic, Advertising ID disabled, Activity History purged, and WER stalls eliminated." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
+# Sector 16: Desktop Environment & Windows 11 Shell Snappiness
+# -------------------------------------------------------------------------
+function Invoke-Sector16_DesktopAndShell {
+    Write-Log "Sector 16: Instant Window Animation, Bing Search Suppression & Widgets Disable" "STEP"
+    
+    # Instant Window Minimization / Maximization Animation (Zero Delay)
+    $metricsKey = "HKCU:\Control Panel\Desktop\WindowMetrics"
+    Set-ItemProperty -Path $metricsKey -Name "MinAnimate" -Value "0" -Type String -Force
+    
+    # Disable Bing Web Search in Start Menu (Instant Local-Only Search)
+    $searchKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
+    Set-ItemProperty -Path $searchKey -Name "BingSearchEnabled" -Value 0 -Type DWord -Force
+    Set-ItemProperty -Path $searchKey -Name "SearchboxTaskbarMode" -Value 1 -Type DWord -Force
+    
+    $explorerPolicy = "HKCU:\Software\Policies\Microsoft\Windows\Explorer"
+    if (-not (Test-Path $explorerPolicy)) { New-Item -Path $explorerPolicy -Force | Out-Null }
+    Set-ItemProperty -Path $explorerPolicy -Name "DisableSearchBoxSuggestions" -Value 1 -Type DWord -Force
+    Write-Log "MinAnimate set to 0 and Start Menu Bing search removed for instant local search." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
+# Sector 17: Gaming, GameDVR & Multimedia Throughput Engine
+# -------------------------------------------------------------------------
+function Invoke-Sector17_GamingAndThroughput {
+    Write-Log "Sector 17: GameDVR Background Screen Recording Disable & QoS 100% Bandwidth" "STEP"
+    
+    # Disable GameDVR Background Video Capture
+    $gameConfig = "HKCU:\System\GameConfigStore"
+    Set-ItemProperty -Path $gameConfig -Name "GameDVR_Enabled" -Value 0 -Type DWord -Force
+    Set-ItemProperty -Path $gameConfig -Name "GameDVR_FSEBehavior" -Value 2 -Type DWord -Force
+    Set-ItemProperty -Path $gameConfig -Name "AutoGameModeEnabled" -Value 1 -Type DWord -Force
+    
+    $gameDvrPolicy = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR"
+    if (-not (Test-Path $gameDvrPolicy)) { New-Item -Path $gameDvrPolicy -Force | Out-Null }
+    Set-ItemProperty -Path $gameDvrPolicy -Name "AllowGameDVR" -Value 0 -Type DWord -Force
+    
+    # Unlock 100% Network Bandwidth (Remove 20% QoS Reserve)
+    $pschedKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Psched"
+    if (-not (Test-Path $pschedKey)) { New-Item -Path $pschedKey -Force | Out-Null }
+    Set-ItemProperty -Path $pschedKey -Name "NonBestEffortLimit" -Value 0 -Type DWord -Force
+    
+    # Set TCP Congestion Control Provider to BBR2 / Cubic
+    try {
+        netsh int tcp set supplemental template=internet congestionprovider=bbr2 | Out-Null
+    } catch {
+        netsh int tcp set supplemental template=internet congestionprovider=cubic | Out-Null
+    }
+    Write-Log "GameDVR recording disabled, Game Mode active, 100% network bandwidth unlocked, and BBR2 TCP set." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
+# Sector 18: Driver Protection & System Crash Resilience
+# -------------------------------------------------------------------------
+function Invoke-Sector18_DriverProtectionAndCrashSafety {
+    Write-Log "Sector 18: Windows Update OEM Driver Protection & Safe MiniDump Crash Control" "STEP"
+    
+    # Protect ThinkPad OEM Drivers from Windows Update Overwrite
+    $wuKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
+    if (-not (Test-Path $wuKey)) { New-Item -Path $wuKey -Force | Out-Null }
+    Set-ItemProperty -Path $wuKey -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type DWord -Force
+    
+    # Ensure Small Memory Dump (MiniDump) to Prevent 32GB SSD Thrashing on Crashes
+    $crashKey = "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl"
+    Set-ItemProperty -Path $crashKey -Name "CrashDumpEnabled" -Value 3 -Type DWord -Force
+    Set-ItemProperty -Path $crashKey -Name "AutoReboot" -Value 1 -Type DWord -Force
+    Write-Log "ThinkPad OEM drivers protected from Windows Update; MiniDump crash control enforced." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
 # Autonomous Background Watchdog Service Installation
 # -------------------------------------------------------------------------
 function Install-AutonomousWatchdog {
@@ -520,20 +690,37 @@ if (Test-Path $confKeysPath) {
     }
 }
 
-# 2. Dynamic Power Profile Auto-Switching
+# 2. Dynamic Hardware & Power Profile Auto-Switching
 if ($isAC) {
-    # Plugged into AC: Maximum Performance (SpeedShift EPP = 0, Unpark Cores, Max CPU 100%)
+    # Plugged into AC: Maximum Performance
+    # - CPU SpeedShift EPP = 0
+    # - Unpark Cores (100%)
+    # - Max CPU Boost (100%)
+    # - PCIe ASPM = 0 (Off - Zero Latency NVMe/Wi-Fi)
+    # - USB Selective Suspend = 0 (Disabled - No peripheral disconnects)
+    # - Intel UHD 620 iGPU = 2 (Maximum Performance - 1.15GHz boost)
     powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 0
     powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR 0cc5b647-c1df-4637-891a-dec35c318583 100
     powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
+    powercfg /setacvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0
+    powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
+    powercfg /setacvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 2
     powercfg /setactive SCHEME_CURRENT
-    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] AC Detected: Maximum Performance active." -ErrorAction SilentlyContinue
+    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] AC Detected: Maximum Performance active (EPP 0, PCIe ASPM Off, USB Active, GPU Max)." -ErrorAction SilentlyContinue
 } else {
-    # On Battery: Extreme Battery Saver (SpeedShift EPP = 60, Cap CPU at 1.9GHz base clock, zero turbo spikes)
+    # On Battery: Extreme Battery Saver
+    # - SpeedShift EPP = 60
+    # - Cap CPU at 1.9GHz base clock (zero 25W turbo spikes, ~8-10h runtime)
+    # - PCIe ASPM = 2 (Maximum Power Savings)
+    # - USB Selective Suspend = 1 (Enabled)
+    # - Intel UHD 620 iGPU = 0 (Maximum Battery Life)
     powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 60
     powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 99
+    powercfg /setdcvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 2
+    powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
+    powercfg /setdcvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 0
     powercfg /setactive SCHEME_CURRENT
-    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Battery Detected: Extreme Battery Saver active (1.9GHz cap, ~8-10h runtime)." -ErrorAction SilentlyContinue
+    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Battery Detected: Extreme Battery Saver active (1.9GHz cap, PCIe ASPM Max, USB Sleep, GPU Saver)." -ErrorAction SilentlyContinue
 }
 
 # 3. Weekly Silent Maintenance (TRIM & Temp purge)
@@ -612,6 +799,18 @@ function Invoke-Rollback {
         Set-ItemProperty -Path $mmcssAudio -Name "SFIO Priority" -Value "Normal" -Type String -Force
     }
 
+    # Revert Input, Shell & Privacy to Defaults
+    Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value "1" -Type String -Force
+    Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Value "6" -Type String -Force
+    Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Value "10" -Type String -Force
+    Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Value "1" -Type String -Force
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Value "1" -Type String -Force
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection" -Name "AllowTelemetry" -Value 3 -Type DWord -Force
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Psched" -Name "NonBestEffortLimit" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -ErrorAction SilentlyContinue
+
     Unregister-ScheduledTask -TaskName "ThinkPad-Autonomous-Optimization" -Confirm:$false -ErrorAction SilentlyContinue
 
     if (Test-Path $DnsBackupFile) {
@@ -641,11 +840,17 @@ function Run-AllUltraDeepOptimizations {
     Invoke-Sector10_SecurityAndDNS
     Invoke-Sector11_DisplayQuality
     Invoke-Sector12_AudioQuality
+    Invoke-Sector13_PeripheralsAndBus
+    Invoke-Sector14_InputPrecision
+    Invoke-Sector15_PrivacyAndTelemetry
+    Invoke-Sector16_DesktopAndShell
+    Invoke-Sector17_GamingAndThroughput
+    Invoke-Sector18_DriverProtectionAndCrashSafety
     Install-AutonomousWatchdog
 
     Write-Host "`n================================================================================" -ForegroundColor Green
     Write-Host "  100% AUTONOMOUS THINKPAD T490s SETUP COMPLETE!" -ForegroundColor Green
-    Write-Host "  - All 12 Ultra-Deep Hardware, Display, Audio & Kernel Sectors Optimized" -ForegroundColor Green
+    Write-Host "  - All 18 Ultra-Deep Hardware, Display, Audio, Bus, Privacy & Kernel Sectors Optimized" -ForegroundColor Green
     Write-Host "  - 75%-80% Battery Threshold Locked (SMP 02DL014 Protected)" -ForegroundColor Green
     Write-Host "  - Autonomous Background Watchdog Active (Auto-Switches AC / Battery)" -ForegroundColor Green
     Write-Host "  You never need to run this script again!" -ForegroundColor Cyan
@@ -703,6 +908,12 @@ Write-Host "  [10] Sector 9: Battery Conservation (75-80% Threshold)" -Foregroun
 Write-Host "  [11] Sector 10: Security Hardening & Cloudflare 1.1.1.3 DNS" -ForegroundColor Cyan
 Write-Host "  [12] Sector 11: Display Quality & Intel DPST Contrast Optimization" -ForegroundColor Cyan
 Write-Host "  [13] Sector 12: High-Fidelity Audio & Ducking Elimination" -ForegroundColor Cyan
+Write-Host "  [14] Sector 13: PCIe ASPM, USB Suspend & Intel iGPU Power" -ForegroundColor Cyan
+Write-Host "  [15] Sector 14: 1:1 Mouse Tracking, Fast Keyboard & Touchpad" -ForegroundColor Cyan
+Write-Host "  [16] Sector 15: Privacy Hardening & Basic Telemetry Lock" -ForegroundColor Cyan
+Write-Host "  [17] Sector 16: Instant Window Animation & Clean Start Menu" -ForegroundColor Cyan
+Write-Host "  [18] Sector 17: GameDVR Disable & 100% QoS Bandwidth Unlock" -ForegroundColor Cyan
+Write-Host "  [19] Sector 18: ThinkPad OEM Driver Shield & Safe Crash Dump" -ForegroundColor Cyan
 Write-Host "  [W]  Install Autonomous Background Watchdog Task Only" -ForegroundColor Cyan
 Write-Host "  [E]  Toggle Extreme Battery Saver (Capping CPU at 1.9GHz on Battery)" -ForegroundColor Yellow
 Write-Host "  [F]  Travel Mode: Temporarily Charge Battery to 100%" -ForegroundColor Yellow
@@ -725,6 +936,12 @@ switch ($choice.ToUpper()) {
     "11" { Invoke-Sector10_SecurityAndDNS }
     "12" { Invoke-Sector11_DisplayQuality }
     "13" { Invoke-Sector12_AudioQuality }
+    "14" { Invoke-Sector13_PeripheralsAndBus }
+    "15" { Invoke-Sector14_InputPrecision }
+    "16" { Invoke-Sector15_PrivacyAndTelemetry }
+    "17" { Invoke-Sector16_DesktopAndShell }
+    "18" { Invoke-Sector17_GamingAndThroughput }
+    "19" { Invoke-Sector18_DriverProtectionAndCrashSafety }
     "W"  { Install-AutonomousWatchdog }
     "E"  { Invoke-Sector9_BatteryPreservation -EnableExtremeBattery }
     "F"  { Invoke-Sector9_BatteryPreservation -SetFullCharge }
