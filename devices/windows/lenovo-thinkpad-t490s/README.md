@@ -59,7 +59,7 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 
 ---
 
-## 🔬 The 10 Ultra-Deep Optimization Sectors
+## 🔬 The 12 Ultra-Deep Optimization Sectors
 
 1. **CPU SpeedShift EPP & Core Unparking**: SpeedShift EPP set to `0` on AC (instant clock scaling) and all 8 logical threads unparked on charger.
 2. **32GB RAM Architecture**: Windows Memory Compression disabled (`Disable-MMAgent -MemoryCompression`), eliminating CPU decompression micro-stutter; kernel locked in physical RAM (`DisablePagingExecutive = 1`).
@@ -71,6 +71,8 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 8. **Services Demand-Start & Telemetry Debloat**: Non-essential services (`MapsBroker`, `WerSvc`, `RetailDemo`, `DiagTrack`) converted to Manual (Demand-Start) to guarantee 0% idle CPU waste.
 9. **Continuous Battery Preservation & Extreme Battery Mode**: Permanent 75%-80% threshold enforcement + automatic 1.9GHz clock capping on battery.
 10. **Security & DNS Hardening**: Defender RTP, Firewall active on all profiles, and Cloudflare 1.1.1.3 Family DNS with automated backup.
+11. **Display Quality & Visual Clarity Engine**: Disables Intel DPST (Display Power Saving Technology / Adaptive Contrast Dimming via `FeatureTestControl = 0x8210`) to eliminate washed-out dark scenes and sudden stepping; activates ClearType 2.0 RGB subpixel rendering (`Gamma 1400`) for pinpoint font sharpness.
+12. **High-Fidelity Audio & Realtek Low-Latency Stack**: Disables Windows Communication Audio Ducking (`UserDuckingPreference = 3`), eliminating 80% volume drop during Discord/Teams calls; elevates MMCSS Audio Task priority (`Priority 6, High Scheduling, SFIO High, Latency Sensitive`) to prevent audio buffer underruns and crackling.
 
 ---
 
