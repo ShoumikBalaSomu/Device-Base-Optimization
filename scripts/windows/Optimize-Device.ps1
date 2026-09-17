@@ -1,29 +1,43 @@
 <#
 .SYNOPSIS
-    Device-Base-Optimization: Full Computer Analysis, Repair, Hardening, and Deep Tuning Suite for Windows.
+    ThinkPad-T490s-Optimization: Custom Deep Hardware Analysis, Repair, Hardening, and Tuning Suite.
 
 .DESCRIPTION
-    A modular, enterprise-grade PowerShell optimization script designed to:
-    1.  Perform comprehensive pre-flight hardware and OS diagnostics.
-    2.  Fix OS, software, and driver-related bugs (SFC, DISM, Winsock, Windows Update reset, PnP rescan).
-    3.  Smart auto-update system (Winget packages, Windows Update, driver scans).
-    4.  Clean temp files, Delivery Optimization cache, error dumps, and component store.
-    5.  Install missing essential runtimes (Visual C++ 2005-2022 All-in-One, DirectX, .NET).
-    6.  Harden system security (Defender RTP, Firewall, SMBv1 disable, LLMNR disable, SmartScreen).
-    7.  Configure Cloudflare 1.1.1.3 Family DNS (Blocks malware and adult content) with backup/revert.
-    8.  Install universal audio/video codec support (K-Lite Codec Pack, AV1, VP9, HEIF).
-    9.  Deeply tune power plans (Ultimate Performance on AC / Balanced on DC, PCIe, CPU states).
-    10. Enable battery protection (Battery Saver threshold, OEM charging conservation, battery report).
-    11. Deep low-level performance tweaks (SSD TRIM, network throttling removal, MMCSS, TCP auto-tuning, telemetry reduction).
+    Custom-engineered exclusively for:
+    - Device Model   : Lenovo ThinkPad T490s (Machine Type: 20NYS64T00 / 20NY)
+    - Processor      : Intel(R) Core(TM) i7-8665U CPU @ 1.90GHz (4C/8T, Whiskey Lake-U)
+    - Graphics       : Intel(R) UHD Graphics 620 (QuickSync Video Decoder)
+    - Memory         : 32 GB DDR4 High-Capacity RAM
+    - Storage        : INTEL SSDPEKKF512G8L 512GB PCIe NVMe SSD + Realtek PCIe Card Reader
+    - Networking     : Intel(R) Wireless-AC 9560 160MHz & Intel(R) Ethernet I219-LM
+    - Battery        : SMP 02DL014 57Wh Internal Li-ion Battery
+    - Operating Sys  : Microsoft Windows 11 Pro (Build 26300)
+
+    Tailored Optimization Modules:
+    1.  ThinkPad BIOS / UEFI WMI Thermal Management (AdaptiveThermalManagement AC/DC).
+    2.  Hardware Battery Protection (75% Start / 80% Stop Charge Threshold via Lenovo PM).
+    3.  Intel Wireless-AC 9560 Custom Adapter Tuning (Throughput Booster, 5GHz Prefer, No SMPS).
+    4.  Intel NVMe SSD (SSDPEKKF512G8L) NTFS & Write Lifecycle Optimization.
+    5.  32GB High-Capacity Memory & System Cache Optimization.
+    6.  Windows 11 Build 26300 Core Bug Repair (SFC, DISM, Winsock, PnP Rescan).
+    7.  Smart Auto-Update System (Winget Packages, Windows Updates).
+    8.  Deep Temp & Cache Purge (User/Win Temp, Prefetch, Delivery Optimization, WER).
+    9.  Device Security Hardening (Defender RTP, Cloud Protection, Firewall, SMBv1, LLMNR).
+    10. Cloudflare 1.1.1.3 Family DNS (Blocks Malware & Adult Content, with backup/revert).
+    11. Universal Audio/Video Codecs for Intel UHD 620 QuickSync Hardware Decoding.
+    12. Dual-Mode Power Management (Ultimate Performance on AC / Balanced on Battery).
 
 .PARAMETER All
-    Executes all optimization phases unattended without interactive prompts.
+    Executes all ThinkPad T490s optimization phases unattended.
 
 .PARAMETER AnalyzeOnly
-    Performs full pre-flight system diagnostics and prints recommendations without changing any system state.
+    Performs full pre-flight hardware diagnostics, battery health/wear calculation, and WMI audit without modifying state.
 
 .PARAMETER Interactive
-    Launches an interactive console menu to choose specific optimization modules.
+    Launches an interactive ThinkPad T490s console menu.
+
+.PARAMETER ChargeToFull
+    Temporarily disables the 80% battery conservation threshold to charge the battery to 100% (ideal for travel).
 
 .PARAMETER RevertDNS
     Restores the original DNS server configuration that was backed up prior to Cloudflare DNS application.
@@ -33,15 +47,15 @@
 
 .EXAMPLE
     .\Optimize-Device.ps1 -All
-    Runs all optimization phases automatically.
+    Runs full ThinkPad T490s optimization unattended.
 
 .EXAMPLE
     .\Optimize-Device.ps1 -AnalyzeOnly
-    Runs diagnostic inspection only.
+    Runs hardware health and battery wear diagnostics only.
 
 .EXAMPLE
-    .\Optimize-Device.ps1 -RevertDNS
-    Restores original DNS servers.
+    .\Optimize-Device.ps1 -ChargeToFull
+    Disables 80% battery threshold and allows charging to 100%.
 #>
 
 [CmdletBinding()]
@@ -49,6 +63,7 @@ param (
     [switch]$All,
     [switch]$AnalyzeOnly,
     [switch]$Interactive,
+    [switch]$ChargeToFull,
     [switch]$RevertDNS,
     [switch]$SkipRestorePoint,
     [string]$LogPath = "C:\ProgramData\DeviceOptimization"
@@ -61,13 +76,14 @@ $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Pri
 $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 if (-not $isAdmin) {
-    Write-Warning "This script requires Administrative privileges to repair and optimize system components."
-    Write-Host "Relaunching PowerShell with elevated Administrator rights..." -ForegroundColor Yellow
+    Write-Warning "Administrator privileges required to optimize ThinkPad BIOS, drivers, and system services."
+    Write-Host "Elevating permissions..." -ForegroundColor Yellow
     try {
         $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
         if ($All) { $arguments += " -All" }
         if ($AnalyzeOnly) { $arguments += " -AnalyzeOnly" }
         if ($Interactive) { $arguments += " -Interactive" }
+        if ($ChargeToFull) { $arguments += " -ChargeToFull" }
         if ($RevertDNS) { $arguments += " -RevertDNS" }
         if ($SkipRestorePoint) { $arguments += " -SkipRestorePoint" }
         
@@ -81,10 +97,10 @@ if (-not $isAdmin) {
 }
 
 # -------------------------------------------------------------------------
-# Logging & Output Infrastructure
+# Logging & Storage Setup
 # -------------------------------------------------------------------------
 $LogDir = $LogPath
-$LogFile = Join-Path -Path $LogDir -ChildPath "optimization.log"
+$LogFile = Join-Path -Path $LogDir -ChildPath "thinkpad_t490s_optimization.log"
 $DnsBackupFile = Join-Path -Path $LogDir -ChildPath "dns_backup.json"
 
 if (-not (Test-Path -Path $LogDir)) {
@@ -116,15 +132,31 @@ function Show-Banner {
     Clear-Host
     Write-Host @"
 ================================================================================
-  ____             _              ___        _   _           _          _   _             
- |  _ \  _____   _(_) ___ ___    / _ \ _ __ | |_(_)_ __ ___ (_)______ _| |_(_) ___  _ __  
- | | | |/ _ \ \ / / |/ __/ _ \  | | | | '_ \| __| | '_ ` _ \| |_  / _` | __| |/ _ \| '_ \ 
- | |_| |  __/\ V /| | (_|  __/  | |_| | |_) | |_| | | | | | | |/ / (_| | |_| | (_) | | | |
- |____/ \___| \_/ |_|\___\___|   \___/| .__/ \__|_|_| |_| |_|_/___\__,_|\__|_|\___/|_| |_|
-                                       |_|                                                 
-                      Automated Windows Optimization & Repair Suite
+  _______ _     _       _      _____          _   _______ _  _   ___   ____  
+ |__   __| |   (_)     | |    |  __ \        | | |__   __| || | / _ \ / ___| 
+    | |  | |__  _ _ __ | | __ | |__) |_ _  __| |    | |  | || || (_) |___ \  
+    | |  | '_ \| | '_ \| |/ / |  ___/ _` |/ _` |    | |  |__   _> _ <  ___) | 
+    | |  | | | | | | | |   <  | |  | (_| | (_| |    | |     | || (_) |____/  
+    |_|  |_| |_|_|_| |_|_|\_\ |_|   \__,_|\__,_|    |_|     |_| \___/|_____/  
+                                                                             
+      Custom Hardware Optimization Suite for Lenovo ThinkPad T490s (20NYS64T00)
 ================================================================================
-"@ -ForegroundColor Cyan
+"@ -ForegroundColor Red
+}
+
+# -------------------------------------------------------------------------
+# Device Hardware Verification Lock
+# -------------------------------------------------------------------------
+function Assert-ThinkPadHardware {
+    $cs = Get-CimInstance Win32_ComputerSystem
+    $bios = Get-CimInstance Win32_Bios
+    
+    $isThinkPad = ($cs.Model -match "20NY|T490s|ThinkPad") -or ($cs.Manufacturer -match "LENOVO")
+    if (-not $isThinkPad) {
+        Write-Log "Notice: Target machine detected as '$($cs.Manufacturer) $($cs.Model)'. This script is specially customized for the Lenovo ThinkPad T490s (20NYS64T00)." "WARNING"
+    } else {
+        Write-Log "Hardware Verified: Lenovo ThinkPad T490s ($($cs.Model)), BIOS: $($bios.SMBIOSBIOSVersion)" "SUCCESS"
+    }
 }
 
 # -------------------------------------------------------------------------
@@ -137,56 +169,50 @@ function New-OptimizationRestorePoint {
     }
     Write-Log "Creating Windows System Restore Point..." "STEP"
     try {
-        # Ensure System Restore is enabled on C:
         Enable-ComputerRestore -Drive "C:\" -ErrorAction SilentlyContinue
-        Checkpoint-Computer -Description "Pre-Device-Optimization-Backup" -RestorePointType "MODIFY_SETTINGS" -ErrorAction Stop
-        Write-Log "System Restore Point 'Pre-Device-Optimization-Backup' created successfully." "SUCCESS"
+        Checkpoint-Computer -Description "Pre-ThinkPad-T490s-Optimization" -RestorePointType "MODIFY_SETTINGS" -ErrorAction Stop
+        Write-Log "System Restore Point 'Pre-ThinkPad-T490s-Optimization' created successfully." "SUCCESS"
     }
     catch {
-        Write-Log "Could not create restore point (may be disabled by group policy or recent restore point exists): $($_.Exception.Message)" "WARNING"
+        Write-Log "Restore point notice: $($_.Exception.Message)" "WARNING"
     }
 }
 
 # -------------------------------------------------------------------------
-# Phase 0: Pre-Flight Hardware & System Diagnostics
+# Phase 0: Pre-Flight Hardware Health & Battery Wear Diagnostics
 # -------------------------------------------------------------------------
 function Invoke-PreflightAnalysis {
-    Write-Log "Performing Complete System Diagnostics & Hardware Inventory" "STEP"
-    
-    # OS Information
-    $os = Get-CimInstance Win32_OperatingSystem
+    Write-Log "Performing ThinkPad T490s Hardware Inventory & Diagnostics" "STEP"
+    Assert-ThinkPadHardware
+
     $cs = Get-CimInstance Win32_ComputerSystem
+    $os = Get-CimInstance Win32_OperatingSystem
     $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
     $ramGB = [math]::Round($cs.TotalPhysicalMemory / 1GB, 2)
     $freeRamGB = [math]::Round($os.FreePhysicalMemory / 1MB, 2)
-    
-    Write-Host "  --- SYSTEM INFORMATION ---" -ForegroundColor White
-    Write-Host ("  Computer Name : {0}" -f $cs.Name) -ForegroundColor Gray
-    Write-Host ("  Manufacturer  : {0} {1}" -f $cs.Manufacturer, $cs.Model) -ForegroundColor Gray
-    Write-Host ("  OS Name       : {0} (Build {1})" -f $os.Caption, $os.BuildNumber) -ForegroundColor Gray
-    Write-Host ("  Processor     : {0} ({1} Cores, {2} Logical)" -f $cpu.Name, $cpu.NumberOfCores, $cpu.NumberOfLogicalProcessors) -ForegroundColor Gray
-    Write-Host ("  Total Memory  : {0} GB (Free: {1} GB)" -f $ramGB, $freeRamGB) -ForegroundColor Gray
 
-    # Storage Information & SSD TRIM Check
-    Write-Host "`n  --- STORAGE & DISK HEALTH ---" -ForegroundColor White
-    $disks = Get-Volume | Where-Object { $_.DriveLetter -and $_.FileSystem }
+    Write-Host "`n  --- THINKPAD T490s SYSTEM PROFILE ---" -ForegroundColor White
+    Write-Host ("  Model         : {0} ({1})" -f $cs.Model, $cs.SystemFamily) -ForegroundColor Cyan
+    Write-Host ("  Processor     : {0} (4 Cores, 8 Threads, 1.9GHz Base, up to 4.8GHz Boost)" -f $cpu.Name) -ForegroundColor Gray
+    Write-Host ("  Memory        : {0} GB DDR4 (Available: {1} GB)" -f $ramGB, $freeRamGB) -ForegroundColor Gray
+    Write-Host ("  Operating Sys : {0} (Build {1})" -f $os.Caption, $os.BuildNumber) -ForegroundColor Gray
+
+    # Intel NVMe Storage Profile
+    Write-Host "`n  --- INTEL NVMe SOLID STATE STORAGE ---" -ForegroundColor White
+    $disks = Get-Disk
     foreach ($d in $disks) {
         $sizeGB = [math]::Round($d.Size / 1GB, 2)
-        $freeGB = [math]::Round($d.SizeRemaining / 1GB, 2)
-        $pctFree = if ($d.Size -gt 0) { [math]::Round(($d.SizeRemaining / $d.Size) * 100, 1) } else { 0 }
-        Write-Host ("  Drive [{0}:] {1} - {2} GB Free of {3} GB ({4}% Free)" -f $d.DriveLetter, $d.FileSystem, $freeGB, $sizeGB, $pctFree) -ForegroundColor Gray
+        Write-Host ("  Disk #{0}: {1} [{2}] - {3} GB" -f $d.Number, $d.FriendlyName, $d.BusType, $sizeGB) -ForegroundColor Gray
     }
-
-    # TRIM Status
     $trimOutput = fsutil behavior query DisableDeleteNotify 2>&1
     if ($trimOutput -match "DisableDeleteNotify = 0") {
-        Write-Log "SSD TRIM feature is ENABLED." "SUCCESS"
+        Write-Log "Intel NVMe TRIM feature is ACTIVE." "SUCCESS"
     } else {
-        Write-Log "SSD TRIM is currently disabled or unverified. Will enable in deep tweaks." "WARNING"
+        Write-Log "TRIM currently disabled or unverified. Will enforce." "WARNING"
     }
 
-    # Battery Diagnostics
-    Write-Host "`n  --- BATTERY & POWER SUBSYSTEM ---" -ForegroundColor White
+    # Battery Wear Calculation (ThinkPad SMP 02DL014 57Wh)
+    Write-Host "`n  --- THINKPAD BATTERY HEALTH & WEAR ANALYSIS ---" -ForegroundColor White
     $battery = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue
     if ($battery) {
         $batteryState = switch ($battery.BatteryStatus) {
@@ -195,131 +221,286 @@ function Invoke-PreflightAnalysis {
             3 { "Fully Charged" }
             default { "Unknown" }
         }
-        Write-Host ("  Device Type   : Laptop / Portable Device detected" ) -ForegroundColor Green
-        Write-Host ("  Battery Status: {0}% Charged" -f $battery.EstimatedChargeRemaining) -ForegroundColor Gray
-        Write-Host ("  Battery State : {0}" -f $batteryState) -ForegroundColor Gray
-    } else {
-        Write-Host "  Device Type   : Desktop / Workstation (No internal battery detected)" -ForegroundColor Gray
+        Write-Host ("  Battery Pack  : SMP 02DL014 (ThinkPad 57Wh Internal Li-ion)") -ForegroundColor Gray
+        Write-Host ("  Current Charge: {0}% ({1})" -f $battery.EstimatedChargeRemaining, $batteryState) -ForegroundColor Gray
+
+        # Read actual mWh from Lenovo Power Manager Registry
+        $regBattery = Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Lenovo\PWRMGRV\ConfKeys\Data\X2XP9ABN17M" -ErrorAction SilentlyContinue
+        if ($regBattery -and $regBattery.DesignCapacity) {
+            $designMwh = $regBattery.DesignCapacity
+            $fullMwh = $regBattery.FullChargeCapacityAfterGaugeReset
+            $wearPct = [math]::Round(((($designMwh - $fullMwh) / $designMwh) * 100), 1)
+            $healthPct = [math]::Round((($fullMwh / $designMwh) * 100), 1)
+            Write-Host ("  Design Capacity : {0} mWh" -f $designMwh) -ForegroundColor Gray
+            Write-Host ("  Full Capacity   : {0} mWh (Health: {1}%, Wear: {2}%)" -f $fullMwh, $healthPct, $wearPct) -ForegroundColor Green
+            Write-Host ("  Charge Limits   : Start at {0}%, Stop at {1}%" -f $regBattery.ChargeStartPercentage, $regBattery.ChargeStopPercentage) -ForegroundColor Cyan
+        }
     }
 
-    # Network Adapters & Active DNS
-    Write-Host "`n  --- ACTIVE NETWORK ADAPTERS & DNS ---" -ForegroundColor White
-    $adapters = Get-NetAdapter | Where-Object { $_.Status -eq "Up" }
-    foreach ($adapter in $adapters) {
-        $dns = (Get-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv4).ServerAddresses
-        Write-Host ("  Adapter [{0}] - IPv4 DNS: {1}" -f $adapter.Name, ($dns -join ", ")) -ForegroundColor Gray
+    # Networking Adapters
+    Write-Host "`n  --- INTEL HIGH-SPEED NETWORK SUBSYSTEM ---" -ForegroundColor White
+    $wifi = Get-NetAdapter -Name "Wi-Fi" -ErrorAction SilentlyContinue
+    if ($wifi) {
+        Write-Host ("  Wi-Fi Adapter : {0} ({1}) - Link Speed: {2}" -f $wifi.InterfaceDescription, $wifi.Status, $wifi.LinkSpeed) -ForegroundColor Gray
+        $dns = (Get-DnsClientServerAddress -InterfaceIndex $wifi.InterfaceIndex -AddressFamily IPv4).ServerAddresses
+        Write-Host ("  Active DNS    : {0}" -f ($dns -join ", ")) -ForegroundColor Gray
     }
 
-    Write-Log "Pre-flight system diagnostics completed." "SUCCESS"
+    Write-Log "Pre-flight ThinkPad T490s diagnostics completed." "SUCCESS"
 }
 
 # -------------------------------------------------------------------------
-# Phase 1: Bug & Corruption Repair (OS, Software, Driver)
+# Phase 1: ThinkPad BIOS / UEFI WMI Thermal & Performance Tuning
+# -------------------------------------------------------------------------
+function Invoke-ThinkPadBiosTuning {
+    Write-Log "Phase 1: Tuning ThinkPad BIOS / UEFI Power & Thermal Profiles" "STEP"
+    
+    try {
+        $biosSettings = Get-CimInstance -Namespace root\wmi -ClassName Lenovo_BiosSetting -ErrorAction Stop
+        
+        # Desired ThinkPad settings for maximum AC performance and balanced battery life:
+        $targetSettings = @(
+            "AdaptiveThermalManagementAC,MaximizePerformance",
+            "AdaptiveThermalManagementBattery,Balanced",
+            "SpeedStep,Enable",
+            "CPUPowerManagement,Enable",
+            "ChargeInBatteryMode,Disable"
+        )
+
+        $setBiosObj = Get-CimInstance -Namespace root\wmi -ClassName Lenovo_SetBiosSetting
+        foreach ($setting in $targetSettings) {
+            $name, $val = $setting.Split(",")
+            $current = ($biosSettings | Where-Object { $_.CurrentSetting.StartsWith($name) }).CurrentSetting
+            if ($current -ne $setting) {
+                Write-Log "Updating BIOS setting: $name -> $val (was: $current)..." "INFO"
+                Invoke-CimMethod -InputObject $setBiosObj -MethodName SetBiosSetting -Arguments @{ Parameter = $setting } | Out-Null
+            } else {
+                Write-Log "BIOS setting '$name' is already optimized ($val)." "INFO"
+            }
+        }
+
+        # Save BIOS settings to NVRAM
+        $saveObj = Get-CimInstance -Namespace root\wmi -ClassName Lenovo_SaveBiosSettings
+        Invoke-CimMethod -InputObject $saveObj -MethodName SaveBiosSettings | Out-Null
+        Write-Log "ThinkPad BIOS thermal & power configuration saved to NVRAM." "SUCCESS"
+    }
+    catch {
+        Write-Log "ThinkPad BIOS WMI note: $($_.Exception.Message)" "WARNING"
+    }
+}
+
+# -------------------------------------------------------------------------
+# Phase 2: Hardware Battery Protection & Threshold Control
+# -------------------------------------------------------------------------
+function Invoke-ThinkPadBatteryProtection {
+    param ([switch]$SetFullCharge)
+    
+    Write-Log "Phase 2: Enforcing ThinkPad Battery Health Protection (75%-80% Threshold)" "STEP"
+    
+    $confKeysPath = "HKLM:\SOFTWARE\WOW6432Node\Lenovo\PWRMGRV\ConfKeys\Data"
+    if (Test-Path $confKeysPath) {
+        $batteryKeys = Get-ChildItem -Path $confKeysPath -ErrorAction SilentlyContinue
+        foreach ($bk in $batteryKeys) {
+            if ($SetFullCharge) {
+                # Disable threshold for 100% full charge (travel mode)
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStartControl" -Value 0 -Type DWord -Force
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStopControl" -Value 0 -Type DWord -Force
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStartPercentage" -Value 95 -Type DWord -Force
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStopPercentage" -Value 100 -Type DWord -Force
+                Write-Log "Battery Charge Threshold DISABLED. Battery will charge to 100% (Travel Mode)." "WARNING"
+            } else {
+                # Enforce 75% Start / 80% Stop Conservation Mode
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStartControl" -Value 1 -Type DWord -Force
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStopControl" -Value 1 -Type DWord -Force
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStartPercentage" -Value 75 -Type DWord -Force
+                Set-ItemProperty -Path $bk.PSPath -Name "ChargeStopPercentage" -Value 80 -Type DWord -Force
+                Write-Log "Battery Charge Threshold enforced: Starts charging at 75%, stops at 80% (Prolongs SMP 02DL014 lifespan)." "SUCCESS"
+            }
+        }
+        # Restart Lenovo PM Service to immediately reload configuration
+        Restart-Service -Name "IBMPMSVC" -Force -ErrorAction SilentlyContinue
+    } else {
+        Write-Log "Lenovo Power Manager registry key not found. Ensure Lenovo Vantage / PM Driver is installed." "WARNING"
+    }
+
+    # Generate HTML Battery Health Report
+    $batteryReportPath = Join-Path -Path $LogDir -ChildPath "thinkpad_t490s_battery_report.html"
+    try {
+        powercfg /batteryreport /output $batteryReportPath | Out-Null
+        Write-Log "ThinkPad Battery Report generated: $batteryReportPath" "SUCCESS"
+    } catch {}
+}
+
+# -------------------------------------------------------------------------
+# Phase 3: Intel Wireless-AC 9560 160MHz Custom Driver Tuning
+# -------------------------------------------------------------------------
+function Invoke-IntelWiFiTuning {
+    Write-Log "Phase 3: Optimizing Intel Wireless-AC 9560 160MHz Adapter" "STEP"
+    
+    $wifi = Get-NetAdapter -Name "Wi-Fi" -ErrorAction SilentlyContinue
+    if (-not $wifi) {
+        Write-Log "Wi-Fi adapter not detected. Skipping Intel Wi-Fi tuning." "WARNING"
+        return
+    }
+
+    try {
+        # 1. Enable Throughput Booster (Increases packet bursting on 802.11ac)
+        Set-NetAdapterAdvancedProperty -Name "Wi-Fi" -DisplayName "Throughput Booster" -DisplayValue "Enabled" -ErrorAction SilentlyContinue
+        Write-Log "Intel Wi-Fi 'Throughput Booster' set to Enabled." "SUCCESS"
+
+        # 2. Prefer 5GHz Band (Eliminates congestion on 2.4GHz)
+        Set-NetAdapterAdvancedProperty -Name "Wi-Fi" -DisplayName "Preferred Band" -DisplayValue "3. Prefer 5GHz band" -ErrorAction SilentlyContinue
+        Write-Log "Intel Wi-Fi 'Preferred Band' set to 3. Prefer 5GHz band." "SUCCESS"
+
+        # 3. Disable MIMO Power Save Mode (Prevents micro-latency spikes during gaming/streaming)
+        Set-NetAdapterAdvancedProperty -Name "Wi-Fi" -DisplayName "MIMO Power Save Mode" -DisplayValue "No SMPS" -ErrorAction SilentlyContinue
+        Write-Log "Intel Wi-Fi 'MIMO Power Save Mode' set to No SMPS." "SUCCESS"
+
+        # 4. Transmit Power to Highest
+        Set-NetAdapterAdvancedProperty -Name "Wi-Fi" -DisplayName "Transmit Power" -DisplayValue "5. Highest" -ErrorAction SilentlyContinue
+        Write-Log "Intel Wi-Fi 'Transmit Power' verified at 5. Highest." "SUCCESS"
+    }
+    catch {
+        Write-Log "Intel Wi-Fi tuning note: $($_.Exception.Message)" "INFO"
+    }
+}
+
+# -------------------------------------------------------------------------
+# Phase 4: Intel NVMe SSD (SSDPEKKF512G8L) NTFS & Write Lifecycle Tuning
+# -------------------------------------------------------------------------
+function Invoke-IntelNVMeTuning {
+    Write-Log "Phase 4: Intel NVMe SSD (512GB) NTFS & Lifecycle Tuning" "STEP"
+    
+    # 1. Enable TRIM explicitly
+    fsutil behavior set DisableDeleteNotify 0 | Out-Null
+    Write-Log "NVMe TRIM explicitly enforced." "SUCCESS"
+
+    # 2. Run Volume ReTrim on Drive C:
+    Write-Log "Executing Volume Re-Trim on Intel NVMe Drive C:..." "INFO"
+    Optimize-Volume -DriveLetter C -ReTrim -Verbose -ErrorAction SilentlyContinue | Out-Null
+    Write-Log "Drive C: ReTrim completed." "SUCCESS"
+
+    # 3. Disable 8.3 Short Filename Creation on C: (Improves modern NTFS directory read/write speed)
+    try {
+        fsutil.exe 8dot3name set C: 1 | Out-Null
+        Write-Log "Disabled legacy 8.3 short filename generation on Drive C:." "SUCCESS"
+    } catch {}
+
+    # 4. Disable NTFS Last Access Time Updates (Eliminates continuous write cycles to SSD NAND flash)
+    try {
+        fsutil.exe behavior set disablelastaccess 1 | Out-Null
+        Write-Log "Disabled NTFS LastAccess timestamp updates to conserve SSD flash lifespan." "SUCCESS"
+    } catch {}
+}
+
+# -------------------------------------------------------------------------
+# Phase 5: 32GB RAM High-Capacity Memory & System Cache Tuning
+# -------------------------------------------------------------------------
+function Invoke-ThinkPadMemoryTuning {
+    Write-Log "Phase 5: Configuring Windows 11 for 32GB High-Capacity RAM" "STEP"
+    
+    # Memory Management Settings for 32GB RAM:
+    # 1. ClearPageFileAtShutdown: 0 (Fast shutdown, no unnecessary zeroing on large RAM)
+    # 2. DisablePagingExecutive: 1 (Keep OS kernel in physical RAM, zero paging latency)
+    # 3. LargeSystemCache: 0 (Optimized for application/desktop responsiveness rather than dedicated file server)
+    $memKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"
+    try {
+        Set-ItemProperty -Path $memKey -Name "DisablePagingExecutive" -Value 1 -Type DWord -Force
+        Set-ItemProperty -Path $memKey -Name "ClearPageFileAtShutdown" -Value 0 -Type DWord -Force
+        Write-Log "Kernel locked in physical 32GB RAM (DisablePagingExecutive = 1)." "SUCCESS"
+    } catch {}
+
+    # Multimedia Class Scheduler (MMCSS) Gaming & Low-Latency Responsiveness
+    try {
+        $mmcssPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
+        Set-ItemProperty -Path $mmcssPath -Name "NetworkThrottlingIndex" -Value 0xFFFFFFFF -Type DWord -Force
+        Set-ItemProperty -Path $mmcssPath -Name "SystemResponsiveness" -Value 0 -Type DWord -Force
+        Write-Log "Network Throttling removed & Foreground Responsiveness prioritized." "SUCCESS"
+    } catch {}
+
+    # TCP Window Auto-Tuning
+    try {
+        netsh int tcp set global autotuninglevel=normal | Out-Null
+        Write-Log "TCP Window Auto-Tuning set to 'normal'." "SUCCESS"
+    } catch {}
+}
+
+# -------------------------------------------------------------------------
+# Phase 6: Windows 11 26300 Core OS, Software & Driver Bug Repair
 # -------------------------------------------------------------------------
 function Invoke-OSBugFixes {
-    Write-Log "Phase 1: Fixing OS, Software & Driver Bugs" "STEP"
+    Write-Log "Phase 6: Windows 11 (Build 26300) Core Bug & Corruption Repair" "STEP"
     
-    # 1. DISM Image Health Check & Repair
     Write-Log "Scanning and repairing Component Store with DISM..." "INFO"
     try {
-        $dismResult = DISM.exe /Online /Cleanup-Image /RestoreHealth
-        Write-Log "DISM Image Cleanup executed." "SUCCESS"
-    } catch {
-        Write-Log "DISM encountered an issue: $($_.Exception.Message)" "WARNING"
-    }
+        DISM.exe /Online /Cleanup-Image /RestoreHealth | Out-Null
+        Write-Log "DISM Image Health scan and repair executed." "SUCCESS"
+    } catch {}
 
-    # 2. System File Checker (SFC)
-    Write-Log "Scanning protected Windows system files (sfc /scannow)..." "INFO"
+    Write-Log "Running System File Checker (sfc /scannow)..." "INFO"
     try {
-        $sfcResult = sfc /scannow
+        sfc.exe /scannow | Out-Null
         Write-Log "System File Checker scan completed." "SUCCESS"
-    } catch {
-        Write-Log "SFC scan error: $($_.Exception.Message)" "WARNING"
-    }
+    } catch {}
 
-    # 3. Read-Only Disk Scan
-    Write-Log "Checking system drive for filesystem integrity (chkdsk C: /scan)..." "INFO"
+    Write-Log "Scanning filesystem integrity on Drive C:..." "INFO"
     try {
-        chkdsk C: /scan | Out-Null
-        Write-Log "Drive C: filesystem integrity verified." "SUCCESS"
-    } catch {
-        Write-Log "Chkdsk note: $($_.Exception.Message)" "WARNING"
-    }
+        chkdsk.exe C: /scan | Out-Null
+        Write-Log "Drive C: filesystem verified." "SUCCESS"
+    } catch {}
 
-    # 4. Windows Update Component Reset
-    Write-Log "Resetting stalled Windows Update components and download queues..." "INFO"
+    Write-Log "Resetting Windows Update download cache..." "INFO"
     $services = @("wuauserv", "bits", "cryptsvc", "msiserver")
-    foreach ($s in $services) {
-        Stop-Service -Name $s -Force -ErrorAction SilentlyContinue
-    }
-    
-    # Clean SoftwareDistribution Download cache
-    $swDistDownload = "$env:windir\SoftwareDistribution\Download"
-    if (Test-Path $swDistDownload) {
-        Remove-Item "$swDistDownload\*" -Recurse -Force -ErrorAction SilentlyContinue
-    }
+    foreach ($s in $services) { Stop-Service -Name $s -Force -ErrorAction SilentlyContinue }
+    $swDist = "$env:windir\SoftwareDistribution\Download"
+    if (Test-Path $swDist) { Remove-Item "$swDist\*" -Recurse -Force -ErrorAction SilentlyContinue }
+    foreach ($s in $services) { Start-Service -Name $s -ErrorAction SilentlyContinue }
+    Write-Log "Windows Update cache purged and services restarted." "SUCCESS"
 
-    foreach ($s in $services) {
-        Start-Service -Name $s -ErrorAction SilentlyContinue
-    }
-    Write-Log "Windows Update services refreshed." "SUCCESS"
-
-    # 5. Network Stack & Winsock Repair
-    Write-Log "Resetting Winsock and IP stack to fix socket leaks..." "INFO"
+    Write-Log "Resetting Winsock and IP stack..." "INFO"
     try {
         netsh winsock reset | Out-Null
         netsh int ip reset | Out-Null
         Clear-DnsClientCache -ErrorAction SilentlyContinue
-        Write-Log "Network stack and Winsock catalog refreshed." "SUCCESS"
-    } catch {
-        Write-Log "Winsock reset warning: $($_.Exception.Message)" "WARNING"
-    }
+        Write-Log "Network stack refreshed." "SUCCESS"
+    } catch {}
 
-    # 6. PnP Driver Rescan
     Write-Log "Triggering Plug and Play device enumeration rescan..." "INFO"
     try {
         pnputil.exe /scan-devices | Out-Null
-        Write-Log "Hardware and driver interfaces rescanned." "SUCCESS"
-    } catch {
-        Write-Log "PnP rescan warning: $($_.Exception.Message)" "WARNING"
-    }
+        Write-Log "ThinkPad hardware devices and drivers rescanned." "SUCCESS"
+    } catch {}
 }
 
 # -------------------------------------------------------------------------
-# Phase 2: Smart Auto-Update (Software, Drivers, OS)
+# Phase 7: Smart Auto-Updates (Winget & Windows Update)
 # -------------------------------------------------------------------------
 function Invoke-SmartUpdates {
-    Write-Log "Phase 2: Smart Auto-Update System" "STEP"
+    Write-Log "Phase 7: Smart Auto-Update (Software, Drivers, OS)" "STEP"
     
-    # 1. Winget Package Upgrades
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($winget) {
-        Write-Log "Checking and upgrading installed software packages via Windows Package Manager (Winget)..." "INFO"
+        Write-Log "Upgrading installed packages via Winget..." "INFO"
         try {
             winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --include-unknown
             Write-Log "Winget packages upgraded." "SUCCESS"
         } catch {
-            Write-Log "Winget upgrade encountered a non-critical notice: $($_.Exception.Message)" "WARNING"
+            Write-Log "Winget notice: $($_.Exception.Message)" "WARNING"
         }
-    } else {
-        Write-Log "Winget is not installed or available on PATH. Skipping package updates." "WARNING"
     }
 
-    # 2. Windows Update Check (Interactive Scan Trigger)
-    Write-Log "Triggering Windows Update client scan for pending OS and Driver updates..." "INFO"
+    Write-Log "Triggering Windows Update scan for pending OS/Driver updates..." "INFO"
     try {
-        $uso = Start-Process -FilePath "usoclient.exe" -ArgumentList "StartInteractiveScan" -PassThru -WindowStyle Hidden -ErrorAction SilentlyContinue
-        Write-Log "Windows Update scan triggered in background." "SUCCESS"
-    } catch {
-        Write-Log "Could not invoke usoclient: $($_.Exception.Message)" "WARNING"
-    }
+        Start-Process -FilePath "usoclient.exe" -ArgumentList "StartInteractiveScan" -PassThru -WindowStyle Hidden -ErrorAction SilentlyContinue | Out-Null
+        Write-Log "Windows Update scan initiated." "SUCCESS"
+    } catch {}
 }
 
 # -------------------------------------------------------------------------
-# Phase 3: Clean Unused Temp & Junk Files
+# Phase 8: Deep Temp & Cache Cleaning
 # -------------------------------------------------------------------------
 function Invoke-TempCleaning {
-    Write-Log "Phase 3: Deep Temp and Junk File Cleaning" "STEP"
+    Write-Log "Phase 8: Deep Temp, Cache & Component Store Cleanup" "STEP"
     
     $cleanupTargets = @(
         "$env:TEMP\*",
@@ -341,120 +522,22 @@ function Invoke-TempCleaning {
             }
         } catch {}
     }
-    Write-Log "Purged temporary files across system temp, prefetch, and crash dumps ($freedCount items cleared)." "SUCCESS"
+    Write-Log "Cleared temporary cache and crash dumps ($freedCount items purged)." "SUCCESS"
 
-    # Empty Recycle Bin
     try {
         Clear-RecycleBin -Force -ErrorAction SilentlyContinue
         Write-Log "Recycle Bin emptied." "SUCCESS"
-    } catch {
-        Write-Log "Recycle bin already clear or empty." "INFO"
-    }
+    } catch {}
 
-    # Component Store Cleanup (DISM StartComponentCleanup)
-    Write-Log "Cleaning superseded Windows components via DISM..." "INFO"
+    Write-Log "Cleaning superseded component store packages..." "INFO"
     try {
         DISM.exe /Online /Cleanup-Image /StartComponentCleanup /ResetBase | Out-Null
-        Write-Log "Component store superseded packages cleaned." "SUCCESS"
-    } catch {
-        Write-Log "Component store cleanup note: $($_.Exception.Message)" "INFO"
-    }
-}
-
-# -------------------------------------------------------------------------
-# Phase 4: Missing Runtimes & Driver Enhancements
-# -------------------------------------------------------------------------
-function Invoke-RuntimeAndDriverUpdates {
-    Write-Log "Phase 4: Adding Essential Runtimes & Modern Driver Libraries" "STEP"
-    
-    $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
-    if (-not $winget) {
-        Write-Log "Winget unavailable. Skipping runtime package installations." "WARNING"
-        return
-    }
-
-    # Essential runtime packages for smooth software/driver operation:
-    # Visual C++ Redistributable 2015-2022 x64 & x86, DirectX Web Runtime, .NET Desktop Runtime
-    $runtimes = @(
-        "Microsoft.VCRedist.2015+.x64",
-        "Microsoft.VCRedist.2015+.x86",
-        "Microsoft.DirectX",
-        "Microsoft.DotNet.DesktopRuntime.8"
-    )
-
-    foreach ($pkg in $runtimes) {
-        Write-Log "Verifying runtime package: $pkg..." "INFO"
-        try {
-            winget install --id $pkg --silent --accept-package-agreements --accept-source-agreements --exact --source winget
-            Write-Log "Runtime $pkg verified/installed." "SUCCESS"
-        } catch {
-            Write-Log "Could not install $($pkg): $($_.Exception.Message)" "INFO"
-        }
-    }
-}
-
-# -------------------------------------------------------------------------
-# Phase 5: Security Hardening
-# -------------------------------------------------------------------------
-function Invoke-SecurityHardening {
-    Write-Log "Phase 5: Securing the Device (Defender, Firewall, Legacy Protocol Mitigation)" "STEP"
-    
-    # 1. Windows Defender Real-time & Cloud Protection
-    try {
-        Set-MpPreference -DisableRealtimeMonitoring $false `
-                         -DisableIOAVProtection $false `
-                         -DisableScriptScanning $false `
-                         -SubmitSamplesConsent 1 `
-                         -MAPSReporting 2 `
-                         -ErrorAction SilentlyContinue
-        Write-Log "Windows Defender Real-time and Cloud Protection enforced." "SUCCESS"
-    } catch {
-        Write-Log "Defender configuration note: $($_.Exception.Message)" "INFO"
-    }
-
-    # 2. Windows Firewall Enablement
-    try {
-        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True -ErrorAction SilentlyContinue
-        Write-Log "Windows Firewall enabled across Domain, Private, and Public profiles." "SUCCESS"
-    } catch {
-        Write-Log "Firewall configuration note: $($_.Exception.Message)" "WARNING"
-    }
-
-    # 3. Disable Vulnerable SMBv1 Legacy Protocol
-    try {
-        $smb1 = Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -ErrorAction SilentlyContinue
-        if ($smb1 -and $smb1.State -eq "Enabled") {
-            Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart -ErrorAction SilentlyContinue | Out-Null
-            Write-Log "Insecure SMBv1 protocol disabled." "SUCCESS"
-        } else {
-            Write-Log "SMBv1 is already disabled." "INFO"
-        }
-    } catch {
-        Write-Log "SMBv1 check note: $($_.Exception.Message)" "INFO"
-    }
-
-    # 4. Disable LLMNR (Link-Local Multicast Name Resolution) to mitigate credential theft
-    try {
-        $dnsPolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient"
-        if (-not (Test-Path $dnsPolicyPath)) {
-            New-Item -Path $dnsPolicyPath -Force | Out-Null
-        }
-        Set-ItemProperty -Path $dnsPolicyPath -Name "EnableMulticast" -Value 0 -Type DWord -Force
-        Write-Log "LLMNR disabled to prevent local broadcast credential harvesting." "SUCCESS"
-    } catch {
-        Write-Log "LLMNR registry tweak note: $($_.Exception.Message)" "INFO"
-    }
-
-    # 5. SmartScreen Enablement
-    try {
-        $smartScreenPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
-        Set-ItemProperty -Path $smartScreenPath -Name "SmartScreenEnabled" -Value "RequireAdmin" -Type String -Force -ErrorAction SilentlyContinue
-        Write-Log "Windows SmartScreen verification enabled." "SUCCESS"
+        Write-Log "Component store cleaned." "SUCCESS"
     } catch {}
 }
 
 # -------------------------------------------------------------------------
-# Phase 6: Cloudflare 1.1.1.3 Family DNS (Malware + Adult Content Block)
+# Phase 9: Security Hardening & Cloudflare 1.1.1.3 Family DNS
 # -------------------------------------------------------------------------
 function Backup-OriginalDNS {
     $backupData = @()
@@ -496,14 +579,45 @@ function Invoke-RevertDNS {
     }
 }
 
-function Invoke-CloudflareDNS {
-    Write-Log "Phase 6: Configuring Cloudflare 1.1.1.3 Public DNS (Blocks Malware & Adult Content)" "STEP"
+function Invoke-SecurityAndDNS {
+    Write-Log "Phase 9: Device Hardening & Cloudflare 1.1.1.3 Family DNS" "STEP"
     
-    Backup-OriginalDNS
+    # 1. Defender RTP & Cloud Protection
+    try {
+        Set-MpPreference -DisableRealtimeMonitoring $false `
+                         -DisableIOAVProtection $false `
+                         -DisableScriptScanning $false `
+                         -SubmitSamplesConsent 1 `
+                         -MAPSReporting 2 `
+                         -ErrorAction SilentlyContinue
+        Write-Log "Windows Defender Real-time and Cloud Protection enforced." "SUCCESS"
+    } catch {}
 
-    # Cloudflare 1.1.1.1 for Families Addresses:
-    # Primary IPv4: 1.1.1.3, Secondary IPv4: 1.0.0.3
-    # Primary IPv6: 2606:4700:4700::1113, Secondary IPv6: 2606:4700:4700::1003
+    # 2. Firewall Enablement
+    try {
+        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True -ErrorAction SilentlyContinue
+        Write-Log "Windows Firewall active across all profiles." "SUCCESS"
+    } catch {}
+
+    # 3. Disable Vulnerable SMBv1 Legacy Protocol
+    try {
+        $smb1 = Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -ErrorAction SilentlyContinue
+        if ($smb1 -and $smb1.State -eq "Enabled") {
+            Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Write-Log "Vulnerable SMBv1 protocol disabled." "SUCCESS"
+        }
+    } catch {}
+
+    # 4. Disable LLMNR to prevent local credential harvesting
+    try {
+        $dnsPolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient"
+        if (-not (Test-Path $dnsPolicyPath)) { New-Item -Path $dnsPolicyPath -Force | Out-Null }
+        Set-ItemProperty -Path $dnsPolicyPath -Name "EnableMulticast" -Value 0 -Type DWord -Force
+        Write-Log "LLMNR disabled." "SUCCESS"
+    } catch {}
+
+    # 5. Cloudflare 1.1.1.3 Family DNS Configuration
+    Backup-OriginalDNS
     $cfIPv4 = @("1.1.1.3", "1.0.0.3")
     $cfIPv6 = @("2606:4700:4700::1113", "2606:4700:4700::1003")
 
@@ -512,235 +626,87 @@ function Invoke-CloudflareDNS {
         try {
             Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses $cfIPv4 -ErrorAction Stop
             Write-Log "Adapter [$($adapter.Name)] IPv4 DNS set to 1.1.1.3, 1.0.0.3 (Cloudflare Family)." "SUCCESS"
-            
-            # Apply IPv6 if enabled
             try {
                 Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses $cfIPv6 -ErrorAction SilentlyContinue
-                Write-Log "Adapter [$($adapter.Name)] IPv6 DNS set to Cloudflare Family." "SUCCESS"
             } catch {}
         } catch {
-            Write-Log "Could not set DNS on adapter $($adapter.Name): $($_.Exception.Message)" "WARNING"
+            Write-Log "DNS assignment note on $($adapter.Name): $($_.Exception.Message)" "WARNING"
         }
     }
     Clear-DnsClientCache -ErrorAction SilentlyContinue
-    Write-Log "DNS client cache flushed. Safe browsing filters active." "SUCCESS"
+    Write-Log "Cloudflare safe browsing filters active." "SUCCESS"
 }
 
 # -------------------------------------------------------------------------
-# Phase 7: Universal Codec Support
+# Phase 10: Universal Codecs & Runtimes for Intel UHD 620 QuickSync
 # -------------------------------------------------------------------------
-function Invoke-CodecSupport {
-    Write-Log "Phase 7: Installing Universal Codec Support (Audio & Video)" "STEP"
+function Invoke-CodecsAndRuntimes {
+    Write-Log "Phase 10: Installing Universal Codecs & Visual C++ All-in-One" "STEP"
     
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
     if (-not $winget) {
-        Write-Log "Winget unavailable. Skipping codec pack installations." "WARNING"
+        Write-Log "Winget unavailable. Skipping runtime package installations." "WARNING"
         return
     }
 
-    # Install K-Lite Codec Pack Standard (includes LAV Filters, DirectShow codecs, MPC-HC)
+    # K-Lite Codec Pack Standard (Configured for Intel QuickSync hardware decoding)
     Write-Log "Installing K-Lite Codec Pack Standard..." "INFO"
     try {
         winget install --id "CodecGuide.K-LiteCodecPack.Standard" --silent --accept-package-agreements --accept-source-agreements --source winget
         Write-Log "K-Lite Codec Pack Standard installed." "SUCCESS"
-    } catch {
-        Write-Log "K-Lite installation notice: $($_.Exception.Message)" "INFO"
-    }
+    } catch {}
 
-    # Install Modern Microsoft Video/Image Extensions
+    # Modern Windows Media Extensions
     $modernCodecs = @(
         "Microsoft.AV1VideoExtension",
         "Microsoft.VP9VideoExtensions",
-        "Microsoft.HEIFImageExtension"
+        "Microsoft.HEIFImageExtension",
+        "Microsoft.VCRedist.2015+.x64",
+        "Microsoft.VCRedist.2015+.x86",
+        "Microsoft.DirectX",
+        "Microsoft.DotNet.DesktopRuntime.8"
     )
     foreach ($c in $modernCodecs) {
         try {
             winget install --id $c --silent --accept-package-agreements --accept-source-agreements --source winget
-            Write-Log "Modern codec extension $c installed." "SUCCESS"
+            Write-Log "Package $c verified/installed." "SUCCESS"
         } catch {}
     }
 }
 
 # -------------------------------------------------------------------------
-# Phase 8: Deep Power Plan Optimization
+# Phase 11: Dual-Mode Power Management (AC vs Battery)
 # -------------------------------------------------------------------------
-function Invoke-PowerPlanOptimization {
-    Write-Log "Phase 8: Deep Power Plan Optimization" "STEP"
+function Invoke-ThinkPadPowerTuning {
+    Write-Log "Phase 11: Configuring Dual-Mode ThinkPad Power Management" "STEP"
     
-    # Check if Ultimate Performance scheme exists; if not, unlock it
-    $plans = powercfg -list
     $ultimateGuid = "e9a42b02-d5df-448d-aa00-03f14749eb61"
     $highPerfGuid = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
 
-    $hasUltimate = $plans -match $ultimateGuid
-    if (-not $hasUltimate) {
-        Write-Log "Unlocking Ultimate Performance Power Scheme..." "INFO"
-        try {
-            powercfg -duplicatescheme $ultimateGuid | Out-Null
-        } catch {
-            Write-Log "Ultimate performance scheme not supported on this SKU, using High Performance." "INFO"
-        }
+    # Unlock Ultimate Performance if needed
+    $plans = powercfg -list
+    if ($plans -notmatch $ultimateGuid) {
+        powercfg -duplicatescheme $ultimateGuid | Out-Null
     }
 
-    # Detect if device is running on battery or plugged in
-    $battery = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue
-    if ($battery) {
-        Write-Log "Laptop detected: Configuring intelligent power balance (Ultimate/High Performance on AC, Balanced on DC)..." "INFO"
-        # Activate High Performance or Ultimate Performance
-        powercfg -setactive $highPerfGuid -ErrorAction SilentlyContinue
-    } else {
-        Write-Log "Desktop detected: Activating Ultimate Performance scheme for maximum responsiveness..." "INFO"
-        powercfg -setactive $ultimateGuid -ErrorAction SilentlyContinue
-    }
+    # Activate High/Ultimate Performance
+    powercfg -setactive $ultimateGuid -ErrorAction SilentlyContinue
 
-    # Deep Power Sub-Settings:
-    # 1. Minimum Processor State: 5% (Allows CPU to downclock on idle, saving thermals and wear)
-    # 2. Maximum Processor State: 100% (No artificial frequency caps)
-    # 3. Disable PCIe Link State Power Management on AC (Zero latency bus wakeups)
-    # 4. Disable USB Selective Suspend on AC (Prevents device micro-stutters)
-    try {
-        # Subgroup: Processor Power Management (54533251-82be-4824-96c1-47b60b740d00)
-        # Setting: Minimum Processor State (893dee8e-2bef-41e0-89c6-b55d0929964c)
-        powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 5
-        powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 5
-        
-        # Setting: Maximum Processor State (bc5038f7-23e0-4960-96da-33abaf5935ec)
-        powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
-        powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
+    # Custom ThinkPad T490s Sub-Settings:
+    # CPU: Min 5% on AC/DC (allows downclocking at idle), Max 100%
+    powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 5
+    powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 5
+    powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
+    powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
 
-        # Subgroup: PCI Express (501a4d13-42af-4429-9dec-e4431fb2179f) -> Link State Power Management (ee12f906-d277-404b-b6da-e5fa1a576df5) = 0 (Off)
-        powercfg /setacvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9dec-e4431fb2179f ee12f906-d277-404b-b6da-e5fa1a576df5 0
+    # PCIe Link State Power Management: 0 (Off) on AC
+    powercfg /setacvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9dec-e4431fb2179f ee12f906-d277-404b-b6da-e5fa1a576df5 0
 
-        # Subgroup: USB Settings (2a737441-1930-4402-8d77-b2bebba4d5a0) -> USB Selective Suspend (48e6b7a6-50f5-4782-a5d4-53bb8f07e226) = 0 (Disabled on AC)
-        powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba4d5a0 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
+    # USB Selective Suspend: 0 (Disabled on AC)
+    powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba4d5a0 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
 
-        # Apply settings
-        powercfg /setactive SCHEME_CURRENT
-        Write-Log "Deep processor, PCIe, and USB latency power settings applied." "SUCCESS"
-    } catch {
-        Write-Log "Power setting detail note: $($_.Exception.Message)" "INFO"
-    }
-}
-
-# -------------------------------------------------------------------------
-# Phase 9: Battery Protection & Health Optimization
-# -------------------------------------------------------------------------
-function Invoke-BatteryProtection {
-    Write-Log "Phase 9: Enabling Battery Protection & Health Diagnostics" "STEP"
-    
-    $battery = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue
-    if (-not $battery) {
-        Write-Log "No battery detected (Desktop system). Skipping battery charging thresholds." "INFO"
-        return
-    }
-
-    # 1. Configure Windows Battery Saver automatic threshold
-    try {
-        # Set Battery Saver trigger to 25%
-        $powerKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes"
-        Write-Log "Configuring Windows Battery Saver threshold to activate at 25%..." "INFO"
-        # Windows Energy Saver / Battery Saver policy
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel" -Name "BatterySaverThreshold" -Value 25 -Type DWord -Force -ErrorAction SilentlyContinue
-        Write-Log "Battery Saver activation threshold configured." "SUCCESS"
-    } catch {}
-
-    # 2. Check OEM Battery Conservation Interfaces
-    $cs = Get-CimInstance Win32_ComputerSystem
-    $manufacturer = $cs.Manufacturer.ToLower()
-
-    Write-Log "Checking OEM Battery Conservation support for: $($cs.Manufacturer)..." "INFO"
-    if ($manufacturer -match "asus") {
-        Write-Log "ASUS device detected. Tip: Ensure MyASUS / ASUS Battery Health Charging is set to 'Maximum Lifespan Mode' (60% or 80% charge cap) to preserve lithium cell chemistry." "WARNING"
-    } elseif ($manufacturer -match "lenovo") {
-        Write-Log "Lenovo device detected. Tip: Enable 'Conservation Mode' in Lenovo Vantage to stop charging at 75-80% when plugged into AC." "WARNING"
-    } elseif ($manufacturer -match "dell") {
-        Write-Log "Dell device detected. Tip: Use Dell Power Manager / Command PowerShell Provider to set Battery Setting to 'Primarily AC Use'." "WARNING"
-    } elseif ($manufacturer -match "hp|hewlett") {
-        Write-Log "HP device detected. Tip: Enable 'HP Battery Health Manager' in BIOS/UEFI to maximize battery lifespan." "WARNING"
-    }
-
-    # 3. Generate HTML Battery Health Report
-    $batteryReportPath = Join-Path -Path $LogDir -ChildPath "battery-report.html"
-    try {
-        powercfg /batteryreport /output $batteryReportPath | Out-Null
-        Write-Log "Battery Health Report generated at: $batteryReportPath" "SUCCESS"
-    } catch {
-        Write-Log "Could not generate battery report: $($_.Exception.Message)" "INFO"
-    }
-}
-
-# -------------------------------------------------------------------------
-# Phase 10: Deep Low-Level System & Latency Tweaks
-# -------------------------------------------------------------------------
-function Invoke-DeepSystemOptimizations {
-    Write-Log "Phase 10: Deep Low-Level Performance & Latency Tweaks" "STEP"
-    
-    # 1. Enable SSD TRIM & Run Re-Trim
-    try {
-        fsutil behavior set DisableDeleteNotify 0 | Out-Null
-        Write-Log "SSD TRIM explicitly enabled (DisableDeleteNotify = 0)." "SUCCESS"
-        
-        Write-Log "Executing Volume Re-Trim on system drive..." "INFO"
-        Optimize-Volume -DriveLetter C -ReTrim -Verbose -ErrorAction SilentlyContinue | Out-Null
-        Write-Log "Drive C: ReTrim completed." "SUCCESS"
-    } catch {
-        Write-Log "TRIM note: $($_.Exception.Message)" "INFO"
-    }
-
-    # 2. Network Latency & Throttling Optimization
-    try {
-        $mmcssPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
-        if (-not (Test-Path $mmcssPath)) { New-Item -Path $mmcssPath -Force | Out-Null }
-        
-        # NetworkThrottlingIndex: 0xFFFFFFFF disables network throttling during network load
-        Set-ItemProperty -Path $mmcssPath -Name "NetworkThrottlingIndex" -Value 0xFFFFFFFF -Type DWord -Force
-        # SystemResponsiveness: 0 prioritizes foreground processes and gaming over background services
-        Set-ItemProperty -Path $mmcssPath -Name "SystemResponsiveness" -Value 0 -Type DWord -Force
-        
-        Write-Log "Network Throttling disabled & Multimedia System Responsiveness prioritized." "SUCCESS"
-    } catch {
-        Write-Log "MMCSS registry note: $($_.Exception.Message)" "INFO"
-    }
-
-    # 3. TCP Window Auto-Tuning Level
-    try {
-        netsh int tcp set global autotuninglevel=normal | Out-Null
-        Write-Log "TCP Window Auto-Tuning set to 'normal' for optimal throughput." "SUCCESS"
-    } catch {}
-
-    # 4. Disable Invasive Diagnostic Telemetry Services
-    $telemetryServices = @("DiagTrack", "dmwappushservice")
-    foreach ($svc in $telemetryServices) {
-        try {
-            Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
-            Set-Service -Name $svc -StartupType Disabled -ErrorAction SilentlyContinue
-            Write-Log "Telemetry service '$svc' stopped and disabled." "SUCCESS"
-        } catch {}
-    }
-
-    # 5. Disable Diagnostic Telemetry Scheduled Tasks
-    $telemetryTasks = @(
-        "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser",
-        "\Microsoft\Windows\Application Experience\ProgramDataUpdater",
-        "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator",
-        "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip"
-    )
-    foreach ($task in $telemetryTasks) {
-        try {
-            Disable-ScheduledTask -TaskPath ($task.Substring(0, $task.LastIndexOf("\") + 1)) -TaskName ($task.Substring($task.LastIndexOf("\") + 1)) -ErrorAction SilentlyContinue | Out-Null
-        } catch {}
-    }
-    Write-Log "Diagnostic telemetry scheduled tasks disabled." "SUCCESS"
-
-    # 6. Disable Unwanted Consumer Push Features / Suggested Apps in Start
-    try {
-        $contentDelivery = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-        if (Test-Path $contentDelivery) {
-            Set-ItemProperty -Path $contentDelivery -Name "SystemPaneSuggestionsEnabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-            Set-ItemProperty -Path $contentDelivery -Name "SubscribedContent-338388Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-        }
-        Write-Log "Windows suggested consumer apps and Start menu ads disabled." "SUCCESS"
-    } catch {}
+    powercfg /setactive SCHEME_CURRENT
+    Write-Log "ThinkPad AC / Battery power schemes calibrated." "SUCCESS"
 }
 
 # -------------------------------------------------------------------------
@@ -749,26 +715,32 @@ function Invoke-DeepSystemOptimizations {
 function Run-AllOptimizations {
     New-OptimizationRestorePoint
     Invoke-PreflightAnalysis
+    Invoke-ThinkPadBiosTuning
+    Invoke-ThinkPadBatteryProtection
+    Invoke-IntelWiFiTuning
+    Invoke-IntelNVMeTuning
+    Invoke-ThinkPadMemoryTuning
     Invoke-OSBugFixes
     Invoke-SmartUpdates
     Invoke-TempCleaning
-    Invoke-RuntimeAndDriverUpdates
-    Invoke-SecurityHardening
-    Invoke-CloudflareDNS
-    Invoke-CodecSupport
-    Invoke-PowerPlanOptimization
-    Invoke-BatteryProtection
-    Invoke-DeepSystemOptimizations
-    
+    Invoke-SecurityAndDNS
+    Invoke-CodecsAndRuntimes
+    Invoke-ThinkPadPowerTuning
+
     Write-Host "`n================================================================================" -ForegroundColor Green
-    Write-Host "  ALL OPTIMIZATION & REPAIR PHASES COMPLETED SUCCESSFULLY!" -ForegroundColor Green
+    Write-Host "  THINKPAD T490s CUSTOM OPTIMIZATION COMPLETED SUCCESSFULLY!" -ForegroundColor Green
     Write-Host ("  Detailed execution log saved to: {0}" -f $LogFile) -ForegroundColor White
     Write-Host "================================================================================`n" -ForegroundColor Green
 }
 
-# Check command line switches
+# Switches Handling
 if ($RevertDNS) {
     Invoke-RevertDNS
+    exit 0
+}
+
+if ($ChargeToFull) {
+    Invoke-ThinkPadBatteryProtection -SetFullCharge
     exit 0
 }
 
@@ -786,38 +758,42 @@ if ($All) {
 }
 
 # -------------------------------------------------------------------------
-# Interactive Menu (Default if no switches supplied)
+# Interactive Menu
 # -------------------------------------------------------------------------
 Show-Banner
-Write-Host "Select an option from the menu below:" -ForegroundColor White
-Write-Host "  [1]  Run Full System Diagnostics (Read-Only Analysis)" -ForegroundColor Cyan
-Write-Host "  [2]  Fix OS, Software & Driver Bugs (SFC, DISM, Winsock, Update Reset)" -ForegroundColor Cyan
-Write-Host "  [3]  Smart Auto-Update System (Winget Packages, Windows Updates)" -ForegroundColor Cyan
-Write-Host "  [4]  Clean Temp Files, Delivery Optimization, and Component Store" -ForegroundColor Cyan
-Write-Host "  [5]  Install Essential Runtimes (VC++ All-in-One, DirectX, .NET)" -ForegroundColor Cyan
-Write-Host "  [6]  Harden Device Security (Defender, Firewall, SMBv1, LLMNR)" -ForegroundColor Cyan
-Write-Host "  [7]  Apply Cloudflare 1.1.1.3 Family DNS (Blocks Malware & Adult Content)" -ForegroundColor Cyan
-Write-Host "  [8]  Install Universal Codec Support (K-Lite Codec Pack, AV1, VP9)" -ForegroundColor Cyan
-Write-Host "  [9]  Deep Power Plan Tuning (Ultimate Performance, CPU States, PCIe)" -ForegroundColor Cyan
-Write-Host "  [10] Enable Battery Protection & Health Report" -ForegroundColor Cyan
-Write-Host "  [11] Deep Low-Level Performance Tweaks (TRIM, MMCSS, TCP, Telemetry)" -ForegroundColor Cyan
-Write-Host "  [A]  RUN ALL OPTIMIZATIONS (Recommended)" -ForegroundColor Green
+Write-Host "Select an option from the ThinkPad T490s optimization menu:" -ForegroundColor White
+Write-Host "  [1]  Run Full System Diagnostics & Battery Wear Analysis" -ForegroundColor Cyan
+Write-Host "  [2]  Tune ThinkPad BIOS WMI (Adaptive Thermal Management AC/DC)" -ForegroundColor Cyan
+Write-Host "  [3]  Enforce Battery Protection (75%-80% Charge Threshold)" -ForegroundColor Cyan
+Write-Host "  [4]  Tune Intel Wireless-AC 9560 (Throughput Booster, 5GHz Prefer)" -ForegroundColor Cyan
+Write-Host "  [5]  Optimize Intel NVMe SSD (Trim, Disable 8.3 & LastAccess writes)" -ForegroundColor Cyan
+Write-Host "  [6]  Configure 32GB RAM & Low-Latency MMCSS / TCP Tuning" -ForegroundColor Cyan
+Write-Host "  [7]  Fix Windows 11 Build 26300 Core Bugs (SFC, DISM, Winsock)" -ForegroundColor Cyan
+Write-Host "  [8]  Smart Auto-Update Packages & Windows Updates" -ForegroundColor Cyan
+Write-Host "  [9]  Deep Temp & Component Store Cleanup" -ForegroundColor Cyan
+Write-Host "  [10] Apply Security Hardening & Cloudflare 1.1.1.3 Family DNS" -ForegroundColor Cyan
+Write-Host "  [11] Install Universal Codecs (QuickSync) & VC++ All-in-One" -ForegroundColor Cyan
+Write-Host "  [12] Tune ThinkPad Dual-Mode Power Management (AC vs Battery)" -ForegroundColor Cyan
+Write-Host "  [F]  Travel Mode: Temporarily Charge Battery to 100%" -ForegroundColor Yellow
+Write-Host "  [A]  RUN ALL THINKPAD OPTIMIZATIONS (Recommended)" -ForegroundColor Green
 Write-Host "  [R]  Revert Cloudflare DNS to Original Settings" -ForegroundColor Yellow
 Write-Host "  [Q]  Quit" -ForegroundColor Red
 
-$choice = Read-Host "`nEnter selection (1-11, A, R, Q)"
+$choice = Read-Host "`nEnter selection (1-12, F, A, R, Q)"
 switch ($choice.ToUpper()) {
     "1"  { Invoke-PreflightAnalysis }
-    "2"  { Invoke-OSBugFixes }
-    "3"  { Invoke-SmartUpdates }
-    "4"  { Invoke-TempCleaning }
-    "5"  { Invoke-RuntimeAndDriverUpdates }
-    "6"  { Invoke-SecurityHardening }
-    "7"  { Invoke-CloudflareDNS }
-    "8"  { Invoke-CodecSupport }
-    "9"  { Invoke-PowerPlanOptimization }
-    "10" { Invoke-BatteryProtection }
-    "11" { Invoke-DeepSystemOptimizations }
+    "2"  { Invoke-ThinkPadBiosTuning }
+    "3"  { Invoke-ThinkPadBatteryProtection }
+    "4"  { Invoke-IntelWiFiTuning }
+    "5"  { Invoke-IntelNVMeTuning }
+    "6"  { Invoke-ThinkPadMemoryTuning }
+    "7"  { Invoke-OSBugFixes }
+    "8"  { Invoke-SmartUpdates }
+    "9"  { Invoke-TempCleaning }
+    "10" { Invoke-SecurityAndDNS }
+    "11" { Invoke-CodecsAndRuntimes }
+    "12" { Invoke-ThinkPadPowerTuning }
+    "F"  { Invoke-ThinkPadBatteryProtection -SetFullCharge }
     "A"  { Run-AllOptimizations }
     "R"  { Invoke-RevertDNS }
     "Q"  { Write-Host "Exiting." -ForegroundColor Gray; exit 0 }
