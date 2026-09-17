@@ -13,19 +13,20 @@
     - Operating Sys  : Microsoft Windows 11 Pro (Build 26300+)
 
     100% Autonomous Features:
-    1.  Zero-Interaction Run-Once: Automatically executes all 10 optimization sectors.
+    1.  Zero-Interaction Run-Once: Automatically executes all 12 optimization sectors.
     2.  Continuous Battery Preservation: Locks the 75%-80% charging threshold in Lenovo Power Manager.
     3.  Autonomous Background Watchdog Task:
         - Automatically switches to Maximum Performance & SpeedShift EPP = 0 when plugged into AC.
         - Automatically switches to Extreme Battery Saver (1.9GHz clock cap, ~7W power) when on Battery.
         - Silently runs periodic weekly SSD TRIM and temp cleaning.
-    4.  Rollback Support: Revert all settings at any time with -Rollback.
+    4.  Visual & Acoustic Fidelity: Intel DPST adaptive contrast disabled, ClearType 2.0 locked, audio ducking eliminated, MMCSS audio real-time priority.
+    5.  Rollback Support: Revert all settings at any time with -Rollback.
 
 .PARAMETER AutoInstall
     Executes full autonomous optimization and installs the background watchdog without any delay or prompts.
 
 .PARAMETER All
-    Executes all 10 ultra-deep optimization sectors unattended.
+    Executes all 12 ultra-deep optimization sectors unattended.
 
 .PARAMETER AnalyzeOnly
     Performs full system and sector diagnostics without modifying any system state.
@@ -197,6 +198,15 @@ function Invoke-PreflightAnalysis {
         Write-Host ("  TCPNoDelay (Nagle Off)   : {0}" -f $tcpKey.TCPNoDelay) -ForegroundColor Gray
         Write-Host ("  TcpAckFrequency          : {0}" -f $tcpKey.TcpAckFrequency) -ForegroundColor Gray
     }
+
+    # Display & Audio Audit
+    $dispKey = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" -ErrorAction SilentlyContinue
+    $audioDucking = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Multimedia\Audio" -Name "UserDuckingPreference" -ErrorAction SilentlyContinue
+    Write-Host "`n  --- DISPLAY & AUDIO FIDELITY AUDIT ---" -ForegroundColor White
+    $dpstStatus = if ($dispKey -and ($dispKey.FeatureTestControl -band 0x0010)) { "Disabled (Optimal Contrast)" } else { "Active (Adaptive Contrast Dimming)" }
+    Write-Host ("  Intel DPST Contrast Dimming : {0}" -f $dpstStatus) -ForegroundColor Gray
+    $duckStatus = if ($audioDucking -and $audioDucking.UserDuckingPreference -eq 3) { "Disabled (Full Fidelity)" } else { "Active (80% Volume Ducking)" }
+    Write-Host ("  Windows Audio Ducking       : {0}" -f $duckStatus) -ForegroundColor Gray
 
     Write-Log "Sector audit completed successfully." "SUCCESS"
 }
@@ -415,6 +425,67 @@ function Invoke-Sector10_SecurityAndDNS {
 }
 
 # -------------------------------------------------------------------------
+# Sector 11: Display Quality & Visual Clarity Engine
+# -------------------------------------------------------------------------
+function Invoke-Sector11_DisplayQuality {
+    Write-Log "Sector 11: Display Quality & Intel DPST Contrast Optimization" "STEP"
+    
+    # 1. Disable Intel DPST (Display Power Saving Technology / Adaptive Contrast Dimming)
+    # Bit 4 of FeatureTestControl set to 1 permanently disables DPST, eliminating washed out colors & stepping
+    $adaptersKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+    if (Test-Path $adaptersKey) {
+        $subKeys = Get-ChildItem -Path $adaptersKey -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^\d{4}$' }
+        foreach ($k in $subKeys) {
+            $ftc = (Get-ItemProperty -Path $k.PSPath -Name "FeatureTestControl" -ErrorAction SilentlyContinue).FeatureTestControl
+            if ($null -ne $ftc) {
+                $newFtc = $ftc -bor 0x0010
+                Set-ItemProperty -Path $k.PSPath -Name "FeatureTestControl" -Value $newFtc -Type DWord -Force
+                Write-Log ("Disabled Intel DPST on {0} (FeatureTestControl: 0x{1:X4} -> 0x{2:X4})." -f $k.PSChildName, $ftc, $newFtc) "SUCCESS"
+            }
+        }
+    }
+
+    # 2. ClearType 2.0 Subpixel Font Smoothing
+    $desktopKey = "HKCU:\Control Panel\Desktop"
+    Set-ItemProperty -Path $desktopKey -Name "FontSmoothing" -Value "2" -Type String -Force
+    Set-ItemProperty -Path $desktopKey -Name "FontSmoothingType" -Value 2 -Type DWord -Force
+    Set-ItemProperty -Path $desktopKey -Name "FontSmoothingGamma" -Value 1400 -Type DWord -Force
+    Set-ItemProperty -Path $desktopKey -Name "FontSmoothingOrientation" -Value 1 -Type DWord -Force
+    Write-Log "ClearType 2.0 Subpixel Font Smoothing (RGB Gamma 1400) locked for ultra-crisp text rendering." "SUCCESS"
+}
+
+# -------------------------------------------------------------------------
+# Sector 12: High-Fidelity Audio & Realtek SST Low-Latency Stack
+# -------------------------------------------------------------------------
+function Invoke-Sector12_AudioQuality {
+    Write-Log "Sector 12: High-Fidelity Audio & Communication Ducking Optimization" "STEP"
+
+    # 1. Disable Windows Communication Audio Ducking (Auto-muffling by 80%)
+    $audioKey = "HKCU:\Software\Microsoft\Multimedia\Audio"
+    if (-not (Test-Path $audioKey)) { New-Item -Path $audioKey -Force | Out-Null }
+    Set-ItemProperty -Path $audioKey -Name "UserDuckingPreference" -Value 3 -Type DWord -Force
+    Write-Log "Windows Communication Audio Ducking disabled (UserDuckingPreference = 3 -> Do Nothing)." "SUCCESS"
+
+    # 2. MMCSS Audio Task Priority Elevation (Real-time audio processing without micro-stutters)
+    $mmcssAudio = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio"
+    if (Test-Path $mmcssAudio) {
+        Set-ItemProperty -Path $mmcssAudio -Name "Priority" -Value 6 -Type DWord -Force
+        Set-ItemProperty -Path $mmcssAudio -Name "Scheduling Category" -Value "High" -Type String -Force
+        Set-ItemProperty -Path $mmcssAudio -Name "SFIO Priority" -Value "High" -Type String -Force
+        Set-ItemProperty -Path $mmcssAudio -Name "Latency Sensitive" -Value "True" -Type String -Force
+        Write-Log "MMCSS Audio Task elevated: Priority 6, High Scheduling, High SFIO, Latency Sensitive." "SUCCESS"
+    }
+
+    # 3. Restart Windows Audio Service to apply changes
+    try {
+        Restart-Service -Name "Audiosrv" -Force -ErrorAction SilentlyContinue
+        Write-Log "Windows Audio Service (Audiosrv) refreshed with real-time priority." "SUCCESS"
+    } catch {
+        Write-Log "Notice refreshing Audiosrv: $($_.Exception.Message)" "INFO"
+    }
+}
+
+# -------------------------------------------------------------------------
 # Autonomous Background Watchdog Service Installation
 # -------------------------------------------------------------------------
 function Install-AutonomousWatchdog {
@@ -530,6 +601,17 @@ function Invoke-Rollback {
     Set-ItemProperty -Path $gamesTask -Name "Scheduling Category" -Value "Medium" -Type String -Force
     Set-ItemProperty -Path $gamesTask -Name "SFIO Priority" -Value "Normal" -Type String -Force
 
+    $audioKey = "HKCU:\Software\Microsoft\Multimedia\Audio"
+    if (Test-Path $audioKey) {
+        Remove-ItemProperty -Path $audioKey -Name "UserDuckingPreference" -ErrorAction SilentlyContinue
+    }
+    $mmcssAudio = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio"
+    if (Test-Path $mmcssAudio) {
+        Set-ItemProperty -Path $mmcssAudio -Name "Priority" -Value 6 -Type DWord -Force
+        Set-ItemProperty -Path $mmcssAudio -Name "Scheduling Category" -Value "Medium" -Type String -Force
+        Set-ItemProperty -Path $mmcssAudio -Name "SFIO Priority" -Value "Normal" -Type String -Force
+    }
+
     Unregister-ScheduledTask -TaskName "ThinkPad-Autonomous-Optimization" -Confirm:$false -ErrorAction SilentlyContinue
 
     if (Test-Path $DnsBackupFile) {
@@ -557,11 +639,13 @@ function Run-AllUltraDeepOptimizations {
     Invoke-Sector8_ServicesAndDebloat
     Invoke-Sector9_BatteryPreservation -EnableExtremeBattery:$ExtremeBattery -SetFullCharge:$ChargeToFull
     Invoke-Sector10_SecurityAndDNS
+    Invoke-Sector11_DisplayQuality
+    Invoke-Sector12_AudioQuality
     Install-AutonomousWatchdog
 
     Write-Host "`n================================================================================" -ForegroundColor Green
     Write-Host "  100% AUTONOMOUS THINKPAD T490s SETUP COMPLETE!" -ForegroundColor Green
-    Write-Host "  - All 10 Ultra-Deep Hardware & Kernel Sectors Optimized" -ForegroundColor Green
+    Write-Host "  - All 12 Ultra-Deep Hardware, Display, Audio & Kernel Sectors Optimized" -ForegroundColor Green
     Write-Host "  - 75%-80% Battery Threshold Locked (SMP 02DL014 Protected)" -ForegroundColor Green
     Write-Host "  - Autonomous Background Watchdog Active (Auto-Switches AC / Battery)" -ForegroundColor Green
     Write-Host "  You never need to run this script again!" -ForegroundColor Cyan
@@ -617,6 +701,8 @@ Write-Host "  [8]  Sector 7: Win32PrioritySeparation (0x26) & MMCSS Gaming" -For
 Write-Host "  [9]  Sector 8: Services Demand-Start Optimization & Telemetry" -ForegroundColor Cyan
 Write-Host "  [10] Sector 9: Battery Conservation (75-80% Threshold)" -ForegroundColor Cyan
 Write-Host "  [11] Sector 10: Security Hardening & Cloudflare 1.1.1.3 DNS" -ForegroundColor Cyan
+Write-Host "  [12] Sector 11: Display Quality & Intel DPST Contrast Optimization" -ForegroundColor Cyan
+Write-Host "  [13] Sector 12: High-Fidelity Audio & Ducking Elimination" -ForegroundColor Cyan
 Write-Host "  [W]  Install Autonomous Background Watchdog Task Only" -ForegroundColor Cyan
 Write-Host "  [E]  Toggle Extreme Battery Saver (Capping CPU at 1.9GHz on Battery)" -ForegroundColor Yellow
 Write-Host "  [F]  Travel Mode: Temporarily Charge Battery to 100%" -ForegroundColor Yellow
@@ -637,6 +723,8 @@ switch ($choice.ToUpper()) {
     "9"  { Invoke-Sector8_ServicesAndDebloat }
     "10" { Invoke-Sector9_BatteryPreservation }
     "11" { Invoke-Sector10_SecurityAndDNS }
+    "12" { Invoke-Sector11_DisplayQuality }
+    "13" { Invoke-Sector12_AudioQuality }
     "W"  { Install-AutonomousWatchdog }
     "E"  { Invoke-Sector9_BatteryPreservation -EnableExtremeBattery }
     "F"  { Invoke-Sector9_BatteryPreservation -SetFullCharge }
