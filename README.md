@@ -2,16 +2,16 @@
 
 A modular, multi-platform, and hardware-specific system analysis, repair, security hardening, and deep performance tuning repository.
 
-Instead of generic, one-size-fits-all scripts, **Device-Base-Optimization** provides **custom-engineered profiles tailored to specific device models, hardware chipsets, and operating systems**.
+Instead of generic, one-size-fits-all scripts, **Device-Base-Optimization** provides **custom-engineered profiles tailored to specific device models, hardware chipsets, and operating systems**, down to the CPU microcode, kernel scheduler, and network interface.
 
 ---
 
 ## 🧭 Supported Devices & Operating Systems Matrix
 
-| Operating System | Manufacturer | Model / Platform | Status | Profile & Documentation |
+| Operating System | Manufacturer | Model / Platform | Optimization Depth | Profile & Documentation |
 |---|---|---|---|---|
-| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | 🟢 **Stable** | [**View ThinkPad T490s Profile**](devices/windows/lenovo-thinkpad-t490s/README.md) |
-| **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Stable** | [**View Universal Windows Profile**](devices/windows/universal/README.md) |
+| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **Ultra-Deep (10 Sectors)** | [**View ThinkPad T490s Profile**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**View Universal Windows Profile**](devices/windows/universal/README.md) |
 | **Linux** | Any OEM | Ubuntu / Debian / Fedora / Arch | 🟡 *In Roadmap* | [**View Linux Roadmap**](devices/linux/README.md) |
 | **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap* | [**View macOS Roadmap**](devices/macos/README.md) |
 
@@ -27,12 +27,12 @@ Device-Base-Optimization/
 │   └── DEVICE_SPEC_TEMPLATE.md                  # Standard blueprint for contributing new device configs
 └── devices/
     ├── windows/
-    │   ├── lenovo-thinkpad-t490s/               # Custom ThinkPad T490s profile
-    │   │   ├── README.md                        # Hardware guide, specs, and execution instructions
-    │   │   └── Optimize-ThinkPad-T490s.ps1      # Tailored hardware optimization script
+    │   ├── lenovo-thinkpad-t490s/               # Custom Ultra-Deep ThinkPad T490s profile
+    │   │   ├── README.md                        # 10-Sector hardware guide & benchmarks
+    │   │   └── Optimize-ThinkPad-T490s.ps1      # Kernel & hardware optimization engine
     │   └── universal/                           # Generic Windows fallback
     │       ├── README.md                        # Universal Windows guide
-    │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic optimization script
+    │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic maintenance script
     ├── linux/                                   # Linux distributions and devices
     │   └── README.md                            # Roadmap & kernel sysctl architecture
     └── macos/                                   # Apple Mac systems
@@ -44,14 +44,19 @@ Device-Base-Optimization/
 ## ⚡ Quick Launch by Device
 
 ### 1. Lenovo ThinkPad T490s (`20NYS64T00`)
-Optimized for Intel Core i7-8665U, 32GB RAM, Intel NVMe SSD, Intel Wireless-AC 9560, and SMP 57Wh battery:
+Custom-tuned across 10 hardware and kernel sectors (SpeedShift EPP 0, 32GB RAM zero-compression, NVMe APST zero-sleep, TCP NoDelay, Win32PrioritySeparation 0x26, ThinkPad WMI BIOS thermal maxima, 75-80% battery threshold):
 ```powershell
 # In elevated PowerShell (Run as Administrator):
 cd "devices\windows\lenovo-thinkpad-t490s"
 powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -All
 ```
-*For interactive mode, run with `-Interactive`.*  
-*For travel mode (charge battery to 100%), run with `-ChargeToFull`.*
+
+#### Specialized ThinkPad Switches:
+* **Read-Only Audit**: `powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -AnalyzeOnly`
+* **Extreme Battery Mode (8–10+ Hours)**: `powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -ExtremeBattery`
+* **Travel Mode (Charge to 100%)**: `powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -ChargeToFull`
+* **Interactive Console Menu**: `powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -Interactive`
+* **Rollback to Windows Defaults**: `powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -Rollback`
 
 ---
 
@@ -78,8 +83,9 @@ We encourage adding hardware profiles for more laptops, custom desktops, and ope
 
 ## 🛡️ Safety, Rollback & Logging
 
-* **Windows Restore Point**: Automatic restore points are generated before applying system tweaks.
-* **DNS Revert**: Original DNS settings are backed up to `C:\ProgramData\DeviceOptimization\dns_backup.json` and can be restored using `-RevertDNS`.
+* **Windows Restore Point**: Automated restore points (`Pre-ThinkPad-UltraDeep-Optimization`) are generated before applying system tweaks.
+* **Full Reversibility**: The ThinkPad script includes a dedicated `-Rollback` switch to return Windows kernel, memory, network, and scheduler settings to stock defaults.
+* **DNS Backup**: Original DNS settings are backed up to `C:\ProgramData\DeviceOptimization\dns_backup.json` and can be restored using `-RevertDNS`.
 * **Execution Logs**: Complete logs are saved under `C:\ProgramData\DeviceOptimization\`.
 
 ---
