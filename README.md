@@ -28,9 +28,9 @@ Device-Base-Optimization/
 └── devices/
     ├── windows/
     │   ├── lenovo-thinkpad-t490s/               # Custom Ultra-Deep ThinkPad T490s profile
-    │   │   ├── README.md                        # 12-Sector hardware, display & audio guide & benchmarks
+    │   │   ├── README.md                        # 18-Sector hardware, display, audio, bus & privacy guide
     │   │   ├── Run-Once.cmd                     # 1-Click Double-Clickable Auto-Elevating Launcher
-    │   │   └── Optimize-ThinkPad-T490s.ps1      # Autonomous kernel, display, audio & hardware engine
+    │   │   └── Optimize-ThinkPad-T490s.ps1      # Autonomous kernel, display, audio, bus & hardware engine
     │   └── universal/                           # Generic Windows fallback
     │       ├── README.md                        # Universal Windows guide
     │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic maintenance script
@@ -45,7 +45,7 @@ Device-Base-Optimization/
 ## ⚡ 1-Click Autonomous Quick Launch
 
 ### 1. Lenovo ThinkPad T490s (`20NYS64T00`) — Run Once & Forget!
-You only need to run this once. It optimizes all 12 hardware, display, audio, and kernel sectors, locks the 75%-80% battery threshold, and installs a persistent background watchdog service that automatically switches between Maximum Performance on AC and Extreme Battery Saver on Battery.
+You only need to run this once. It optimizes all 18 hardware, display, audio, bus, privacy, and kernel sectors, locks the 75%-80% battery threshold, and installs a persistent background watchdog service that automatically switches between Maximum Performance on AC and Extreme Battery Saver on Battery.
 
 #### Method 1: Double-Click (Zero CLI)
 Double-click:
