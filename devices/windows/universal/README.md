@@ -4,15 +4,18 @@ A cross-device, hardware-agnostic maintenance, repair, security hardening, and p
 
 ---
 
-## ⚡ Quick Start
+## ⚡ 1-Click Quickstart
 
-In an elevated **PowerShell (Run as Administrator)**:
-
+### 🚀 Option 1: Instant 1-Line PowerShell Command (Zero Download / Zero Git)
+Copy and paste this single line into **PowerShell** (Standard or Administrator) and press Enter:
 ```powershell
-cd "C:\Users\shoum\Device-Base-Optimization\devices\windows\universal"
+irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/universal/Optimize-Windows-Universal.ps1 | iex
+```
+*(Prompts for UAC elevation if needed, runs DISM/SFC repair, security hardening, DNS, and power tuning automatically).*
 
-# Run all optimizations unattended:
-powershell -ExecutionPolicy Bypass -File .\Optimize-Windows-Universal.ps1 -All
+### 💻 Option 2: From Local Git Clone
+```powershell
+powershell -ExecutionPolicy Bypass -File .\devices\windows\universal\Optimize-Windows-Universal.ps1 -All
 ```
 
 ---
