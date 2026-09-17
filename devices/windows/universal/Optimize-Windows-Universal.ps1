@@ -43,13 +43,24 @@ param (
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Warning "Administrator privileges required. Relaunching as administrator..."
-    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    if ($All) { $arguments += " -All" }
-    if ($AnalyzeOnly) { $arguments += " -AnalyzeOnly" }
-    if ($Interactive) { $arguments += " -Interactive" }
-    if ($RevertDNS) { $arguments += " -RevertDNS" }
-    Start-Process -FilePath "powershell.exe" -ArgumentList $arguments -Verb RunAs
-    exit 0
+    try {
+        if ([string]::IsNullOrWhiteSpace($PSCommandPath)) {
+            $oneLiner = "irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/universal/Optimize-Windows-Universal.ps1 | iex"
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$oneLiner`"" -Verb RunAs
+            exit 0
+        } else {
+            $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+            if ($All) { $arguments += " -All" }
+            if ($AnalyzeOnly) { $arguments += " -AnalyzeOnly" }
+            if ($Interactive) { $arguments += " -Interactive" }
+            if ($RevertDNS) { $arguments += " -RevertDNS" }
+            Start-Process -FilePath "powershell.exe" -ArgumentList $arguments -Verb RunAs
+            exit 0
+        }
+    } catch {
+        Write-Error "Failed to elevate privileges. Please run PowerShell as Administrator."
+        exit 1
+    }
 }
 
 $LogDir = $LogPath
