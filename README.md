@@ -1,95 +1,123 @@
 # Device-Base-Optimization 🚀
+### Custom Hardware Edition: Lenovo ThinkPad T490s (`20NYS64T00`)
 
-A comprehensive, modular, and enterprise-grade system analysis, bug-fixing, security hardening, and deep performance tuning repository designed for multiple platforms and devices.
-
-Currently featured: **Windows 10 / 11 Deep Optimization & Repair Suite**.
-
----
-
-## 📂 Repository Structure
-
-```text
-Device-Base-Optimization/
-├── README.md                      # Documentation & Execution Guide
-├── LICENSE                        # MIT License
-└── scripts/
-    └── windows/
-        └── Optimize-Device.ps1    # Main Windows Analysis & Optimization Script
-```
-*(Additional operating systems and device profiles will be added under `scripts/<platform>/`)*.
+A high-performance, hardware-engineered PowerShell analysis, repair, security hardening, and deep system optimization suite specifically tailored for the **Lenovo ThinkPad T490s**.
 
 ---
 
-## ⚡ Quick Start (Windows)
+## 💻 Target Machine Specifications
 
-### Prerequisites
-* Windows 10 (Build 19041+) or Windows 11 (All editions)
-* Administrator privileges
-* PowerShell 5.1 or PowerShell 7+
+| Component | Hardware Specification |
+|---|---|
+| **System Model** | Lenovo ThinkPad T490s (Machine Type: `20NYS64T00`, BIOS: `N2JETB0W`) |
+| **Processor** | Intel(R) Core(TM) i7-8665U CPU @ 1.90GHz (4 Cores, 8 Threads, Whiskey Lake-U) |
+| **Graphics** | Intel(R) UHD Graphics 620 (Intel QuickSync Hardware Video Decoder) |
+| **Memory** | 32 GB DDR4 High-Capacity System RAM |
+| **Storage** | INTEL SSDPEKKF512G8L 512GB PCIe NVMe SSD + Realtek PCIE Card Reader |
+| **Wireless** | Intel(R) Wireless-AC 9560 160MHz (802.11ac dual-band) |
+| **Ethernet** | Intel(R) Ethernet Connection (6) I219-LM Gigabit |
+| **Battery** | SMP 02DL014 (ThinkPad 57Wh Internal Li-ion Battery) |
+| **Operating System** | Microsoft Windows 11 Pro (Build 26300) |
 
-### 1. Clone or Download the Script
+---
+
+## ⚡ Quick Start
+
+Open **PowerShell as Administrator** and run:
+
 ```powershell
-# In an elevated PowerShell (Run as Administrator):
 cd "C:\Users\shoum\Device-Base-Optimization\scripts\windows"
 ```
 
-### 2. Run Options
-
-#### Option A: Run Full System Diagnostics Only (Safe / Read-Only)
-Inspects CPU, RAM, storage, SSD TRIM status, battery health, and network adapters without modifying system state:
+### 1. Pre-Flight Hardware Health & Battery Wear Diagnostics (Safe / Read-Only)
+Calculates exact battery wear percentage (from SMP 02DL014 57Wh design capacity), NVMe TRIM status, and ThinkPad BIOS configuration:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -AnalyzeOnly
 ```
 
-#### Option B: Interactive Menu
-Choose individual optimization modules:
+### 2. Interactive Menu
+Pick and choose specific optimization phases:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -Interactive
 ```
 
-#### Option C: Run All Optimizations Unattended
-Executes all 10 optimization phases and creates a Windows System Restore Point automatically:
+### 3. Run Full Unattended Optimization
+Executes all 12 custom phases and creates a Windows System Restore Point:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -All
 ```
 
-#### Option D: Revert DNS Settings
-Restores original DNS servers backed up prior to applying Cloudflare DNS:
+### 4. Travel Mode (Charge Battery to 100%)
+Temporarily bypasses the 80% battery conservation threshold when you need maximum runtime on the road:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -ChargeToFull
+```
+
+### 5. Revert DNS
+Restores original DNS server addresses:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -RevertDNS
 ```
 
 ---
 
-## 🛠️ Optimization Phases Breakdown
+## 🛠️ ThinkPad T490s Tailored Optimization Modules
 
-| Phase | Module | Description |
-|---|---|---|
-| **0** | **Pre-flight & Restore Point** | Gathers system inventory, creates a Windows System Restore Point (`Pre-Device-Optimization-Backup`), and backs up active DNS. |
-| **1** | **Fix Bugs (OS / Software / Drivers)** | Runs `DISM /Online /Cleanup-Image /RestoreHealth`, `sfc /scannow`, `chkdsk C: /scan`, resets Windows Update services (`wuauserv`, `bits`, `cryptsvc`), resets Winsock/TCP stack, and triggers Plug & Play hardware enumeration (`pnputil /scan-devices`). |
-| **2** | **Smart Auto-Update** | Automatically updates installed software packages via Windows Package Manager (`winget upgrade --all`) and initiates a background Windows Update scan. |
-| **3** | **Clean Temp & Junk Files** | Purges User/System Temp, Prefetch, Delivery Optimization cache, Windows Error Reporting dumps, empties Recycle Bin, and cleans superseded component store packages (`DISM StartComponentCleanup`). |
-| **4** | **Missing Runtimes & Driver Libraries** | Installs Visual C++ Redistributables (2005-2022 All-in-One x86 & x64), DirectX Web Runtime, and .NET Desktop Runtime via Winget. |
-| **5** | **Device Security Hardening** | Enforces Windows Defender Real-Time Protection and Cloud Reporting, enables Windows Firewall on all profiles, disables vulnerable legacy SMBv1, disables LLMNR credential sniffing, and activates SmartScreen. |
-| **6** | **Cloudflare Family DNS (1.1.1.3)** | Configures network adapters to Cloudflare 1.1.1.1 for Families (`1.1.1.3` / `1.0.0.3` for IPv4; `2606:4700:4700::1113` for IPv6) to automatically block known malware and adult content at the DNS layer. |
-| **7** | **Universal Codec Support** | Installs K-Lite Codec Pack Standard, AV1 Video Extension, VP9 Video Extension, and HEIF Image Extensions so any media file plays smoothly. |
-| **8** | **Deep Power Plan Optimization** | Unlocks the hidden **Ultimate Performance** scheme, sets CPU min state (5% to allow idle downclocking) and max state (100%), disables PCIe Link State Power Management on AC, and disables USB Selective Suspend. |
-| **9** | **Battery Protection** | Configures automatic Battery Saver at 25%, detects OEM battery protection interfaces (Lenovo Conservation Mode, ASUS Battery Health Charging, Dell AC Mode, HP Battery Care), and generates a detailed HTML battery health report. |
-| **10** | **Deep Low-Level Tweaks** | Enforces SSD TRIM (`fsutil behavior set DisableDeleteNotify 0`), runs volume ReTrim, disables network throttling index (`0xFFFFFFFF`), prioritizes multimedia/gaming responsiveness (`SystemResponsiveness = 0`), sets TCP Window Auto-Tuning to normal, and disables invasive diagnostic telemetry services and tasks. |
+1. **ThinkPad BIOS / UEFI WMI Tuning**:
+   - Queries `root\wmi:Lenovo_BiosSetting` and sets `AdaptiveThermalManagementAC` to `MaximizePerformance` (unleashes full boost clock on charger) and `AdaptiveThermalManagementBattery` to `Balanced` (maintains cool thermals and fan silence on battery).
+   - Disables `ChargeInBatteryMode` to prevent USB devices from draining the laptop battery when asleep.
+   - Saves settings permanently to ThinkPad NVRAM via `Lenovo_SaveBiosSettings`.
 
----
+2. **Hardware Battery Protection & Lifespan Conservation**:
+   - Directly configures the Lenovo Power Management Driver (`PWRMGRV`) to start charging at **75%** and stop at **80%**.
+   - Eliminates continuous high-voltage lithium stress while plugged into AC power.
+   - Automatically calculates battery degradation wear level and outputs an HTML report.
 
-## 🛡️ Safety & Rollback Features
+3. **Intel Wireless-AC 9560 160MHz Network Tuning**:
+   - Enables **Throughput Booster** for packet bursting on 802.11ac Wi-Fi.
+   - Sets **Preferred Band** to `3. Prefer 5GHz band` to prevent connection degradation on crowded 2.4GHz channels.
+   - Sets **MIMO Power Save Mode** to `No SMPS` on AC power to eliminate gaming and streaming latency spikes.
 
-* **System Restore Point**: An automated restore point named `Pre-Device-Optimization-Backup` is taken before any changes are made.
-* **DNS Backup & Revert**: Original DNS server addresses are stored in `C:\ProgramData\DeviceOptimization\dns_backup.json`. Run with `-RevertDNS` to restore them at any time.
-* **Detailed Logging**: All actions and results are logged to `C:\ProgramData\DeviceOptimization\optimization.log`.
-* **Battery Report**: For laptops, an HTML health report is generated at `C:\ProgramData\DeviceOptimization\battery-report.html`.
+4. **Intel NVMe SSD (SSDPEKKF512G8L) NTFS & Write Lifecycle Tuning**:
+   - Enforces TRIM (`DisableDeleteNotify = 0`) and triggers volume Re-Trim on Drive C:.
+   - Disables legacy 8.3 short filename generation (`fsutil 8dot3name set C: 1`) for faster file operations.
+   - Disables NTFS `LastAccess` timestamp updates (`fsutil behavior set disablelastaccess 1`) to eliminate millions of unnecessary NAND flash write cycles.
+
+5. **32GB High-Capacity RAM & Memory Tuning**:
+   - Sets `DisablePagingExecutive = 1` to lock the Windows kernel in physical 32GB RAM for zero paging latency.
+   - Disables Windows network throttling (`NetworkThrottlingIndex = 0xFFFFFFFF`) and prioritizes foreground responsiveness (`SystemResponsiveness = 0`).
+
+6. **Windows 11 Build 26300 Core Bug Repair**:
+   - `DISM /Online /Cleanup-Image /RestoreHealth` (Component store health scan).
+   - `sfc /scannow` (System File Checker).
+   - `chkdsk C: /scan` (Filesystem scan).
+   - Resets stalled Windows Update download queues and refreshes the Winsock/IP stack.
+
+7. **Smart Auto-Updates**:
+   - Updates all installed software packages via Winget (`winget upgrade --all`).
+   - Initiates a background scan for pending Windows updates and drivers.
+
+8. **Deep Temp & Junk Purge**:
+   - Cleans `%TEMP%`, Windows Temp, Prefetch, Delivery Optimization, and crash dumps.
+   - Empties Recycle Bin and cleans superseded component store packages (`DISM StartComponentCleanup`).
+
+9. **Device Security Hardening & Cloudflare 1.1.1.3 Family DNS**:
+   - Enforces Windows Defender Real-Time and Cloud Protection.
+   - Enables Windows Firewall across all profiles.
+   - Disables insecure legacy SMBv1 and LLMNR.
+   - Applies **Cloudflare 1.1.1.3 Family DNS** (blocks malware and adult content) across all active adapters.
+
+10. **Universal Media Codecs for Intel UHD 620 QuickSync**:
+    - Installs K-Lite Codec Pack Standard configured for Intel QuickSync hardware decoding.
+    - Installs Microsoft AV1, VP9, and HEIF image/video extensions.
+    - Installs Visual C++ Redistributable (2005-2022 All-in-One x86 & x64) and .NET Desktop Runtime 8.
+
+11. **ThinkPad Dual-Mode Power Management**:
+    - Unlocks and activates the **Ultimate Performance** power plan on AC power with 0% PCIe latency and disabled USB selective suspend.
+    - Preserves battery life on DC power with balanced CPU throttling.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-Developed with ❤️ by **Shoumik Bala Somu**.
+MIT License - Copyright (c) 2026 Shoumik Bala Somu.
