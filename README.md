@@ -1,123 +1,91 @@
 # Device-Base-Optimization 🚀
-### Custom Hardware Edition: Lenovo ThinkPad T490s (`20NYS64T00`)
 
-A high-performance, hardware-engineered PowerShell analysis, repair, security hardening, and deep system optimization suite specifically tailored for the **Lenovo ThinkPad T490s**.
+A modular, multi-platform, and hardware-specific system analysis, repair, security hardening, and deep performance tuning repository.
 
----
-
-## 💻 Target Machine Specifications
-
-| Component | Hardware Specification |
-|---|---|
-| **System Model** | Lenovo ThinkPad T490s (Machine Type: `20NYS64T00`, BIOS: `N2JETB0W`) |
-| **Processor** | Intel(R) Core(TM) i7-8665U CPU @ 1.90GHz (4 Cores, 8 Threads, Whiskey Lake-U) |
-| **Graphics** | Intel(R) UHD Graphics 620 (Intel QuickSync Hardware Video Decoder) |
-| **Memory** | 32 GB DDR4 High-Capacity System RAM |
-| **Storage** | INTEL SSDPEKKF512G8L 512GB PCIe NVMe SSD + Realtek PCIE Card Reader |
-| **Wireless** | Intel(R) Wireless-AC 9560 160MHz (802.11ac dual-band) |
-| **Ethernet** | Intel(R) Ethernet Connection (6) I219-LM Gigabit |
-| **Battery** | SMP 02DL014 (ThinkPad 57Wh Internal Li-ion Battery) |
-| **Operating System** | Microsoft Windows 11 Pro (Build 26300) |
+Instead of generic, one-size-fits-all scripts, **Device-Base-Optimization** provides **custom-engineered profiles tailored to specific device models, hardware chipsets, and operating systems**.
 
 ---
 
-## ⚡ Quick Start
+## 🧭 Supported Devices & Operating Systems Matrix
 
-Open **PowerShell as Administrator** and run:
+| Operating System | Manufacturer | Model / Platform | Status | Profile & Documentation |
+|---|---|---|---|---|
+| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | 🟢 **Stable** | [**View ThinkPad T490s Profile**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Stable** | [**View Universal Windows Profile**](devices/windows/universal/README.md) |
+| **Linux** | Any OEM | Ubuntu / Debian / Fedora / Arch | 🟡 *In Roadmap* | [**View Linux Roadmap**](devices/linux/README.md) |
+| **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap* | [**View macOS Roadmap**](devices/macos/README.md) |
 
-```powershell
-cd "C:\Users\shoum\Device-Base-Optimization\scripts\windows"
-```
+---
 
-### 1. Pre-Flight Hardware Health & Battery Wear Diagnostics (Safe / Read-Only)
-Calculates exact battery wear percentage (from SMP 02DL014 57Wh design capacity), NVMe TRIM status, and ThinkPad BIOS configuration:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -AnalyzeOnly
-```
+## 📂 Repository Architecture
 
-### 2. Interactive Menu
-Pick and choose specific optimization phases:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -Interactive
-```
-
-### 3. Run Full Unattended Optimization
-Executes all 12 custom phases and creates a Windows System Restore Point:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -All
-```
-
-### 4. Travel Mode (Charge Battery to 100%)
-Temporarily bypasses the 80% battery conservation threshold when you need maximum runtime on the road:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -ChargeToFull
-```
-
-### 5. Revert DNS
-Restores original DNS server addresses:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\Optimize-Device.ps1 -RevertDNS
+```text
+Device-Base-Optimization/
+├── README.md                                    # Central Multi-Device Hub & Compatibility Matrix
+├── LICENSE                                      # MIT Open Source License
+├── docs/
+│   └── DEVICE_SPEC_TEMPLATE.md                  # Standard blueprint for contributing new device configs
+└── devices/
+    ├── windows/
+    │   ├── lenovo-thinkpad-t490s/               # Custom ThinkPad T490s profile
+    │   │   ├── README.md                        # Hardware guide, specs, and execution instructions
+    │   │   └── Optimize-ThinkPad-T490s.ps1      # Tailored hardware optimization script
+    │   └── universal/                           # Generic Windows fallback
+    │       ├── README.md                        # Universal Windows guide
+    │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic optimization script
+    ├── linux/                                   # Linux distributions and devices
+    │   └── README.md                            # Roadmap & kernel sysctl architecture
+    └── macos/                                   # Apple Mac systems
+        └── README.md                            # Roadmap & macOS defaults architecture
 ```
 
 ---
 
-## 🛠️ ThinkPad T490s Tailored Optimization Modules
+## ⚡ Quick Launch by Device
 
-1. **ThinkPad BIOS / UEFI WMI Tuning**:
-   - Queries `root\wmi:Lenovo_BiosSetting` and sets `AdaptiveThermalManagementAC` to `MaximizePerformance` (unleashes full boost clock on charger) and `AdaptiveThermalManagementBattery` to `Balanced` (maintains cool thermals and fan silence on battery).
-   - Disables `ChargeInBatteryMode` to prevent USB devices from draining the laptop battery when asleep.
-   - Saves settings permanently to ThinkPad NVRAM via `Lenovo_SaveBiosSettings`.
+### 1. Lenovo ThinkPad T490s (`20NYS64T00`)
+Optimized for Intel Core i7-8665U, 32GB RAM, Intel NVMe SSD, Intel Wireless-AC 9560, and SMP 57Wh battery:
+```powershell
+# In elevated PowerShell (Run as Administrator):
+cd "devices\windows\lenovo-thinkpad-t490s"
+powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1 -All
+```
+*For interactive mode, run with `-Interactive`.*  
+*For travel mode (charge battery to 100%), run with `-ChargeToFull`.*
 
-2. **Hardware Battery Protection & Lifespan Conservation**:
-   - Directly configures the Lenovo Power Management Driver (`PWRMGRV`) to start charging at **75%** and stop at **80%**.
-   - Eliminates continuous high-voltage lithium stress while plugged into AC power.
-   - Automatically calculates battery degradation wear level and outputs an HTML report.
+---
 
-3. **Intel Wireless-AC 9560 160MHz Network Tuning**:
-   - Enables **Throughput Booster** for packet bursting on 802.11ac Wi-Fi.
-   - Sets **Preferred Band** to `3. Prefer 5GHz band` to prevent connection degradation on crowded 2.4GHz channels.
-   - Sets **MIMO Power Save Mode** to `No SMPS` on AC power to eliminate gaming and streaming latency spikes.
+### 2. Universal Windows 10/11 PC
+Safe maintenance, DISM/SFC repair, junk purge, Cloudflare 1.1.1.3 DNS, and power tuning for any Windows PC:
+```powershell
+# In elevated PowerShell (Run as Administrator):
+cd "devices\windows\universal"
+powershell -ExecutionPolicy Bypass -File .\Optimize-Windows-Universal.ps1 -All
+```
 
-4. **Intel NVMe SSD (SSDPEKKF512G8L) NTFS & Write Lifecycle Tuning**:
-   - Enforces TRIM (`DisableDeleteNotify = 0`) and triggers volume Re-Trim on Drive C:.
-   - Disables legacy 8.3 short filename generation (`fsutil 8dot3name set C: 1`) for faster file operations.
-   - Disables NTFS `LastAccess` timestamp updates (`fsutil behavior set disablelastaccess 1`) to eliminate millions of unnecessary NAND flash write cycles.
+---
 
-5. **32GB High-Capacity RAM & Memory Tuning**:
-   - Sets `DisablePagingExecutive = 1` to lock the Windows kernel in physical 32GB RAM for zero paging latency.
-   - Disables Windows network throttling (`NetworkThrottlingIndex = 0xFFFFFFFF`) and prioritizes foreground responsiveness (`SystemResponsiveness = 0`).
+## ➕ Adding a New Device or Operating System
 
-6. **Windows 11 Build 26300 Core Bug Repair**:
-   - `DISM /Online /Cleanup-Image /RestoreHealth` (Component store health scan).
-   - `sfc /scannow` (System File Checker).
-   - `chkdsk C: /scan` (Filesystem scan).
-   - Resets stalled Windows Update download queues and refreshes the Winsock/IP stack.
+We encourage adding hardware profiles for more laptops, custom desktops, and operating systems!
 
-7. **Smart Auto-Updates**:
-   - Updates all installed software packages via Winget (`winget upgrade --all`).
-   - Initiates a background scan for pending Windows updates and drivers.
+1. Open [`docs/DEVICE_SPEC_TEMPLATE.md`](docs/DEVICE_SPEC_TEMPLATE.md) for probing commands and boilerplate.
+2. Create your device directory under `devices/<os>/<manufacturer-model>/`.
+3. Add a dedicated `README.md` and optimization script.
+4. Update the [Compatibility Matrix](#-supported-devices--operating-systems-matrix) in this README.
 
-8. **Deep Temp & Junk Purge**:
-   - Cleans `%TEMP%`, Windows Temp, Prefetch, Delivery Optimization, and crash dumps.
-   - Empties Recycle Bin and cleans superseded component store packages (`DISM StartComponentCleanup`).
+---
 
-9. **Device Security Hardening & Cloudflare 1.1.1.3 Family DNS**:
-   - Enforces Windows Defender Real-Time and Cloud Protection.
-   - Enables Windows Firewall across all profiles.
-   - Disables insecure legacy SMBv1 and LLMNR.
-   - Applies **Cloudflare 1.1.1.3 Family DNS** (blocks malware and adult content) across all active adapters.
+## 🛡️ Safety, Rollback & Logging
 
-10. **Universal Media Codecs for Intel UHD 620 QuickSync**:
-    - Installs K-Lite Codec Pack Standard configured for Intel QuickSync hardware decoding.
-    - Installs Microsoft AV1, VP9, and HEIF image/video extensions.
-    - Installs Visual C++ Redistributable (2005-2022 All-in-One x86 & x64) and .NET Desktop Runtime 8.
-
-11. **ThinkPad Dual-Mode Power Management**:
-    - Unlocks and activates the **Ultimate Performance** power plan on AC power with 0% PCIe latency and disabled USB selective suspend.
-    - Preserves battery life on DC power with balanced CPU throttling.
+* **Windows Restore Point**: Automatic restore points are generated before applying system tweaks.
+* **DNS Revert**: Original DNS settings are backed up to `C:\ProgramData\DeviceOptimization\dns_backup.json` and can be restored using `-RevertDNS`.
+* **Execution Logs**: Complete logs are saved under `C:\ProgramData\DeviceOptimization\`.
 
 ---
 
 ## 📜 License
 
-MIT License - Copyright (c) 2026 Shoumik Bala Somu.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Developed with ❤️ by **Shoumik Bala Somu**.
