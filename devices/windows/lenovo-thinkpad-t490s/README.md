@@ -59,7 +59,7 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 
 ---
 
-## 🔬 The 12 Ultra-Deep Optimization Sectors
+## 🔬 The 18 Ultra-Deep Optimization Sectors
 
 1. **CPU SpeedShift EPP & Core Unparking**: SpeedShift EPP set to `0` on AC (instant clock scaling) and all 8 logical threads unparked on charger.
 2. **32GB RAM Architecture**: Windows Memory Compression disabled (`Disable-MMAgent -MemoryCompression`), eliminating CPU decompression micro-stutter; kernel locked in physical RAM (`DisablePagingExecutive = 1`).
@@ -73,6 +73,12 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 10. **Security & DNS Hardening**: Defender RTP, Firewall active on all profiles, and Cloudflare 1.1.1.3 Family DNS with automated backup.
 11. **Display Quality & Visual Clarity Engine**: Disables Intel DPST (Display Power Saving Technology / Adaptive Contrast Dimming via `FeatureTestControl = 0x8210`) to eliminate washed-out dark scenes and sudden stepping; activates ClearType 2.0 RGB subpixel rendering (`Gamma 1400`) for pinpoint font sharpness.
 12. **High-Fidelity Audio & Realtek Low-Latency Stack**: Disables Windows Communication Audio Ducking (`UserDuckingPreference = 3`), eliminating 80% volume drop during Discord/Teams calls; elevates MMCSS Audio Task priority (`Priority 6, High Scheduling, SFIO High, Latency Sensitive`) to prevent audio buffer underruns and crackling.
+13. **Peripheral & Bus Latency Engine**: PCIe Link State Power Management (ASPM) set to `Off` on AC to eliminate NVMe SSD and Wi-Fi bus latency spikes; USB Selective Suspend disabled on AC to stop external drive/DAC disconnects; Intel UHD 620 iGPU set to Maximum Performance (1.15GHz boost).
+14. **Input Precision & Responsiveness Engine**: Enforces 1:1 linear pointer tracking without artificial acceleration curves (`MouseSpeed = 0`, `MouseThreshold = 0`); minimizes keyboard repeat delay (`KeyboardDelay = 0`, `KeyboardSpeed = 31`); removes tap delays on Precision Touchpad.
+15. **Privacy, Diagnostics & Telemetry Hardening**: Reduces Windows Diagnostic Data from Full (Level 3) to Basic (Level 1); disables Advertising ID and tailored diagnostics; purges Activity History feed; suppresses Windows Error Reporting UI freezes.
+16. **Desktop Environment & Shell Snappiness**: Window minimize/maximize animation delay disabled (`MinAnimate = 0`); Bing search in Start Menu disabled for instantaneous local-only file/app search.
+17. **Gaming & Network Bandwidth Engine**: Background GameDVR video capture disabled (saves GPU/RAM cycles); Windows Game Mode active; 20% QoS reserved network bandwidth unlocked (`NonBestEffortLimit = 0`); modern BBR2/Cubic TCP congestion provider active.
+18. **ThinkPad OEM Driver Shield & Crash Safety**: Protects ThinkPad OEM drivers against generic Windows Update downgrades (`ExcludeWUDriversInQualityUpdate = 1`); enforces MiniDump crash control to prevent 32GB RAM from thrashing the SSD during system halts.
 
 ---
 
