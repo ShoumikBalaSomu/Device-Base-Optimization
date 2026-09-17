@@ -70,19 +70,25 @@ if (-not $isAdmin) {
     Write-Warning "Administrator privileges required for kernel, BIOS, and network optimizations."
     Write-Host "Elevating permissions..." -ForegroundColor Yellow
     try {
-        $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        if ($AutoInstall) { $arguments += " -AutoInstall" }
-        if ($All) { $arguments += " -All" }
-        if ($AnalyzeOnly) { $arguments += " -AnalyzeOnly" }
-        if ($Interactive) { $arguments += " -Interactive" }
-        if ($ExtremeBattery) { $arguments += " -ExtremeBattery" }
-        if ($ChargeToFull) { $arguments += " -ChargeToFull" }
-        if ($Rollback) { $arguments += " -Rollback" }
-        if ($RevertDNS) { $arguments += " -RevertDNS" }
-        if ($SkipRestorePoint) { $arguments += " -SkipRestorePoint" }
-        
-        Start-Process -FilePath "powershell.exe" -ArgumentList $arguments -Verb RunAs
-        exit 0
+        if ([string]::IsNullOrWhiteSpace($PSCommandPath)) {
+            $oneLiner = "irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/lenovo-thinkpad-t490s/Optimize-ThinkPad-T490s.ps1 | iex"
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$oneLiner`"" -Verb RunAs
+            exit 0
+        } else {
+            $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+            if ($AutoInstall) { $arguments += " -AutoInstall" }
+            if ($All) { $arguments += " -All" }
+            if ($AnalyzeOnly) { $arguments += " -AnalyzeOnly" }
+            if ($Interactive) { $arguments += " -Interactive" }
+            if ($ExtremeBattery) { $arguments += " -ExtremeBattery" }
+            if ($ChargeToFull) { $arguments += " -ChargeToFull" }
+            if ($Rollback) { $arguments += " -Rollback" }
+            if ($RevertDNS) { $arguments += " -RevertDNS" }
+            if ($SkipRestorePoint) { $arguments += " -SkipRestorePoint" }
+            
+            Start-Process -FilePath "powershell.exe" -ArgumentList $arguments -Verb RunAs
+            exit 0
+        }
     }
     catch {
         Write-Error "Failed to elevate privileges. Please run PowerShell as Administrator."
