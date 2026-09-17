@@ -192,6 +192,17 @@ Device-Base-Optimization/
 
 ---
 
+## 🤖 Optimizing Any Device with Antigravity CLI
+
+Want to optimize another computer (e.g. ASUS ROG, Dell XPS, HP Spectre, MacBook, or Linux rig) at this exact peak depth? We've engineered the **Master Optimization Prompt** designed specifically for **Antigravity CLI**:
+
+1. Install and launch **Antigravity CLI** on your target device (`agy`).
+2. Open [**`docs/MASTER_OPTIMIZATION_PROMPT.md`**](docs/MASTER_OPTIMIZATION_PROMPT.md).
+3. Copy and paste the prompt into Antigravity CLI.
+4. Antigravity CLI will autonomously probe the hardware, engineer the custom 18-sector suite, execute it live, lock battery protection, and push the new device profile to GitHub!
+
+---
+
 ## ➕ Contributing a New Device Profile
 
 We invite contributions for more laptop models, custom gaming rigs, and operating systems!
