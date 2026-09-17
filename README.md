@@ -84,21 +84,35 @@ flowchart TD
 
 ## ⚡ 1-Click Quickstart (Run-Once & Forget)
 
-### 💻 For Lenovo ThinkPad T490s (`20NYS64T00`)
+### 🚀 Instant 1-Line PowerShell Launch (Zero Download / Zero Git)
 
-#### Method A: Direct Download (Zero CLI — Easiest)
-1. Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip).
-2. Extract the archive to any folder.
-3. Double-click **`Run-Once.cmd`** and click **Yes** on the UAC prompt.
-4. *Done! The suite completes in ~15 seconds and you never need to touch it again.*
+Just open **PowerShell** (Standard or Administrator) and paste the command for your machine:
 
-#### Method B: Via Git Repository
+#### 💻 1. Lenovo ThinkPad T490s (`20NYS64T00`)
 ```powershell
-# Clone and enter directory
+irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/lenovo-thinkpad-t490s/Optimize-ThinkPad-T490s.ps1 | iex
+```
+*(Auto-elevates, executes all 18 sectors, locks 75%-80% battery threshold, and installs the watchdog task in ~15s).*
+
+#### 🖥️ 2. Universal Windows 10 / 11 PC (Any OEM)
+```powershell
+irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/universal/Optimize-Windows-Universal.ps1 | iex
+```
+*(Auto-elevates, runs DISM/SFC repairs, cleans junk, enables Cloudflare 1.1.1.3 DNS, and tunes power).*
+
+---
+
+### 📦 Alternative Launch Methods (ThinkPad T490s)
+
+#### Method B: Double-Click Launcher (Zero CLI)
+1. Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip).
+2. Extract the archive.
+3. Double-click **`Run-Once.cmd`** and click **Yes** on the UAC prompt.
+
+#### Method C: Via Git Repository
+```powershell
 git clone https://github.com/ShoumikBalaSomu/Device-Base-Optimization.git
 cd Device-Base-Optimization\devices\windows\lenovo-thinkpad-t490s
-
-# Run autonomous optimizer
 powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1
 ```
 
