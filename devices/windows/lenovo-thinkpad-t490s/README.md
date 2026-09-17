@@ -7,21 +7,27 @@ A fully autonomous, zero-interaction performance optimization and battery protec
 
 ## ⚡ 1-Click "Run-Once & Forget" (Zero Interaction)
 
-You only need to run this **once**. It automatically executes all 10 optimization sectors, locks your battery protection, and installs a persistent background watchdog service that maintains peak performance and battery health forever.
+You only need to run this **once**. It automatically executes all 18 optimization sectors, locks your battery protection, and installs a persistent background watchdog service that maintains peak performance and battery health forever.
 
-### Option A: Double-Click (Easiest)
+### 🚀 Option 1: Instant 1-Line PowerShell Command (Zero Download / Zero Git)
+Copy and paste this single line into **PowerShell** (Standard or Administrator) and press Enter:
+```powershell
+irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/lenovo-thinkpad-t490s/Optimize-ThinkPad-T490s.ps1 | iex
+```
+*(Automatically prompts for UAC elevation if needed, counts down 5 seconds, and completes 100% autonomously!)*
+
+### 📦 Option 2: Double-Click Launcher (Local File)
 Simply double-click **`Run-Once.cmd`** in this folder:
 ```text
 devices/windows/lenovo-thinkpad-t490s/Run-Once.cmd
 ```
 *(Accept the standard Windows UAC administrator prompt, and everything runs automatically!)*
 
-### Option B: From PowerShell (Elevated)
+### 💻 Option 3: From Elevated PowerShell (Local Clone)
 ```powershell
 cd "devices\windows\lenovo-thinkpad-t490s"
 powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1
 ```
-*(Automatically counts down 5 seconds and runs everything unattended with zero prompts).*
 
 ---
 
