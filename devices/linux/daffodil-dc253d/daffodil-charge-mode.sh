@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-#  🔋 DAFFODIL DC253D BATTERY CHARGING MODE CONTROLLER
+#  🔋 DAFFODIL DC253D BATTERY CHARGING CONTROLLER (SILENT)
 #  Hardware Target: Daffodil Computers Ltd. DC253D (Intel Raptor Lake-U)
 # ==============================================================================
 
@@ -14,25 +14,6 @@ CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m'
-
-notify_user() {
-    local title="$1"
-    local msg="$2"
-    local icon="${3:-battery}"
-    for uid in $(loginctl list-sessions --no-legend 2>/dev/null | awk '{print $3}' | sort -u); do
-        if [[ -d "/run/user/${uid}" && "$uid" -ge 1000 ]]; then
-            local bus_sock="/run/user/${uid}/bus"
-            if [[ -S "$bus_sock" ]]; then
-                local uname
-                uname=$(id -nu "$uid" 2>/dev/null || echo "")
-                if [[ -n "$uname" ]]; then
-                    sudo -u "$uname" DBUS_SESSION_BUS_ADDRESS="unix:path=${bus_sock}" \
-                        notify-send -u normal -i "$icon" "$title" "$msg" 2>/dev/null || true
-                fi
-            fi
-        fi
-    done
-}
 
 get_current_mode() {
     if [[ -f "$CONFIG_FILE" ]]; then
@@ -60,7 +41,7 @@ show_status() {
     echo -e "${CYAN}${BOLD}=== Daffodil DC253D Battery Chemistry Status ===${NC}"
     echo -e "  • Current Charge Level : ${BOLD}${cap}%${NC} (${status})"
     if [[ "$cur_mode" == "protect" ]]; then
-        echo -e "  • Active Charge Mode   : ${GREEN}${BOLD}PROTECT${NC} (Li-ion 80% Lifespan Protection Active)"
+        echo -e "  • Active Charge Mode   : ${GREEN}${BOLD}PROTECT${NC} (Stop Charging at 80% Active - Silent)"
     else
         echo -e "  • Active Charge Mode   : ${YELLOW}${BOLD}FULL${NC} (100% Express Charge for Travel)"
     fi
@@ -84,24 +65,20 @@ set_mode() {
         if [[ -f /sys/class/power_supply/BAT0/charge_control_end_threshold ]]; then
             echo 80 > /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || true
         fi
-        rm -f /tmp/.daffodil_battery_alerted
-        echo -e "${GREEN}✓ Switched to Li-ion Battery Protection Mode (80% ceiling / alert).${NC}"
-        notify_user "🔋 Charge Mode: Protection" "Battery capped at 80% to eliminate high-voltage cell wear." "battery-good"
+        echo -e "${GREEN}✓ Switched to Li-ion Battery Protection Mode: Stop charging at 80% (Silent).${NC}"
     elif [[ "$target" == "full" ]]; then
         echo "MODE=full" > "$CONFIG_FILE"
         if [[ -f /sys/class/power_supply/BAT0/charge_control_end_threshold ]]; then
             echo 100 > /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || true
         fi
-        rm -f /tmp/.daffodil_battery_alerted
-        echo -e "${GREEN}✓ Switched to Full Charge Mode (100% capacity unlocked for travel).${NC}"
-        notify_user "⚡ Charge Mode: Full" "Battery charging unlocked to 100% for maximum travel runtime." "battery-full-charging"
+        echo -e "${GREEN}✓ Switched to Full Charge Mode: Charge to 100% unlocked for travel.${NC}"
     else
         echo -e "${RED}Invalid mode: $target${NC}"
         echo "Usage: daffodil-charge-mode [protect | full | status]"
         exit 1
     fi
 
-    # Trigger watchdog to re-evaluate state
+    # Trigger watchdog to re-evaluate state immediately
     if [[ -x /usr/local/bin/daffodil-watchdog.sh ]]; then
         /usr/local/bin/daffodil-watchdog.sh
     fi
