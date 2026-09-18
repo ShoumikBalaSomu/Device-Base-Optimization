@@ -110,9 +110,8 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 ### 📦 Alternative Launch Methods (ThinkPad T490s)
 
 #### Method B: Double-Click Launcher (Zero CLI)
-1. Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip).
-2. Extract the archive.
-3. Double-click **`Run-Once.cmd`** and click **Yes** on the UAC prompt.
+* **Windows 11 / 10**: Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) and double-click `Run-Once.cmd`.
+* **Linux (Fedora / Debian)**: Download [**`ThinkPad-T490s-Linux-Autonomous-v1.1.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.1.0/ThinkPad-T490s-Linux-Autonomous-v1.1.0.zip) and run `run-once.sh`.
 
 #### Method C: Via Git Repository
 ```powershell
