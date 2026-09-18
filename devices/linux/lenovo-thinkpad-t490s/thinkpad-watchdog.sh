@@ -9,15 +9,20 @@ set -euo pipefail
 AC_FILE="/sys/class/power_supply/AC/online"
 BAT_START="/sys/class/power_supply/BAT0/charge_control_start_threshold"
 BAT_END="/sys/class/power_supply/BAT0/charge_control_end_threshold"
+CONFIG_FILE="/etc/thinkpad-charge-mode.conf"
 
 # ------------------------------------------------------------------------------
-# 1. Permanent Battery Chemistry Protection (75% Start - 80% Stop)
+# 1. Dual-Mode Battery Charging Guard (Full 100% vs Protect 80%)
 # ------------------------------------------------------------------------------
-if [[ -f "$BAT_START" ]]; then
-    echo 75 > "$BAT_START" 2>/dev/null || true
-fi
-if [[ -f "$BAT_END" ]]; then
-    echo 80 > "$BAT_END" 2>/dev/null || true
+MODE="full"
+[[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
+
+if [[ "$MODE" == "protect" ]]; then
+    [[ -f "$BAT_START" ]] && echo 75 > "$BAT_START" 2>/dev/null || true
+    [[ -f "$BAT_END" ]] && echo 80 > "$BAT_END" 2>/dev/null || true
+else
+    [[ -f "$BAT_START" ]] && echo 0 > "$BAT_START" 2>/dev/null || true
+    [[ -f "$BAT_END" ]] && echo 100 > "$BAT_END" 2>/dev/null || true
 fi
 
 # ------------------------------------------------------------------------------
@@ -32,7 +37,7 @@ if [[ "$AC_ONLINE" -eq 1 ]]; then
     # --------------------------------------------------------------------------
     # ON AC POWER: MAXIMUM PERFORMANCE MODE
     # --------------------------------------------------------------------------
-    # CPU: Intel SpeedShift EPP = performance (EPP 0 equivalent in intel_pstate)
+    # CPU: Intel SpeedShift EPP = performance
     for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
         [[ -f "$epp" ]] && echo performance > "$epp" 2>/dev/null || true
     done
@@ -58,7 +63,7 @@ if [[ "$AC_ONLINE" -eq 1 ]]; then
         [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
     done
 
-    logger -t thinkpad-watchdog "Power state: AC Connected -> Maximum Performance Unleashed (EPP=performance, DYTC=performance, GPU=1150MHz, APST=0, USB=on)"
+    logger -t thinkpad-watchdog "Power state: AC Connected -> Maximum Performance Unleashed (Mode=$MODE, EPP=performance, DYTC=performance, GPU=1150MHz, APST=0)"
 else
     # --------------------------------------------------------------------------
     # ON BATTERY: EXTREME BATTERY SAVER MODE (~8-10+ Hours Runtime)

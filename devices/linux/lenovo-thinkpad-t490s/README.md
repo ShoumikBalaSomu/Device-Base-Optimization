@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **06** | **OEM BIOS & Thermals** | ThinkPad ACPI DYTC platform profile locked to `performance` on AC for sustained 4.80GHz Turbo boost. |
 | **07** | **Kernel Scheduler** | `kernel.sched_autogroup_enabled = 1` for instantaneous foreground desktop responsiveness under background load. |
 | **08** | **Services & Debloat** | Non-essential services disabled (`abrt`, `ModemManager`, `thermald`); `NetworkManager-wait-online` disabled (-5.6s boot); journal logs capped to 100MB. |
-| **09** | **Battery Protection** | Permanent 75% start / 80% stop hardware charging threshold locked in `BAT0` via sysfs and persistent udev rules. |
+| **09** | **Battery Protection & Dual-Mode** | Dual-mode battery controller (`thinkpad-charge-mode [full|protect|status]`); persistent hardware thresholds locked via dynamic udev and watchdog; GNOME top-bar battery percentage enabled. |
 | **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS-over-TLS (`DNSOverTLS=yes`) in `systemd-resolved`; `firewalld` active. |
 | **11** | **Display Quality** | Intel DPST adaptive contrast dimming disabled for true 100% blacks; subpixel RGB font antialiasing (`rgba`) locked. |
 | **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated; WebRTC acoustic echo cancellation and microphone noise suppression active; volume amplified to 130% (over-amplification enabled up to 150%). |
@@ -77,10 +77,35 @@ stateDiagram-v2
     }
     AC_Connected --> Maximum_Performance: EPP=performance, DYTC=performance, GPU=1.15GHz, APST=0, USB=on
     Battery_Powered --> Extreme_Battery_Saver: EPP=balance_power, DYTC=low-power, USB=auto (~8-10h Life)
-    Maximum_Performance --> Guard_Battery: Re-assert 75%-80% Threshold
-    Extreme_Battery_Saver --> Guard_Battery: Re-assert 75%-80% Threshold
+    Maximum_Performance --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
+    Extreme_Battery_Saver --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
     Guard_Battery --> [*]: Idle (Timer / udev)
 ```
+
+---
+
+## 🔋 Battery Charging Modes & Indicator Guide
+
+The ThinkPad T490s features embedded controller (EC) charge thresholds. This suite provides the **`thinkpad-charge-mode`** utility to switch between battery protection and full 100% capacity:
+
+### 1. Available Commands
+
+```bash
+# Check current thresholds, AC connection, charging status & battery percentage (No root required)
+thinkpad-charge-mode status
+
+# Switch to Full Charge Mode (0% start / 100% stop) - keeps charging indicator active up to 100%
+sudo thinkpad-charge-mode full
+
+# Switch to Battery Protection Mode (75% start / 80% stop) - preserves chemical health for desktop/dock use
+sudo thinkpad-charge-mode protect
+```
+
+### 2. Understanding the GNOME Charging Indicator Behavior
+
+* **Full Charge Mode (`full`)**: When plugged into AC, the battery charges continuously until 100%. GNOME Shell displays the active charging bolt icon (`battery-full-charging-symbolic`).
+* **Protection Mode (`protect`)**: When the battery reaches 80%, the ThinkPad embedded hardware controller deliberately shuts off charging current (`POWER_SUPPLY_STATUS=Not charging`, UPower state `pending-charge`). In this state, GNOME Shell intentionally hides the lightning bolt icon because power is not entering the battery cells.
+* **Top Bar Battery Percentage**: The optimization suite automatically enables GNOME's battery percentage in the top panel (`gsettings set org.gnome.desktop.interface show-battery-percentage true`), so you can always see the exact battery level regardless of icon styling.
 
 ---
 
