@@ -98,6 +98,7 @@ zram-size = min(ram, 8192)
 compression-algorithm = zstd
 EOF
 swapoff /dev/zram0 2>/dev/null || true
+echo 1 > /sys/block/zram0/reset 2>/dev/null || true
 systemctl restart systemd-zram-setup@zram0.service 2>/dev/null || true
 swapon -a 2>/dev/null || true
 
