@@ -418,13 +418,25 @@ echo -e "  ${GREEN}✓ PCIe ASPM performance active; USB autosuspend disabled; W
 # ==============================================================================
 # SECTOR 14: INPUT PRECISION & RESPONSIVENESS
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 14/18] Input Precision & 1:1 Pointer Tracking...${NC}"
+echo -e "\n${BOLD}[Sector 14/18] Input Precision, Touchpad Calibration & I2C Shield...${NC}"
 run_user_gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'flat'
-run_user_gsettings set org.gnome.desktop.peripherals.touchpad accel-profile 'flat'
+run_user_gsettings set org.gnome.desktop.peripherals.touchpad accel-profile 'default'
+run_user_gsettings set org.gnome.desktop.peripherals.touchpad speed 0.15
 run_user_gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true
+run_user_gsettings set org.gnome.desktop.peripherals.touchpad natural-scroll true
+run_user_gsettings set org.gnome.desktop.peripherals.touchpad two-finger-scrolling-enabled true
 run_user_gsettings set org.gnome.desktop.peripherals.keyboard delay 250
 run_user_gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 25
-echo -e "  ${GREEN}✓ Synaptics Precision Touchpad flat profile; tap-to-click on; keyboard repeat delay 250ms.${NC}"
+
+# Shield Touchpad Intel LPSS I2C controllers from sleep freeze
+for dev in /sys/bus/pci/drivers/intel-lpss/*/power/control /sys/bus/i2c/devices/i2c-SYNA*/power/control; do
+    [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
+done
+if [[ -f "${SCRIPT_DIR}/99-daffodil-touchpad.rules" ]]; then
+    cp "${SCRIPT_DIR}/99-daffodil-touchpad.rules" /etc/udev/rules.d/99-daffodil-touchpad.rules
+    udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
+fi
+echo -e "  ${GREEN}✓ Mouse flat 1:1; Touchpad adaptive precision & tap-to-click active; I2C controller shielded; keyboard repeat 250ms.${NC}"
 
 # ==============================================================================
 # SECTOR 15: PRIVACY HARDENING & TELEMETRY REDUCTION

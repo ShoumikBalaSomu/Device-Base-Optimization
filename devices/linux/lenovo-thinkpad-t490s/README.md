@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **11** | **Display Quality** | Intel DPST adaptive contrast dimming disabled for true 100% blacks; subpixel RGB font antialiasing (`rgba`) locked. |
 | **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated; WebRTC acoustic echo cancellation and microphone noise suppression active; volume amplified to 130% (over-amplification enabled up to 150%). |
 | **13** | **Bus & Peripheral Latency** | USB autosuspend disabled on AC; Intel UHD 620 iGPU clock unlocked to 1.15GHz (`gt_boost_freq_mhz`). |
-| **14** | **Input Precision** | 1:1 linear pointer tracking enforced (`accel-profile 'flat'`); zero touchpad tap delay; keyboard repeat delay minimized (250ms). |
+| **14** | **Input Precision** | 1:1 linear mouse tracking enforced (`accel-profile 'flat'`); Precision Touchpad calibrated with natural scrolling, tap-to-click, and adaptive tracking curve; keyboard repeat delay minimized (250ms). |
 | **15** | **Privacy Hardening** | Diagnostic problem reporting and software usage telemetry disabled in GNOME desktop. |
 | **16** | **Desktop Snappiness** | GNOME overview search restricted to local documents (external web search queries suppressed). |
 | **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; DNF 10x parallel downloads enabled; GameMode compatibility active. |

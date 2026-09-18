@@ -544,18 +544,19 @@ function Invoke-Sector14_InputPrecision {
     Set-ItemProperty -Path $mouseKey -Name "MouseSpeed" -Value "0" -Type String -Force
     Set-ItemProperty -Path $mouseKey -Name "MouseThreshold1" -Value "0" -Type String -Force
     Set-ItemProperty -Path $mouseKey -Name "MouseThreshold2" -Value "0" -Type String -Force
+    Set-ItemProperty -Path $mouseKey -Name "MouseSensitivity" -Value "10" -Type String -Force
     
     # Fast Keyboard Repeat Delay (250ms) and Repeat Rate (31 / Max)
     $kbKey = "HKCU:\Control Panel\Keyboard"
     Set-ItemProperty -Path $kbKey -Name "KeyboardDelay" -Value "0" -Type String -Force
     Set-ItemProperty -Path $kbKey -Name "KeyboardSpeed" -Value "31" -Type String -Force
     
-    # Zero Touchpad Tap Delay in Precision Touchpad
+    # Precision Touchpad Calibration (Balanced sensitivity avoids accidental palm locks while keeping responsive tapping)
     $touchpadKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
     if (Test-Path $touchpadKey) {
-        Set-ItemProperty -Path $touchpadKey -Name "AAPThreshold" -Value 0 -Type DWord -Force
+        Set-ItemProperty -Path $touchpadKey -Name "AAPThreshold" -Value 2 -Type DWord -Force
     }
-    Write-Log "Pointer set to 1:1 linear tracking; keyboard repeat delay minimized." "SUCCESS"
+    Write-Log "Pointer set to 1:1 linear tracking; touchpad calibrated; keyboard repeat delay minimized." "SUCCESS"
 }
 
 # -------------------------------------------------------------------------
@@ -809,6 +810,7 @@ function Invoke-Rollback {
     Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value "1" -Type String -Force
     Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Value "6" -Type String -Force
     Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Value "10" -Type String -Force
+    Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "AAPThreshold" -ErrorAction SilentlyContinue
     Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Value "1" -Type String -Force
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Value "1" -Type String -Force
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 1 -Type DWord -Force
