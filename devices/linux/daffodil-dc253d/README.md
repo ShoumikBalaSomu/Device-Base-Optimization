@@ -56,10 +56,10 @@ daffodil-charge-mode status
 | **03. NVMe Storage** | MAXIO MAP1202 DRAM-less | Zero APST latency (`default_ps_max_latency_us=0`) on AC to prevent DRAM-less freezes; Btrfs mounted with `noatime,commit=60`; weekly TRIM enabled. |
 | **04. GPU Acceleration** | Intel Raptor Lake UHD | Intel `i915` options `enable_dpst=0 enable_guc=2`; Mesa shader cache 4GB (`MESA_SHADER_CACHE_MAX_SIZE=4G`); Intel QuickSync VA-API enabled. |
 | **05. Network Stack** | Intel CNVi Wi-Fi + RTL8168 | TCP BBR congestion control + FQ qdisc; low latency buffer scaling; Wi-Fi power save disabled on AC. |
-| **06. OEM BIOS & Thermals** | Emdoor IDL528 Platform | DPTF platform profile performance locking; firmware ACPI bug logging suppressed with `loglevel=3`. |
+| **06. OEM BIOS & Thermals** | Emdoor IDL528 Platform | DPTF platform profile performance locking; UEFI NVRAM boot order optimized (`efibootmgr`); firmware ACPI bug logging suppressed with `loglevel=3`. See [BIOS Recommendations](BIOS_RECOMMENDATIONS.md). |
 | **07. Kernel Scheduler** | Linux PREEMPT_DYNAMIC | `sched_autogroup_enabled = 1` for instantaneous foreground app responsiveness; panic safety timeout 10s. |
 | **08. Services & Debloat** | Fedora Systemd | Disabled `NetworkManager-wait-online.service` (**saves 7.1s boot time**); disabled `ModemManager` and `abrt-*`; systemd journal vacuumed and capped to 100MB. |
-| **09. Battery Protection** | Dongguan Ganfeng 55.2Wh | Autonomous watchdog monitors state; provides `daffodil-charge-mode` CLI and desktop notification alerts when charge reaches 80% on AC. |
+| **09. Battery Protection** | Dongguan Ganfeng 55.2Wh | Autonomous watchdog monitors state; provides `daffodil-charge-mode` CLI; silent direct EC hardware stop-charge and thermal protection when charge reaches 80% on AC (zero popups). |
 | **10. Security & DNS** | Network Stack | Cloudflare Family 1.1.1.3 DNS-over-TLS (DoT) with automatic fallback; Firewalld verified and active. |
 | **11. Display Quality** | 1080p FHD IPS Panel | Intel DPST adaptive contrast dimming disabled (100% true blacks preserved); RGB subpixel antialiasing & slight hinting locked. |
 | **12. High-Fidelity Audio** | Realtek ALC269VC Codec | PipeWire 48kHz / 512 quantum; WirePlumber zero ducking; WebRTC acoustic echo cancellation & noise suppression; ALSA power save 0 on AC; volume headroom boosted to 130%. |

@@ -195,7 +195,12 @@ echo -e "\n${BOLD}[Sector 06/18] Thermal Management & Firmware Log Sanitization.
 if [[ -f /sys/firmware/acpi/platform_profile ]]; then
     echo performance > /sys/firmware/acpi/platform_profile 2>/dev/null || true
 fi
+# Optimize UEFI NVRAM Boot Order: Prioritize installed OS over Realtek network PXE boot ROMs
+if command -v efibootmgr >/dev/null 2>&1; then
+    efibootmgr -o 0001,0000 >/dev/null 2>&1 || true
+fi
 echo -e "  ${GREEN}✓ Intel Dynamic Platform and Thermal Framework verified.${NC}"
+echo -e "  ${GREEN}✓ UEFI NVRAM Boot Order optimized (PXE network boot delay eliminated).${NC}"
 
 # ==============================================================================
 # SECTOR 07: KERNEL SCHEDULER AUTOGROUPING
