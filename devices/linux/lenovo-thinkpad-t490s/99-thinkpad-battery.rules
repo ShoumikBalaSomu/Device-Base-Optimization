@@ -1,4 +1,4 @@
 # ThinkPad T490s Dynamic Power & Charge Mode Watchdog Rules
 # Repository: ShoumikBalaSomu/Device-Base-Optimization
 
-SUBSYSTEM=="power_supply", KERNEL=="AC", ACTION=="change", RUN+="/usr/local/bin/thinkpad-watchdog.sh"
+SUBSYSTEM=="power_supply", KERNEL=="AC|ucsi-source-psy*", ACTION=="change", RUN+="/usr/local/bin/thinkpad-watchdog.sh"

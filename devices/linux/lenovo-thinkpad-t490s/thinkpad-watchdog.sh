@@ -72,7 +72,14 @@ if [[ "$AC_ONLINE" -eq 1 ]]; then
         [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
     done
 
-    logger -t thinkpad-watchdog "Power state: AC Connected -> Maximum Performance Mode Synchronized (GNOME=performance, TuneD=throughput-performance, EPP=performance, DYTC=performance, GPU=1150MHz, APST=0)"
+    # 7. Intel AC 9560 Wi-Fi: Zero-latency mode (disable power-saving for minimal ping jitter)
+    if command -v iw >/dev/null 2>&1; then
+        for iface in $(iw dev 2>/dev/null | awk '$1=="Interface"{print $2}'); do
+            iw dev "$iface" set power_save off 2>/dev/null || true
+        done
+    fi
+
+    logger -t thinkpad-watchdog "Power state: AC Connected -> Maximum Performance Mode Synchronized (GNOME=performance, TuneD=throughput-performance, EPP=performance, DYTC=performance, GPU=1150MHz, APST=0, WiFi-PS=off)"
 else
     # --------------------------------------------------------------------------
     # ON BATTERY: EXTREME BATTERY SAVER MODE (~8-10+ Hours Runtime)
@@ -106,5 +113,12 @@ else
         [[ -f "$dev" ]] && echo auto > "$dev" 2>/dev/null || true
     done
 
-    logger -t thinkpad-watchdog "Power state: Battery -> Extreme Battery Saver Active (GNOME=power-saver, TuneD=powersave, EPP=balance_power, DYTC=low-power, USB=auto)"
+    # 7. Intel AC 9560 Wi-Fi: Enable power-saving to maximize battery runtime
+    if command -v iw >/dev/null 2>&1; then
+        for iface in $(iw dev 2>/dev/null | awk '$1=="Interface"{print $2}'); do
+            iw dev "$iface" set power_save on 2>/dev/null || true
+        done
+    fi
+
+    logger -t thinkpad-watchdog "Power state: Battery -> Extreme Battery Saver Active (GNOME=power-saver, TuneD=powersave, EPP=balance_power, DYTC=low-power, USB=auto, WiFi-PS=on)"
 fi

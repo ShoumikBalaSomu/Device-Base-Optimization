@@ -222,10 +222,10 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "MODE=full" > "$CONFIG_FILE"
 fi
 
-# Configure dynamic udev trigger without recursive sysfs attribute loop
+# Configure dynamic udev trigger without recursive sysfs attribute loop (AC + USB-C PD)
 cat << 'EOF' > /etc/udev/rules.d/99-thinkpad-battery-thresholds.rules
-# ThinkPad T490s Dynamic Power & Charge Mode Watchdog Rules
-SUBSYSTEM=="power_supply", KERNEL=="AC", ACTION=="change", RUN+="/usr/local/bin/thinkpad-watchdog.sh"
+# ThinkPad T490s Dynamic Power & Charge Mode Watchdog Rules (AC + USB-C PD)
+SUBSYSTEM=="power_supply", KERNEL=="AC|ucsi-source-psy*", ACTION=="change", RUN+="/usr/local/bin/thinkpad-watchdog.sh"
 EOF
 udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
 
@@ -395,7 +395,21 @@ if command -v grubby >/dev/null 2>&1; then
 fi
 sed -i "s|GRUB_CMDLINE_LINUX=\"rhgb quiet\"|GRUB_CMDLINE_LINUX=\"rhgb quiet split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0\"|g" /etc/default/grub 2>/dev/null || true
 dracut --regenerate-all --force >/dev/null 2>&1 || true
-echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings, backlight & TrackPoint configs permanently embedded.${NC}"
+
+# ThinkPad BIOS firmware tuning via thinklmi
+THINKLMI_ATTRS="/sys/class/firmware-attributes/thinklmi/attributes"
+if [[ -d "$THINKLMI_ATTRS" ]]; then
+    # Double pre-allocated iGPU VRAM from 256MB to 512MB for 4K video decoding & Wayland fluidity
+    if [[ -f "${THINKLMI_ATTRS}/TotalGraphicsMemory/current_value" ]]; then
+        echo "512MB" > "${THINKLMI_ATTRS}/TotalGraphicsMemory/current_value" 2>/dev/null || true
+    fi
+    # Disable uninstalled WWAN slot to eliminate ACPI AE_ALREADY_EXISTS DSDT errors
+    if [[ -f "${THINKLMI_ATTRS}/WirelessWANAccess/current_value" ]]; then
+        echo "Disable" > "${THINKLMI_ATTRS}/WirelessWANAccess/current_value" 2>/dev/null || true
+    fi
+fi
+
+echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings, backlight, TrackPoint & BIOS VRAM permanently optimized.${NC}"
 
 # ==============================================================================
 # PHASE 4: INSTALL AUTONOMOUS BACKGROUND WATCHDOG
@@ -433,5 +447,7 @@ echo -e "  • Battery Start/Stop : $(cat /sys/class/power_supply/BAT0/charge_co
 echo -e "  • Battery Status     : $(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo N/A) ($(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo N/A)%)"
 echo -e "  • Screen Brightness  : $(brightnessctl get 2>/dev/null || echo N/A) / $(brightnessctl max 2>/dev/null || echo N/A) (intel_backlight)"
 echo -e "  • Watchdog Service   : $(systemctl is-active thinkpad-watchdog.service) (Timer: $(systemctl is-active thinkpad-watchdog.timer))"
+echo -e "  • iGPU Dedicated VRAM: $(cat /sys/class/firmware-attributes/thinklmi/attributes/TotalGraphicsMemory/current_value 2>/dev/null || echo N/A)"
 echo -e "  • iGPU Boost Clock   : $(cat /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || echo N/A) MHz"
+echo -e "  • Wi-Fi Power Save   : $(iw dev 2>/dev/null | grep -i "Power save" | head -n 1 | awk '{print $3}' || echo N/A)"
 echo -e "\n${BOLD}Ready for daily work with peak responsiveness and battery protection!${NC}\n"

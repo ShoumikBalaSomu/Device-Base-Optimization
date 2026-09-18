@@ -43,11 +43,11 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **02** | **32GB RAM Architecture** | `vm.swappiness = 10` to eliminate zram swap churn; `vm.vfs_cache_pressure = 50`; zram upgraded to high-density `zstd` compression. |
 | **03** | **Storage & NVMe** | Intel NVMe APST sleep latency zeroed on AC (`default_ps_max_latency_us=0`); Btrfs mounted with `noatime,commit=60` for flash wear protection; periodic TRIM active via `fstrim.timer`. |
 | **04** | **GPU & UI Snappiness** | Intel GuC enabled (`i915.enable_guc=2`); Intel QuickSync VA-API hardware video decode active (`libva-intel-media-driver`); DPST disabled; Mesa cache capped at 4GB. |
-| **05** | **Low-Latency Network** | Kernel module `tcp_bbr` loaded with Fair Queuing (`fq`); TCP Fast Open enabled (`tcp_fastopen = 3`); socket buffers scaled to 16MB. |
+| **05** | **Low-Latency Network & Wi-Fi** | Kernel module `tcp_bbr` loaded with Fair Queuing (`fq`); TCP Fast Open enabled; Intel AC 9560 Wi-Fi dynamic power-saving (`power_save off` on AC for zero ping jitter, `power_save on` on Battery). |
 | **06** | **OEM BIOS & Thermals** | ThinkPad ACPI DYTC platform profile locked to `performance` on AC for sustained 4.80GHz Turbo boost. |
 | **07** | **Kernel Scheduler** | `kernel.sched_autogroup_enabled = 1` for instantaneous foreground desktop responsiveness under background load. |
 | **08** | **Services & Debloat** | Non-essential services disabled (`abrt`, `ModemManager`, `thermald`); `NetworkManager-wait-online` disabled (-5.6s boot); journal logs capped to 100MB. |
-| **09** | **Battery Protection & Dual-Mode** | Dual-mode battery controller (`thinkpad-charge-mode [full|protect|status]`); persistent hardware thresholds locked via dynamic udev and watchdog; GNOME top-bar battery percentage enabled. |
+| **09** | **Battery Protection & Dual-Mode** | Dual-mode battery controller (`thinkpad-charge-mode [full|protect|status]`); persistent hardware thresholds locked via dynamic udev (supporting both AC and USB-C PD); GNOME top-bar battery percentage enabled. |
 | **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS-over-TLS (`DNSOverTLS=yes`) in `systemd-resolved`; `firewalld` active. |
 | **11** | **Display & Screen Backlight** | Intel DPST adaptive dimming disabled; subpixel RGB font antialiasing (`rgba`) locked; native screen backlight hotkeys bound via `acpi_backlight=native` and `brightnessctl`. |
 | **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated; WebRTC acoustic echo cancellation and microphone noise suppression active; volume amplified to 130% (over-amplification enabled up to 150%). |
@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **15** | **Privacy Hardening** | Diagnostic problem reporting and software usage telemetry disabled in GNOME desktop. |
 | **16** | **Desktop Snappiness** | GNOME overview search restricted to local documents (external web search queries suppressed). |
 | **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; DNF 10x parallel downloads enabled; GameMode compatibility active. |
-| **18** | **OEM Driver Shield** | Embedded kernel parameters (`split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0`); hardware module configs permanently embedded via dracut. |
+| **18** | **OEM Driver Shield & BIOS VRAM** | Embedded kernel parameters (`split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0`); ThinkPad BIOS VRAM pre-allocation upgraded to 512MB via thinklmi; uninstalled WWAN slot disabled to eliminate ACPI table collisions. |
 
 ---
 
