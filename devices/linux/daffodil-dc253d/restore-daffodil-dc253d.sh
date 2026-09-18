@@ -33,6 +33,7 @@ rm -f /etc/modprobe.d/i915-daffodil.conf
 rm -f /etc/modprobe.d/audio-daffodil.conf
 rm -f /etc/modprobe.d/uvcvideo-daffodil.conf
 rm -f /etc/udev/rules.d/99-daffodil-camera.rules
+rm -f /etc/udev/rules.d/99-daffodil-touchpad.rules
 rm -f /etc/environment.d/10-mesa-shader.conf
 rm -f /etc/modules-load.d/bbr.conf
 

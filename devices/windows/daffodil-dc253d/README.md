@@ -40,7 +40,7 @@ Or double-click `Run-Once.cmd` with built-in self-elevation.
 | **11. Display Quality** | 1080p FHD IPS Panel | Intel DPST adaptive contrast dimming disabled (FeatureTestControl 0x9240); locks ClearType RGB font smoothing. |
 | **12. High-Fidelity Audio** | Realtek ALC269VC | Eliminates 80% communication ducking; sets MMCSS Audio priority to 6 (High Scheduling). |
 | **13. Bus Latency** | PCIe & USB 3.2 | Disables PCIe ASPM on AC; disables USB Selective Suspend on AC to prevent DAC disconnects. |
-| **14. Input Precision** | Precision Touchpad | Enforces 1:1 linear pointer tracking (zero mouse acceleration curves); sets keyboard repeat delay to 250ms. |
+| **14. Input Precision** | Precision Touchpad | Enforces 1:1 linear pointer tracking; calibrated Precision Touchpad sensitivity (prevents palm rejection locks); keyboard repeat delay 250ms. |
 | **15. Privacy Hardening** | Windows Telemetry | Diagnostic data restricted to Basic (Level 1); advertising ID and timeline tracking purged. |
 | **16. Desktop Snappiness** | Windows Shell | Window animation delay removed (`MinAnimate = 0`); Bing web search disabled in Start Menu. |
 | **17. Gaming & Throughput** | Windows QoS | Unlocks 100% QoS network bandwidth (`NonBestEffortLimit = 0`); disables background GameDVR capture. |

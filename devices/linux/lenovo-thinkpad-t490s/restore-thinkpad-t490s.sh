@@ -53,6 +53,10 @@ if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.interface font-hinting 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.mouse accel-profile 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.touchpad accel-profile 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.touchpad speed 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.touchpad tap-to-click 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.touchpad natural-scroll 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.touchpad two-finger-scrolling-enabled 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.keyboard delay 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.peripherals.keyboard repeat-interval 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings reset org.gnome.desktop.privacy report-technical-problems 2>/dev/null || true

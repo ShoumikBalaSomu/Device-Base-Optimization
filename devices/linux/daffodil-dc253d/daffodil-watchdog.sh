@@ -109,6 +109,11 @@ if [[ $IS_AC -eq 1 ]]; then
         echo 0 > /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || true
     fi
 
+    # 11. Touchpad & Intel LPSS I2C Controller Shield
+    for dev in /sys/bus/pci/drivers/intel-lpss/*/power/control /sys/bus/i2c/devices/i2c-SYNA*/power/control; do
+        [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
+    done
+
 else
     # ==========================================================================
     # BATTERY POWER PROFILE: EXTREME BATTERY SAVER (8-10+ HRS RUNTIME)
@@ -190,6 +195,11 @@ else
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
         echo 100000 > /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || true
     fi
+
+    # 10. Touchpad & Intel LPSS I2C Controller Shield (Guaranteed Active)
+    for dev in /sys/bus/pci/drivers/intel-lpss/*/power/control /sys/bus/i2c/devices/i2c-SYNA*/power/control; do
+        [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
+    done
 fi
 
 # ==============================================================================

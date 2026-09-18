@@ -333,15 +333,18 @@ echo -e "  ${GREEN}✓ USB autosuspend disabled; Intel UHD 620 clock unlocked to
 # ==============================================================================
 # SECTOR 14: INPUT PRECISION & RESPONSIVENESS
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 14/18] Input Precision & 1:1 Pointer Tracking...${NC}"
+echo -e "\n${BOLD}[Sector 14/18] Input Precision & Touchpad Calibration...${NC}"
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'flat' 2>/dev/null || true
-    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad accel-profile 'flat' 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad accel-profile 'default' 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad speed 0.15 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad tap-to-click true 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad natural-scroll true 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad two-finger-scrolling-enabled true 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.keyboard delay 250 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 25 2>/dev/null || true
 fi
-echo -e "  ${GREEN}✓ Mouse & Touchpad 1:1 flat acceleration profile; keyboard repeat delay 250ms.${NC}"
+echo -e "  ${GREEN}✓ Mouse 1:1 flat profile; Touchpad adaptive precision & tap-to-click active; keyboard repeat 250ms.${NC}"
 
 # ==============================================================================
 # SECTOR 15: PRIVACY HARDENING & TELEMETRY REDUCTION

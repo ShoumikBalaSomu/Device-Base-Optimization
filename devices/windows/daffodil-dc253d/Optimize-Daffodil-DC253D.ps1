@@ -441,13 +441,20 @@ function Invoke-InputPrecisionOptimization {
     Set-ItemProperty -Path $mouseKey -Name "MouseSpeed" -Value "0" -Type String -Force
     Set-ItemProperty -Path $mouseKey -Name "MouseThreshold1" -Value "0" -Type String -Force
     Set-ItemProperty -Path $mouseKey -Name "MouseThreshold2" -Value "0" -Type String -Force
+    Set-ItemProperty -Path $mouseKey -Name "MouseSensitivity" -Value "10" -Type String -Force
 
     # Fast keyboard repeat delay (250ms) and high repeat rate
     $kbdKey = "HKCU:\Control Panel\Keyboard"
     Set-ItemProperty -Path $kbdKey -Name "KeyboardDelay" -Value "0" -Type String -Force
     Set-ItemProperty -Path $kbdKey -Name "KeyboardSpeed" -Value "31" -Type String -Force
 
-    Write-Log "1:1 linear pointer tracking active; Keyboard repeat delay set to minimum." -Level SUCCESS
+    # Precision Touchpad Calibration (Balanced sensitivity avoids accidental palm locks while keeping responsive tapping)
+    $touchpadKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
+    if (Test-Path $touchpadKey) {
+        Set-ItemProperty -Path $touchpadKey -Name "AAPThreshold" -Value 2 -Type DWord -Force
+    }
+
+    Write-Log "1:1 linear pointer tracking active; Touchpad calibrated; Keyboard repeat delay set to minimum." -Level SUCCESS
 }
 
 # -------------------------------------------------------------------------
