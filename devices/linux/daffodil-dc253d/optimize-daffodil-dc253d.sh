@@ -399,13 +399,45 @@ done
 # Webcam Hardware Shield & Driver Tuning
 if [[ -f "${SCRIPT_DIR}/99-daffodil-camera.rules" ]]; then
     cp "${SCRIPT_DIR}/99-daffodil-camera.rules" /etc/udev/rules.d/99-daffodil-camera.rules
+else
+    cat << 'EOF' > /etc/udev/rules.d/99-daffodil-camera.rules
+# Daffodil DC253D Webcam Power & Latency Optimization Shield
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="04f2", ATTR{idProduct}=="b650", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
+EOF
 fi
+
 if [[ -f "${SCRIPT_DIR}/uvcvideo-daffodil.conf" ]]; then
     cp "${SCRIPT_DIR}/uvcvideo-daffodil.conf" /etc/modprobe.d/uvcvideo-daffodil.conf
+else
+    cat << 'EOF' > /etc/modprobe.d/uvcvideo-daffodil.conf
+# Daffodil DC253D Webcam Hardware Latency & No-Drop Driver Options
+options uvcvideo nodrop=1 quirks=128
+EOF
 fi
+
 if [[ -f "${SCRIPT_DIR}/50-camera-priority.conf" ]]; then
     mkdir -p /etc/wireplumber/wireplumber.conf.d
     cp "${SCRIPT_DIR}/50-camera-priority.conf" /etc/wireplumber/wireplumber.conf.d/50-camera-priority.conf
+else
+    mkdir -p /etc/wireplumber/wireplumber.conf.d
+    cat << 'EOF' > /etc/wireplumber/wireplumber.conf.d/50-camera-priority.conf
+monitor.camera.rules = [
+  {
+    matches = [
+      {
+        device.name = "~v4l2_device.*"
+      }
+    ]
+    actions = {
+      update-props = {
+        device.disabled = false
+        priority.driver = 1000
+        priority.session = 1000
+      }
+    }
+  }
+]
+EOF
 fi
 udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
 
@@ -434,8 +466,17 @@ for dev in /sys/bus/pci/drivers/intel-lpss/*/power/control /sys/bus/i2c/devices/
 done
 if [[ -f "${SCRIPT_DIR}/99-daffodil-touchpad.rules" ]]; then
     cp "${SCRIPT_DIR}/99-daffodil-touchpad.rules" /etc/udev/rules.d/99-daffodil-touchpad.rules
-    udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
+else
+    cat << 'EOF' > /etc/udev/rules.d/99-daffodil-touchpad.rules
+# Daffodil DC253D Touchpad & Intel LPSS I2C Controller Power Shield
+ACTION=="add|change", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x51e8", ATTR{power/control}="on"
+ACTION=="add|change", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x51e9", ATTR{power/control}="on"
+ACTION=="add|change", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x51c5", ATTR{power/control}="on"
+ACTION=="add|change", SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x51c6", ATTR{power/control}="on"
+ACTION=="add|change", SUBSYSTEM=="i2c", ATTRS{name}=="SYNA3602*", ATTR{power/control}="on"
+EOF
 fi
+udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
 
 # System-wide GNOME & GDM defaults (Ensures tap-to-click works at GDM login & all users)
 mkdir -p /etc/dconf/db/local.d
@@ -516,12 +557,49 @@ echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings & module conf
 # ==============================================================================
 # PHASE 4: INSTALL AUTONOMOUS BACKGROUND WATCHDOG
 # ==============================================================================
-echo -e "\n${BOLD}[Phase 4/6] Installing Autonomous Dynamic Watchdog...${NC}"
-cp "${SCRIPT_DIR}/daffodil-watchdog.sh" /usr/local/bin/daffodil-watchdog.sh
-chmod +x /usr/local/bin/daffodil-watchdog.sh
+if [[ -f "${SCRIPT_DIR}/daffodil-watchdog.sh" ]]; then
+    cp "${SCRIPT_DIR}/daffodil-watchdog.sh" /usr/local/bin/daffodil-watchdog.sh
+    chmod +x /usr/local/bin/daffodil-watchdog.sh
+fi
 
-cp "${SCRIPT_DIR}/daffodil-watchdog.service" /etc/systemd/system/daffodil-watchdog.service
-cp "${SCRIPT_DIR}/daffodil-watchdog.timer" /etc/systemd/system/daffodil-watchdog.timer
+if [[ -f "${SCRIPT_DIR}/daffodil-watchdog.service" ]]; then
+    cp "${SCRIPT_DIR}/daffodil-watchdog.service" /etc/systemd/system/daffodil-watchdog.service
+else
+    cat << 'EOF' > /etc/systemd/system/daffodil-watchdog.service
+[Unit]
+Description=Daffodil DC253D Autonomous Hardware & Power Watchdog
+Documentation=https://github.com/ShoumikBalaSomu/Device-Base-Optimization
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/daffodil-watchdog.sh
+RemainAfterExit=no
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+fi
+
+if [[ -f "${SCRIPT_DIR}/daffodil-watchdog.timer" ]]; then
+    cp "${SCRIPT_DIR}/daffodil-watchdog.timer" /etc/systemd/system/daffodil-watchdog.timer
+else
+    cat << 'EOF' > /etc/systemd/system/daffodil-watchdog.timer
+[Unit]
+Description=Daffodil DC253D Autonomous Power & Battery Watchdog Timer
+Documentation=https://github.com/ShoumikBalaSomu/Device-Base-Optimization
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=10min
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
+EOF
+fi
 
 systemctl daemon-reload
 systemctl enable --now daffodil-watchdog.service
