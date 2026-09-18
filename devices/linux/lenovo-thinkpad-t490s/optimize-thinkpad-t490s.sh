@@ -343,8 +343,18 @@ if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad two-finger-scrolling-enabled true 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.keyboard delay 250 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 25 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.pointingstick accel-profile 'default' 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.pointingstick speed 0.20 2>/dev/null || true
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.pointingstick scroll-method 'on-button-down' 2>/dev/null || true
 fi
-echo -e "  ${GREEN}✓ Mouse 1:1 flat profile; Touchpad adaptive precision & tap-to-click active; keyboard repeat 250ms.${NC}"
+
+# Force native PS/2 companion mode on Elantech touchpads to enable TrackPoint pass-through
+cat << 'EOF' > /etc/modprobe.d/psmouse.conf
+# Force native PS/2 companion mode on Elantech touchpads to enable TrackPoint pass-through
+options psmouse elantech_smbus=0
+EOF
+
+echo -e "  ${GREEN}✓ Mouse 1:1 flat profile; Touchpad adaptive precision & TrackPoint calibrated; keyboard repeat 250ms.${NC}"
 
 # ==============================================================================
 # SECTOR 15: PRIVACY HARDENING & TELEMETRY REDUCTION
@@ -381,11 +391,11 @@ fi
 echo -e "\n${BOLD}[Sector 18/18] OEM Driver Shield & Kernel Resilience...${NC}"
 # Embedded kernel latency tuning via grubby & GRUB defaults
 if command -v grubby >/dev/null 2>&1; then
-    grubby --update-kernel=ALL --args="split_lock_mitigate=0 nowatchdog" >/dev/null 2>&1 || true
+    grubby --update-kernel=ALL --args="split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0" >/dev/null 2>&1 || true
 fi
-sed -i "s|GRUB_CMDLINE_LINUX=\"rhgb quiet\"|GRUB_CMDLINE_LINUX=\"rhgb quiet split_lock_mitigate=0 nowatchdog\"|g" /etc/default/grub 2>/dev/null || true
+sed -i "s|GRUB_CMDLINE_LINUX=\"rhgb quiet\"|GRUB_CMDLINE_LINUX=\"rhgb quiet split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0\"|g" /etc/default/grub 2>/dev/null || true
 dracut --regenerate-all --force >/dev/null 2>&1 || true
-echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings & module configs permanently embedded.${NC}"
+echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings, backlight & TrackPoint configs permanently embedded.${NC}"
 
 # ==============================================================================
 # PHASE 4: INSTALL AUTONOMOUS BACKGROUND WATCHDOG
@@ -421,6 +431,7 @@ echo -e "  • TCP Congestion Ctrl: $(sysctl -n net.ipv4.tcp_congestion_control)
 echo -e "  • Active Charge Mode : $([[ -f /etc/thinkpad-charge-mode.conf ]] && grep -oP '(?<=MODE=)\w+' /etc/thinkpad-charge-mode.conf || echo "full")"
 echo -e "  • Battery Start/Stop : $(cat /sys/class/power_supply/BAT0/charge_control_start_threshold 2>/dev/null || echo N/A)% / $(cat /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || echo N/A)%"
 echo -e "  • Battery Status     : $(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo N/A) ($(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo N/A)%)"
+echo -e "  • Screen Brightness  : $(brightnessctl get 2>/dev/null || echo N/A) / $(brightnessctl max 2>/dev/null || echo N/A) (intel_backlight)"
 echo -e "  • Watchdog Service   : $(systemctl is-active thinkpad-watchdog.service) (Timer: $(systemctl is-active thinkpad-watchdog.timer))"
 echo -e "  • iGPU Boost Clock   : $(cat /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || echo N/A) MHz"
 echo -e "\n${BOLD}Ready for daily work with peak responsiveness and battery protection!${NC}\n"
