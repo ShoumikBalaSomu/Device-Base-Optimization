@@ -49,14 +49,14 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **08** | **Services & Debloat** | Non-essential services disabled (`abrt`, `ModemManager`, `thermald`); `NetworkManager-wait-online` disabled (-5.6s boot); journal logs capped to 100MB. |
 | **09** | **Battery Protection & Dual-Mode** | Dual-mode battery controller (`thinkpad-charge-mode [full|protect|status]`); persistent hardware thresholds locked via dynamic udev and watchdog; GNOME top-bar battery percentage enabled. |
 | **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS-over-TLS (`DNSOverTLS=yes`) in `systemd-resolved`; `firewalld` active. |
-| **11** | **Display Quality** | Intel DPST adaptive contrast dimming disabled for true 100% blacks; subpixel RGB font antialiasing (`rgba`) locked. |
+| **11** | **Display & Screen Backlight** | Intel DPST adaptive dimming disabled; subpixel RGB font antialiasing (`rgba`) locked; native screen backlight hotkeys bound via `acpi_backlight=native` and `brightnessctl`. |
 | **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated; WebRTC acoustic echo cancellation and microphone noise suppression active; volume amplified to 130% (over-amplification enabled up to 150%). |
 | **13** | **Bus & Peripheral Latency** | USB autosuspend disabled on AC; Intel UHD 620 iGPU clock unlocked to 1.15GHz (`gt_boost_freq_mhz`). |
-| **14** | **Input Precision** | 1:1 linear mouse tracking enforced (`accel-profile 'flat'`); Precision Touchpad calibrated with natural scrolling, tap-to-click, and adaptive tracking curve; keyboard repeat delay minimized (250ms). |
+| **14** | **Input Precision & TrackPoint** | Precision Touchpad calibrated; TrackPoint enabled via `psmouse.elantech_smbus=0` with middle-button scrolling and adaptive curves; keyboard repeat delay minimized (250ms). |
 | **15** | **Privacy Hardening** | Diagnostic problem reporting and software usage telemetry disabled in GNOME desktop. |
 | **16** | **Desktop Snappiness** | GNOME overview search restricted to local documents (external web search queries suppressed). |
 | **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; DNF 10x parallel downloads enabled; GameMode compatibility active. |
-| **18** | **OEM Driver Shield** | Kernel latency parameters embedded (`split_lock_mitigate=0 nowatchdog`); hardware module configs permanently embedded via dracut. |
+| **18** | **OEM Driver Shield** | Embedded kernel parameters (`split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0`); hardware module configs permanently embedded via dracut. |
 
 ---
 
@@ -106,6 +106,18 @@ sudo thinkpad-charge-mode protect
 * **Full Charge Mode (`full`)**: When plugged into AC, the battery charges continuously until 100%. GNOME Shell displays the active charging bolt icon (`battery-full-charging-symbolic`).
 * **Protection Mode (`protect`)**: When the battery reaches 80%, the ThinkPad embedded hardware controller deliberately shuts off charging current (`POWER_SUPPLY_STATUS=Not charging`, UPower state `pending-charge`). In this state, GNOME Shell intentionally hides the lightning bolt icon because power is not entering the battery cells.
 * **Top Bar Battery Percentage**: The optimization suite automatically enables GNOME's battery percentage in the top panel (`gsettings set org.gnome.desktop.interface show-battery-percentage true`), so you can always see the exact battery level regardless of icon styling.
+
+---
+
+## 🔴 TrackPoint & Backlight Diagnostic Guide
+
+### 1. TrackPoint Driver & Hardware Architecture
+* **Kernel Fix**: The suite configures `options psmouse elantech_smbus=0` and kernel boot parameter `psmouse.elantech_smbus=0`. This forces the kernel to preserve the native PS/2 companion pass-through, preventing `elan_i2c` from unmapping the TrackPoint device.
+* **Shared Ribbon Cable Alert**: On the ThinkPad T490s, the **TrackPoint sensor, the 3 physical buttons, and the Keyboard Backlight LED layer share a single secondary ribbon cable** connected under the internal battery. If this cable is loose, unseated, or pinched by the battery, both the TrackPoint and Keyboard Backlight will be unresponsive even while the primary typing keys continue working.
+
+### 2. Screen & Keyboard Backlight Control
+* **Screen Brightness**: Powered by `intel_backlight`. Hotkeys (Fn+F5 / Fn+F6) are mapped via `acpi_backlight=native`, with userspace control provided by `brightnessctl` (`brightnessctl set +5%`, `brightnessctl set 5%-`).
+* **Keyboard Backlight**: Controlled directly by the ThinkPad EC via **`Fn + Spacebar`** (cycles Off -> Low -> High -> Off). Confirm your keyboard has the illumination icon printed on the left side of the Spacebar.
 
 ---
 
