@@ -23,8 +23,10 @@ This directory contains hardware-specific and distribution-level optimization pr
 
 ---
 
-## 📂 Upcoming Device Profiles
-* `lenovo-thinkpad-t490s/` (Linux ThinkPad T490s: `thinkpad_acpi`, TLP battery thresholds).
+## 📂 Available Device Profiles
+* [**`lenovo-thinkpad-t490s/`**](lenovo-thinkpad-t490s/README.md) ⚡ **100% Autonomous (18 Sectors)**: Lenovo ThinkPad T490s (`20NYS64T00`), Intel Core i7-8665U, 32GB RAM, Intel UHD 620, BBR, DYTC EC thermals, 75%–80% battery protection, systemd watchdog.
+
+## 🗺️ Upcoming Device Profiles
 * `generic-desktop/` (Debian/Ubuntu/Arch performance tuning).
 * `raspberry-pi-5/` (ARM64 SBC performance and thermal optimizations).
 

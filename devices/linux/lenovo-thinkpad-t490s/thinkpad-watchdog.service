@@ -1,0 +1,14 @@
+[Unit]
+Description=ThinkPad T490s Autonomous AC/Battery Optimization Watchdog
+Documentation=https://github.com/ShoumikBalaSomu/Device-Base-Optimization
+After=power-profiles-daemon.service multi-user.target suspend.target hibernate.target hybrid-sleep.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/thinkpad-watchdog.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target sleep.target

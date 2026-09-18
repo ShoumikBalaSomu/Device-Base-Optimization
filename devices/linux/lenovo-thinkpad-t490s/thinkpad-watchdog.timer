@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic Trigger for ThinkPad T490s Autonomous Optimization Watchdog
+Documentation=https://github.com/ShoumikBalaSomu/Device-Base-Optimization
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=15min
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

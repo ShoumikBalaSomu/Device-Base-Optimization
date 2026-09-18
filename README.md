@@ -38,9 +38,8 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 
 ## 🧭 Supported Devices & Operating Systems Matrix
 
-| Platform / OS | Manufacturer | Device Model | Status / Depth | Profile & Documentation |
-|:---|:---|:---|:---|:---|
-| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View ThinkPad T490s Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View ThinkPad T490s Windows Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Linux (Fedora / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**📖 View Universal Windows Guide**](devices/windows/universal/README.md) |
 | **Linux** | Any OEM | Ubuntu / Debian / Fedora / Arch | 🟡 *In Roadmap (Sysctl / TLP)* | [**📖 View Linux Roadmap**](devices/linux/README.md) |
 | **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap (pmset / defaults)* | [**📖 View macOS Roadmap**](devices/macos/README.md) |
@@ -88,13 +87,19 @@ flowchart TD
 
 Just open **PowerShell** (Standard or Administrator) and paste the command for your machine:
 
-#### 💻 1. Lenovo ThinkPad T490s (`20NYS64T00`)
+#### 💻 1. Lenovo ThinkPad T490s (`20NYS64T00`) — Windows 11 / 10
 ```powershell
 irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/lenovo-thinkpad-t490s/Optimize-ThinkPad-T490s.ps1 | iex
 ```
 *(Auto-elevates, executes all 18 sectors, locks 75%-80% battery threshold, and installs the watchdog task in ~15s).*
 
-#### 🖥️ 2. Universal Windows 10 / 11 PC (Any OEM)
+#### 🐧 2. Lenovo ThinkPad T490s (`20NYS64T00`) — Linux (Fedora / Debian / Arch)
+```bash
+curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/linux/lenovo-thinkpad-t490s/optimize-thinkpad-t490s.sh | sudo bash
+```
+*(Takes Btrfs safety snapshot, executes all 18 sectors, locks 75%-80% battery threshold, and enables systemd watchdog in ~10s).*
+
+#### 🖥️ 3. Universal Windows 10 / 11 PC (Any OEM)
 ```powershell
 irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/universal/Optimize-Windows-Universal.ps1 | iex
 ```
@@ -182,6 +187,12 @@ Device-Base-Optimization/
 │   │       ├── README.md                        # Universal Windows guide
 │   │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic maintenance script
 │   ├── linux/                                   # Linux distributions and devices
+│   │   ├── lenovo-thinkpad-t490s/               # Custom Ultra-Deep Linux ThinkPad T490s profile
+│   │   │   ├── README.md                        # 18-Sector hardware, display & audio guide
+│   │   │   ├── run-once.sh                      # 1-Click Auto-Elevating Launcher
+│   │   │   ├── optimize-thinkpad-t490s.sh       # Autonomous kernel & hardware optimization engine
+│   │   │   ├── restore-thinkpad-t490s.sh        # 1-Click Rollback Script
+│   │   │   └── thinkpad-watchdog.sh             # Dynamic AC/Battery Watchdog & Battery Guard
 │   │   └── README.md                            # Roadmap & kernel sysctl architecture
 │   └── macos/                                   # Apple Mac systems
 │       └── README.md                            # Roadmap & macOS defaults architecture
