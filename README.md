@@ -111,7 +111,7 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 
 #### Method B: Double-Click Launcher (Zero CLI)
 * **Windows 11 / 10**: Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) and double-click `Run-Once.cmd`.
-* **Linux (Fedora / Debian)**: Download [**`ThinkPad-T490s-Linux-Autonomous-v1.1.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.1.0/ThinkPad-T490s-Linux-Autonomous-v1.1.0.zip) and run `run-once.sh`.
+* **Linux (Fedora / Debian)**: Download [**`ThinkPad-T490s-Linux-Autonomous-v1.2.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.2.0/ThinkPad-T490s-Linux-Autonomous-v1.2.0.zip) and run `run-once.sh`.
 
 #### Method C: Via Git Repository
 ```powershell

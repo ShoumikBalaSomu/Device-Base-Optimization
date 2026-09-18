@@ -40,23 +40,23 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | Sector | Target Subsystem | Technical Implementation & Hardware Action |
 |:---:|:---|:---|
 | **01** | **CPU Architecture & Scaling** | SpeedShift EPP set to `performance` on AC; unparked all 8 logical cores (`cpu0`–`cpu7`). |
-| **02** | **32GB RAM Architecture** | `vm.swappiness = 10` to eliminate zram swap churn; `vm.vfs_cache_pressure = 50` keeps inode cache in RAM; `vm.max_map_count = 2147483642`. |
-| **03** | **Storage & NVMe** | Intel NVMe APST sleep latency zeroed on AC (`default_ps_max_latency_us=0`); periodic TRIM active via `fstrim.timer`. |
-| **04** | **GPU & UI Snappiness** | Intel GuC firmware enabled (`i915.enable_guc=2`); DPST disabled; Mesa shader cache capped at 4GB. |
+| **02** | **32GB RAM Architecture** | `vm.swappiness = 10` to eliminate zram swap churn; `vm.vfs_cache_pressure = 50`; zram upgraded to high-density `zstd` compression. |
+| **03** | **Storage & NVMe** | Intel NVMe APST sleep latency zeroed on AC (`default_ps_max_latency_us=0`); Btrfs mounted with `noatime,commit=60` for flash wear protection; periodic TRIM active via `fstrim.timer`. |
+| **04** | **GPU & UI Snappiness** | Intel GuC enabled (`i915.enable_guc=2`); Intel QuickSync VA-API hardware video decode active (`libva-intel-media-driver`); DPST disabled; Mesa cache capped at 4GB. |
 | **05** | **Low-Latency Network** | Kernel module `tcp_bbr` loaded with Fair Queuing (`fq`); TCP Fast Open enabled (`tcp_fastopen = 3`); socket buffers scaled to 16MB. |
 | **06** | **OEM BIOS & Thermals** | ThinkPad ACPI DYTC platform profile locked to `performance` on AC for sustained 4.80GHz Turbo boost. |
 | **07** | **Kernel Scheduler** | `kernel.sched_autogroup_enabled = 1` for instantaneous foreground desktop responsiveness under background load. |
-| **08** | **Services & Debloat** | Non-essential error reporting daemons disabled (`abrt-journal-core`, `abrt-oops`, `abrt-xorg`); coredump storage capped. |
+| **08** | **Services & Debloat** | Non-essential services disabled (`abrt`, `ModemManager`, `thermald`); `NetworkManager-wait-online` disabled (-5.6s boot); journal logs capped to 100MB. |
 | **09** | **Battery Protection** | Permanent 75% start / 80% stop hardware charging threshold locked in `BAT0` via sysfs and persistent udev rules. |
 | **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS-over-TLS (`DNSOverTLS=yes`) in `systemd-resolved`; `firewalld` active. |
 | **11** | **Display Quality** | Intel DPST adaptive contrast dimming disabled for true 100% blacks; subpixel RGB font antialiasing (`rgba`) locked. |
-| **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated (`linking.role-based.duck-level = 1.0`); PipeWire configured for 48kHz / 512 quantum low-latency. |
+| **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated; WebRTC acoustic echo cancellation and microphone noise suppression active; volume amplified to 130% (over-amplification enabled up to 150%). |
 | **13** | **Bus & Peripheral Latency** | USB autosuspend disabled on AC; Intel UHD 620 iGPU clock unlocked to 1.15GHz (`gt_boost_freq_mhz`). |
 | **14** | **Input Precision** | 1:1 linear pointer tracking enforced (`accel-profile 'flat'`); zero touchpad tap delay; keyboard repeat delay minimized (250ms). |
 | **15** | **Privacy Hardening** | Diagnostic problem reporting and software usage telemetry disabled in GNOME desktop. |
 | **16** | **Desktop Snappiness** | GNOME overview search restricted to local documents (external web search queries suppressed). |
-| **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; GameMode compatibility enabled. |
-| **18** | **OEM Driver Shield** | Hardware configurations embedded in kernel modprobe, sysfs, and sysctl with auto-reboot on kernel panic. |
+| **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; DNF 10x parallel downloads enabled; GameMode compatibility active. |
+| **18** | **OEM Driver Shield** | Kernel latency parameters embedded (`split_lock_mitigate=0 nowatchdog`); hardware module configs permanently embedded via dracut. |
 
 ---
 

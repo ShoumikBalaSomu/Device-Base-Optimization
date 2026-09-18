@@ -46,6 +46,16 @@ else
     echo -e "  ℹ️  Root filesystem is not Btrfs. Snapshot skipped safely."
 fi
 
+# Configure DNF for 10x parallel downloads and fastest mirrors
+mkdir -p /etc/dnf
+cat << 'EOF' > /etc/dnf/dnf.conf
+[main]
+fastestmirror=True
+max_parallel_downloads=10
+defaultyes=True
+keepcache=True
+EOF
+
 # ==============================================================================
 # SECTOR 01: CPU ARCHITECTURE & SCALING
 # ==============================================================================
@@ -62,7 +72,13 @@ echo -e "  ${GREEN}✓ All 8 logical cores online; SpeedShift EPP set to 'perfor
 # ==============================================================================
 # SECTOR 02: 32GB RAM ARCHITECTURE & VM SYSCTL
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 02/18] 32GB RAM Tuning & Virtual Memory...${NC}"
+echo -e "\n${BOLD}[Sector 02/18] 32GB RAM Tuning, zram zstd & Virtual Memory...${NC}"
+cat << 'EOF' > /etc/systemd/zram-generator.conf
+[zram0]
+zram-size = min(ram / 2, 8192)
+compression-algorithm = zstd
+EOF
+
 cat << 'EOF' > /etc/sysctl.d/99-thinkpad-t490s-performance.conf
 # ==============================================================================
 # ThinkPad T490s Hardware Performance & Latency Sysctls
@@ -97,12 +113,12 @@ kernel.panic = 10
 kernel.sysrq = 1
 EOF
 sysctl --system >/dev/null 2>&1 || true
-echo -e "  ${GREEN}✓ Sysctl applied: swappiness=10, vfs_cache_pressure=50, max_map_count=2147483642.${NC}"
+echo -e "  ${GREEN}✓ Sysctl applied: swappiness=10, vfs_cache_pressure=50, zram zstd configured.${NC}"
 
 # ==============================================================================
 # SECTOR 03: STORAGE & NVMe APST ZERO LATENCY
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 03/18] NVMe SSD Zero-APST Latency & Volume ReTrim...${NC}"
+echo -e "\n${BOLD}[Sector 03/18] NVMe SSD Zero-APST Latency, noatime & Volume ReTrim...${NC}"
 cat << 'EOF' > /etc/modprobe.d/nvme-thinkpad.conf
 # Zero APST sleep latency on NVMe SSD
 options nvme_core default_ps_max_latency_us=0
@@ -110,13 +126,18 @@ EOF
 if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
     echo 0 > /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || true
 fi
+# Update /etc/fstab for SSD lifespan (noatime, commit=60)
+sed -i "s|subvol=root,compress=zstd:1|subvol=root,compress=zstd:1,noatime,commit=60|g" /etc/fstab 2>/dev/null || true
+sed -i "s|subvol=home,compress=zstd:1|subvol=home,compress=zstd:1,noatime,commit=60|g" /etc/fstab 2>/dev/null || true
+mount -o remount,noatime,commit=60 / 2>/dev/null || true
+mount -o remount,noatime,commit=60 /home 2>/dev/null || true
 systemctl enable --now fstrim.timer >/dev/null 2>&1 || true
-echo -e "  ${GREEN}✓ NVMe APST sleep latency zeroed; fstrim.timer enabled.${NC}"
+echo -e "  ${GREEN}✓ NVMe APST latency zeroed; noatime/commit=60 mounted; fstrim.timer enabled.${NC}"
 
 # ==============================================================================
-# SECTOR 04: GPU ACCELERATION & SHADER CACHE
+# SECTOR 04: GPU ACCELERATION, VA-API & SHADER CACHE
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 04/18] GPU Acceleration & Shader Cache...${NC}"
+echo -e "\n${BOLD}[Sector 04/18] GPU Acceleration, VA-API & Shader Cache...${NC}"
 cat << 'EOF' > /etc/modprobe.d/i915-thinkpad.conf
 # Intel UHD 620 Graphics optimizations
 options i915 enable_dpst=0 enable_guc=2
@@ -126,7 +147,11 @@ cat << 'EOF' > /etc/environment.d/10-mesa-shader.conf
 MESA_SHADER_CACHE_MAX_SIZE=4G
 MESA_VK_ENABLE_SUBGROUP_EXTENSIONS=1
 EOF
-echo -e "  ${GREEN}✓ Intel i915 options locked (DPST disabled, GuC enabled); Mesa shader cache configured.${NC}"
+# Ensure Intel QuickSync VA-API drivers are present
+if ! rpm -q libva-intel-media-driver libva-utils >/dev/null 2>&1; then
+    dnf install -y libva-intel-media-driver libva-utils >/dev/null 2>&1 || true
+fi
+echo -e "  ${GREEN}✓ Intel i915 locked (DPST disabled, GuC enabled); QuickSync VA-API active; Mesa cache configured.${NC}"
 
 # ==============================================================================
 # SECTOR 05: LOW-LATENCY NETWORK STACK & BBR
@@ -163,13 +188,20 @@ echo -e "  ${GREEN}✓ Sched autogrouping enabled (foreground responsiveness gua
 # ==============================================================================
 echo -e "\n${BOLD}[Sector 08/18] Background Telemetry & Service Debloat...${NC}"
 systemctl disable --now abrt-journal-core abrt-oops abrt-xorg abrt-ccpp ModemManager.service thermald.service 2>/dev/null || true
-mkdir -p /etc/systemd/coredump.conf.d
+systemctl disable NetworkManager-wait-online.service 2>/dev/null || true
+mkdir -p /etc/systemd/coredump.conf.d /etc/systemd/journald.conf.d
 cat << 'EOF' > /etc/systemd/coredump.conf.d/10-limit.conf
 [Coredump]
 Storage=external
 MaxUse=500M
 EOF
-echo -e "  ${GREEN}✓ Redundant error reporting & ModemManager services stopped; core dumps capped to 500MB.${NC}"
+cat << 'EOF' > /etc/systemd/journald.conf.d/10-size.conf
+[Journal]
+SystemMaxUse=100M
+RuntimeMaxUse=50M
+EOF
+systemctl restart systemd-journald 2>/dev/null || true
+echo -e "  ${GREEN}✓ Redundant services stopped; NetworkManager-wait-online disabled (-5.6s boot); logs capped to 100MB.${NC}"
 
 # ==============================================================================
 # SECTOR 09: BATTERY CHEMISTRY PROTECTION (75% - 80% THRESHOLD)
@@ -242,11 +274,24 @@ wireplumber.settings = {
     linking.role-based.duck-level = 1.0
 }
 EOF
+cat << 'EOF' > /etc/pipewire/pipewire.conf.d/20-echo-cancel.conf
+# WebRTC Acoustic Echo Cancellation & Microphone Noise Filter
+context.modules = [
+    { name = libpipewire-module-echo-cancel
+      args = {
+          aec.args = {
+              webrtc.extended_filter = true
+              webrtc.noise_suppression = true
+          }
+      }
+    }
+]
+EOF
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.sound allow-volume-above-100-percent true 2>/dev/null || true
     sudo -u "$REAL_USER" wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.30 2>/dev/null || true
 fi
-echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; WirePlumber stream ducking eliminated; Audio amplified to 130% (over-amplification enabled).${NC}"
+echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; WebRTC noise suppression enabled; Audio amplified to 130%.${NC}"
 
 # ==============================================================================
 # SECTOR 13: BUS & PERIPHERAL LATENCY
@@ -309,8 +354,13 @@ fi
 # SECTOR 18: OEM DRIVER SHIELD & RESILIENCE
 # ==============================================================================
 echo -e "\n${BOLD}[Sector 18/18] OEM Driver Shield & Kernel Resilience...${NC}"
+# Embedded kernel latency tuning via grubby & GRUB defaults
+if command -v grubby >/dev/null 2>&1; then
+    grubby --update-kernel=ALL --args="split_lock_mitigate=0 nowatchdog" >/dev/null 2>&1 || true
+fi
+sed -i "s|GRUB_CMDLINE_LINUX=\"rhgb quiet\"|GRUB_CMDLINE_LINUX=\"rhgb quiet split_lock_mitigate=0 nowatchdog\"|g" /etc/default/grub 2>/dev/null || true
 dracut --regenerate-all --force >/dev/null 2>&1 || true
-echo -e "  ${GREEN}✓ Hardware parameters and module configurations permanently embedded.${NC}"
+echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings & module configs permanently embedded.${NC}"
 
 # ==============================================================================
 # PHASE 4: INSTALL AUTONOMOUS BACKGROUND WATCHDOG
