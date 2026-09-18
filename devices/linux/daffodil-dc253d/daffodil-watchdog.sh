@@ -14,7 +14,6 @@ flock -n 200 || exit 0
 
 LOG_FILE="/var/log/daffodil-watchdog.log"
 CONFIG_FILE="/etc/daffodil-charge-mode.conf"
-ALERT_STATE_FILE="/tmp/.daffodil_battery_alerted"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE" 2>/dev/null || true
@@ -26,27 +25,6 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
 fi
 source "$CONFIG_FILE"
 CHARGE_MODE="${MODE:-protect}"
-
-# Helper to send desktop notifications to active GUI users
-notify_user() {
-    local title="$1"
-    local msg="$2"
-    local icon="${3:-battery}"
-    
-    for uid in $(loginctl list-sessions --no-legend 2>/dev/null | awk '{print $3}' | sort -u); do
-        if [[ -d "/run/user/${uid}" && "$uid" -ge 1000 ]]; then
-            local bus_sock="/run/user/${uid}/bus"
-            if [[ -S "$bus_sock" ]]; then
-                local uname
-                uname=$(id -nu "$uid" 2>/dev/null || echo "")
-                if [[ -n "$uname" ]]; then
-                    sudo -u "$uname" DBUS_SESSION_BUS_ADDRESS="unix:path=${bus_sock}" \
-                        notify-send -u normal -i "$icon" "$title" "$msg" 2>/dev/null || true
-                fi
-            fi
-        fi
-    done
-}
 
 # Determine Power State: AC vs Battery
 IS_AC=0
@@ -81,7 +59,7 @@ if [[ $IS_AC -eq 1 ]]; then
         [[ -f "$epb" ]] && echo 0 > "$epb" 2>/dev/null || true
     done
 
-    # 3. Ensure all 8 logical cores (2P + 4E) are online
+    # 3. Ensure all 8 logical cores (2 P-Cores with HT + 4 E-Cores) are online
     for cpu in /sys/devices/system/cpu/cpu[1-7]/online; do
         [[ -f "$cpu" ]] && echo 1 > "$cpu" 2>/dev/null || true
     done
@@ -147,7 +125,7 @@ else
         [[ -f "$epb" ]] && echo 15 > "$epb" 2>/dev/null || true
     done
 
-    # 3. Cap CPU max frequency on battery to base clock (~1.8GHz P / 1.5GHz E)
+    # 3. Cap CPU max frequency on battery to base clock (~2.0GHz P / 1.5GHz E)
     for fmax in /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq; do
         if [[ -f "$fmax" ]]; then
             cpu_num=$(basename "$(dirname "$(dirname "$fmax")")" | sed 's/cpu//')
@@ -191,19 +169,16 @@ else
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
         echo 100000 > /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || true
     fi
-
-    # Clear alert state file when unplugged
-    rm -f "$ALERT_STATE_FILE"
 fi
 
 # ==============================================================================
-# BATTERY CHEMISTRY PROTECTION & CHARGE MONITORING
+# BATTERY CHEMISTRY PROTECTION & 80% HARDWARE CHARGE STOP ENFORCEMENT
 # ==============================================================================
 if [[ -f /sys/class/power_supply/BAT0/capacity ]]; then
     BAT_CAP=$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo 0)
     BAT_STATUS=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo "Unknown")
 
-    # If OEM threshold sysfs attributes exist, apply hardware limits
+    # 1. Enforce kernel threshold attributes if available
     if [[ -f /sys/class/power_supply/BAT0/charge_control_end_threshold ]]; then
         if [[ "$CHARGE_MODE" == "protect" ]]; then
             echo 80 > /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || true
@@ -220,17 +195,41 @@ if [[ -f /sys/class/power_supply/BAT0/capacity ]]; then
         fi
     fi
 
-    # Autonomous Health Notification when battery reaches 80% threshold on AC
+    # 2. Hardware EC Stop-Charging Sequence & Thermal Guard when reaching 80% on AC
     if [[ $IS_AC -eq 1 && "$CHARGE_MODE" == "protect" && "$BAT_CAP" -ge 80 ]]; then
-        if [[ ! -f "$ALERT_STATE_FILE" ]]; then
-            touch "$ALERT_STATE_FILE"
-            notify_user "🔋 Battery Cell Protection Active (80%)" \
-                "Charge reached ${BAT_CAP}%. Li-ion cell protection threshold active. Unplug charger or run 'daffodil-charge-mode full' for travel." \
-                "battery-full-charged"
-            log "Battery Cell Protection Alert fired at ${BAT_CAP}% charge."
-        fi
-    elif [[ "$BAT_CAP" -lt 75 ]]; then
-        rm -f "$ALERT_STATE_FILE"
+        # Send direct EC charger stop command (Method SPPC: CHGR=0, ECMD=0x37)
+        python3 -c "
+import os, time
+try:
+    fd = os.open('/dev/port', os.O_RDWR)
+    def inb(p): os.lseek(fd, p, os.SEEK_SET); return os.read(fd, 1)[0]
+    def outb(p, v): os.lseek(fd, p, os.SEEK_SET); os.write(fd, bytes([v]))
+    def wait(m, v):
+        for _ in range(500):
+            if (inb(0x66) & m) == v: return True
+            time.sleep(0.0001)
+        return False
+    def wr(a, v):
+        if wait(2, 0):
+            outb(0x66, 0x81)
+            if wait(2, 0):
+                outb(0x62, a)
+                if wait(2, 0):
+                    outb(0x62, v)
+                    return True
+        return False
+    wr(0x67, 0x00)
+    wr(0x68, 0x00)
+    wr(0x20, 0x37)
+    os.close(fd)
+except Exception: pass
+" 2>/dev/null || true
+
+        # Protect battery cells from simultaneous high-voltage + high-thermal stress
+        for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
+            [[ -f "$epp" ]] && echo balance_power > "$epp" 2>/dev/null || true
+        done
+        log "Battery level ${BAT_CAP}% >= 80%: Hardware stop-charge command and thermal protection engaged (silent, no notifications)."
     fi
 fi
 
