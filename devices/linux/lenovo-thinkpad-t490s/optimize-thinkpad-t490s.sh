@@ -325,6 +325,10 @@ context.modules = [
 EOF
 
 # Calibrate ALSA analog microphone gain to eliminate clipping and electronic hiss
+for card in $(aplay -l 2>/dev/null | awk -F: '/^card/ {print $1}' | awk '{print $2}' | sort -u || echo 0); do
+    amixer -c "$card" sset 'Internal Mic Boost' 1 2>/dev/null || amixer -c "$card" sset 'Mic Boost' 1 2>/dev/null || true
+    amixer -c "$card" sset 'Capture' 48 2>/dev/null || amixer -c "$card" sset 'Capture' 75% 2>/dev/null || true
+done
 amixer sset 'Internal Mic Boost' 1 2>/dev/null || amixer sset 'Mic Boost' 1 2>/dev/null || true
 amixer sset 'Capture' 48 2>/dev/null || amixer sset 'Capture' 75% 2>/dev/null || true
 command -v alsactl >/dev/null 2>&1 && alsactl store 2>/dev/null || true

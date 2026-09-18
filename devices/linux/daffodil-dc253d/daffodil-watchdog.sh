@@ -110,7 +110,12 @@ if [[ $IS_AC -eq 1 ]]; then
     if [[ -f /sys/module/snd_hda_intel/parameters/power_save ]]; then
         echo 0 > /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || true
     fi
-    amixer sset 'Internal Mic Boost' 1 2>/dev/null || true
+    for card in $(aplay -l 2>/dev/null | awk -F: '/^card/ {print $1}' | awk '{print $2}' | sort -u || echo 0); do
+        amixer -c "$card" sset 'Internal Mic Boost' 1 2>/dev/null || amixer -c "$card" sset 'Mic Boost' 1 2>/dev/null || true
+        amixer -c "$card" sset 'Capture' 48 2>/dev/null || amixer -c "$card" sset 'Capture' 75% 2>/dev/null || true
+    done
+    amixer sset 'Internal Mic Boost' 1 2>/dev/null || amixer sset 'Mic Boost' 1 2>/dev/null || true
+    amixer sset 'Capture' 48 2>/dev/null || amixer sset 'Capture' 75% 2>/dev/null || true
 
     # 10. NVMe DRAM-less MAP1202 Zero APST Sleep Latency
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
@@ -202,7 +207,12 @@ else
     if [[ -f /sys/module/snd_hda_intel/parameters/power_save ]]; then
         echo 1 > /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || true
     fi
-    amixer sset 'Internal Mic Boost' 1 2>/dev/null || true
+    for card in $(aplay -l 2>/dev/null | awk -F: '/^card/ {print $1}' | awk '{print $2}' | sort -u || echo 0); do
+        amixer -c "$card" sset 'Internal Mic Boost' 1 2>/dev/null || amixer -c "$card" sset 'Mic Boost' 1 2>/dev/null || true
+        amixer -c "$card" sset 'Capture' 48 2>/dev/null || amixer -c "$card" sset 'Capture' 75% 2>/dev/null || true
+    done
+    amixer sset 'Internal Mic Boost' 1 2>/dev/null || amixer sset 'Mic Boost' 1 2>/dev/null || true
+    amixer sset 'Capture' 48 2>/dev/null || amixer sset 'Capture' 75% 2>/dev/null || true
 
     # 9. NVMe APST Sleep Enabled (standard 100000us)
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
