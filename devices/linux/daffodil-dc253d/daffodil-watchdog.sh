@@ -106,10 +106,11 @@ if [[ $IS_AC -eq 1 ]]; then
         iw dev "$wiface" set power_save off 2>/dev/null || true
     done
 
-    # 9. Audio Power Save = 0 (Eliminate DAC popping & crackling)
+    # 9. Audio Power Save = 0 (Eliminate DAC popping & crackling) & Mic Boost Calibration
     if [[ -f /sys/module/snd_hda_intel/parameters/power_save ]]; then
         echo 0 > /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || true
     fi
+    amixer sset 'Internal Mic Boost' 1 2>/dev/null || true
 
     # 10. NVMe DRAM-less MAP1202 Zero APST Sleep Latency
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
@@ -197,10 +198,11 @@ else
         iw dev "$wiface" set power_save on 2>/dev/null || true
     done
 
-    # 8. Audio Power Save = 1 (Codec sleeps when idle)
+    # 8. Audio Power Save = 1 (Codec sleeps when idle) & Mic Boost Calibration
     if [[ -f /sys/module/snd_hda_intel/parameters/power_save ]]; then
         echo 1 > /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || true
     fi
+    amixer sset 'Internal Mic Boost' 1 2>/dev/null || true
 
     # 9. NVMe APST Sleep Enabled (standard 100000us)
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
