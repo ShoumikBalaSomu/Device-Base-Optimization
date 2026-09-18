@@ -63,7 +63,7 @@ daffodil-charge-mode status
 | **10. Security & DNS** | Network Stack | Cloudflare Family 1.1.1.3 DNS-over-TLS (DoT) with automatic fallback; Firewalld verified and active. |
 | **11. Display Quality** | 1080p FHD IPS Panel | Intel DPST adaptive contrast dimming disabled (100% true blacks preserved); RGB subpixel antialiasing & slight hinting locked. |
 | **12. High-Fidelity Audio** | Realtek ALC269VC Codec | PipeWire 48kHz / 512 quantum; WirePlumber zero ducking; WebRTC acoustic echo cancellation & noise suppression; ALSA power save 0 on AC; volume headroom boosted to 130%. |
-| **13. Bus Latency** | PCIe & USB 3.2 | PCIe ASPM set to `performance` on AC; USB autosuspend disabled on AC; Intel UHD iGPU unlocked to full 1250 MHz turbo boost. |
+| **13. Bus & Camera** | PCIe, USB & FHD WebCam | PCIe ASPM set to `performance` on AC; Chicony/SunplusIT FHD webcam (`04f2:b650`) hardware shielded against USB autosuspend (`power/control=on`, `power/autosuspend=-1`); `uvcvideo` tuned with `nodrop=1` and `quirks=128` (prevents frame drops during lighting changes & fixes bandwidth calculation); WirePlumber camera priority rule set; user added to `video,render` groups; Intel UHD iGPU unlocked to 1250 MHz. |
 | **14. Input Precision** | Synaptics Precision Touchpad | Flat 1:1 acceleration profile (zero mouse curve acceleration); tap-to-click enabled; keyboard repeat delay 250ms / interval 25ms. |
 | **15. Privacy Hardening** | GNOME Desktop | GNOME technical problem auto-reporting and software usage telemetry disabled. |
 | **16. Desktop Snappiness** | GNOME 48 Shell | Start menu external web search queries disabled for instantaneous local searches; Mutter Wayland `scale-monitor-framebuffer` active. |

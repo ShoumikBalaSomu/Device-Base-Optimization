@@ -142,9 +142,30 @@ else
         echo powersupersave > /sys/module/pcie_aspm/parameters/policy 2>/dev/null || true
     fi
 
-    # 5. USB Autosuspend = Enabled (auto)
+    # 5. USB Autosuspend = Enabled (auto) for non-camera peripherals
     for dev in /sys/bus/usb/devices/*/power/control; do
+        d_dir=$(dirname "$dev")
+        # Exclude USB webcams (Chicony/Sunplus 04f2:b650 or Video class) from autosuspend
+        if [[ -f "$d_dir/idVendor" && -f "$d_dir/idProduct" ]]; then
+            v=$(cat "$d_dir/idVendor" 2>/dev/null || echo "")
+            p=$(cat "$d_dir/idProduct" 2>/dev/null || echo "")
+            if [[ "$v" == "04f2" && "$p" == "b650" ]]; then
+                echo on > "$dev" 2>/dev/null || true
+                continue
+            fi
+        fi
         [[ -f "$dev" ]] && echo auto > "$dev" 2>/dev/null || true
+    done
+    # Guarantee camera is always ON and autosuspend disabled
+    for d in /sys/bus/usb/devices/*; do
+        if [[ -f "$d/idVendor" && -f "$d/idProduct" ]]; then
+            v=$(cat "$d/idVendor" 2>/dev/null || echo "")
+            p=$(cat "$d/idProduct" 2>/dev/null || echo "")
+            if [[ "$v" == "04f2" && "$p" == "b650" ]]; then
+                echo on > "$d/power/control" 2>/dev/null || true
+                echo -1 > "$d/power/autosuspend" 2>/dev/null || true
+            fi
+        fi
     done
 
     # 6. Intel Raptor Lake UHD Graphics Capped to 400 MHz
