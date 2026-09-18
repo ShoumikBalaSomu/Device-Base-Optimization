@@ -211,6 +211,7 @@ Device-Base-Optimization/
 │   ├── linux/                                   # Linux distributions and devices
 │   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D profile (Fedora Linux 44)
 │   │   │   ├── README.md                        # Linux 18-sector hardware & audio guide
+│   │   │   ├── BIOS_RECOMMENDATIONS.md          # Hardware BIOS & firmware setup guide
 │   │   │   ├── run-once.sh                      # 1-Click Auto-Elevating Launcher
 │   │   │   ├── optimize-daffodil-dc253d.sh      # Autonomous kernel & hardware optimization engine
 │   │   │   ├── restore-daffodil-dc253d.sh       # 1-Click Rollback Script
