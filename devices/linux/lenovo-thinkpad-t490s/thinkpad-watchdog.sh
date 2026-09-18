@@ -25,7 +25,15 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 2. Query AC vs Battery State (Multi-Source Scan: AC + USB-PD Ports)
+# 2. Hardware Microphone Pre-Amp Gain Protection (Prevent Clipping Distortion)
+# ------------------------------------------------------------------------------
+if command -v amixer >/dev/null 2>&1; then
+    amixer -c 0 sset "Internal Mic Boost" 1 >/dev/null 2>&1 || true
+    amixer -c 0 sset Capture 50 >/dev/null 2>&1 || true
+fi
+
+# ------------------------------------------------------------------------------
+# 3. Query AC vs Battery State (Multi-Source Scan: AC + USB-PD Ports)
 # ------------------------------------------------------------------------------
 AC_ONLINE=0
 for ac_dev in /sys/class/power_supply/*/online; do
