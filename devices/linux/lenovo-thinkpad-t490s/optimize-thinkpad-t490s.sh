@@ -204,28 +204,50 @@ systemctl restart systemd-journald 2>/dev/null || true
 echo -e "  ${GREEN}✓ Redundant services stopped; NetworkManager-wait-online disabled (-5.6s boot); logs capped to 100MB.${NC}"
 
 # ==============================================================================
-# SECTOR 09: BATTERY CHEMISTRY PROTECTION (75% - 80% THRESHOLD)
+# SECTOR 09: BATTERY CHARGING ENGINE & DUAL-MODE CONTROLLER
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 09/18] Permanent Battery Chemistry Protection...${NC}"
-# Copy watchdog script first so udev callouts succeed immediately
+echo -e "\n${BOLD}[Sector 09/18] Battery Charging Engine & Dual-Mode Controller...${NC}"
+# Copy scripts so system commands and udev callouts succeed immediately
 cp "${SCRIPT_DIR}/thinkpad-watchdog.sh" /usr/local/bin/thinkpad-watchdog.sh
 chmod +x /usr/local/bin/thinkpad-watchdog.sh
 
-BAT_START="/sys/class/power_supply/BAT0/charge_control_start_threshold"
-BAT_END="/sys/class/power_supply/BAT0/charge_control_end_threshold"
-if [[ -f "$BAT_START" ]]; then
-    echo 75 > "$BAT_START" 2>/dev/null || true
+if [[ -f "${SCRIPT_DIR}/thinkpad-charge-mode.sh" ]]; then
+    cp "${SCRIPT_DIR}/thinkpad-charge-mode.sh" /usr/local/bin/thinkpad-charge-mode
+    chmod +x /usr/local/bin/thinkpad-charge-mode
 fi
-if [[ -f "$BAT_END" ]]; then
-    echo 80 > "$BAT_END" 2>/dev/null || true
+
+# Initialize mode configuration if absent (default to full charge mode)
+CONFIG_FILE="/etc/thinkpad-charge-mode.conf"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "MODE=full" > "$CONFIG_FILE"
 fi
+
+# Configure dynamic udev trigger without recursive sysfs attribute loop
 cat << 'EOF' > /etc/udev/rules.d/99-thinkpad-battery-thresholds.rules
-# ThinkPad T490s Battery Chemistry Protection & Watchdog Rules
-SUBSYSTEM=="power_supply", ATTR{type}=="Battery", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
+# ThinkPad T490s Dynamic Power & Charge Mode Watchdog Rules
 SUBSYSTEM=="power_supply", KERNEL=="AC", ACTION=="change", RUN+="/usr/local/bin/thinkpad-watchdog.sh"
 EOF
 udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
-echo -e "  ${GREEN}✓ Hardware charge thresholds locked: 75% Start / 80% Stop.${NC}"
+
+# Apply active charge mode
+CURRENT_MODE="full"
+[[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
+if [[ "$CURRENT_MODE" == "protect" ]]; then
+    echo 75 > /sys/class/power_supply/BAT0/charge_control_start_threshold 2>/dev/null || true
+    echo 80 > /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || true
+    echo -e "  ${GREEN}✓ Battery Protection mode active: 75% Start / 80% Stop.${NC}"
+else
+    echo 0 > /sys/class/power_supply/BAT0/charge_control_start_threshold 2>/dev/null || true
+    echo 100 > /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || true
+    echo -e "  ${GREEN}✓ Full Charge mode active: 0% Start / 100% Stop (Active charging indicator).${NC}"
+fi
+
+# Enable battery percentage in GNOME desktop top bar for clear visual feedback
+REAL_USER="${SUDO_USER:-$USER}"
+if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+    USER_UID=$(id -u "$REAL_USER" 2>/dev/null || echo 1000)
+    sudo -u "$REAL_USER" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${USER_UID}/bus" gsettings set org.gnome.desktop.interface show-battery-percentage true 2>/dev/null || true
+fi
 
 # ==============================================================================
 # SECTOR 10: SECURITY & CLOUDFLARE FAMILY DNS
@@ -392,7 +414,9 @@ echo -e "  • DYTC Thermal Mode  : $(cat /sys/firmware/acpi/platform_profile 2>
 echo -e "  • RAM Swappiness     : $(sysctl -n vm.swappiness)"
 echo -e "  • NVMe APST Latency  : $(cat /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || echo N/A) us"
 echo -e "  • TCP Congestion Ctrl: $(sysctl -n net.ipv4.tcp_congestion_control)"
+echo -e "  • Active Charge Mode : $([[ -f /etc/thinkpad-charge-mode.conf ]] && grep -oP '(?<=MODE=)\w+' /etc/thinkpad-charge-mode.conf || echo "full")"
 echo -e "  • Battery Start/Stop : $(cat /sys/class/power_supply/BAT0/charge_control_start_threshold 2>/dev/null || echo N/A)% / $(cat /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || echo N/A)%"
+echo -e "  • Battery Status     : $(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo N/A) ($(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo N/A)%)"
 echo -e "  • Watchdog Service   : $(systemctl is-active thinkpad-watchdog.service) (Timer: $(systemctl is-active thinkpad-watchdog.timer))"
 echo -e "  • iGPU Boost Clock   : $(cat /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || echo N/A) MHz"
 echo -e "\n${BOLD}Ready for daily work with peak responsiveness and battery protection!${NC}\n"

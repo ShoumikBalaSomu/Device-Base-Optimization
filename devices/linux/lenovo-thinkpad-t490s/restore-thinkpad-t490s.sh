@@ -17,6 +17,7 @@ echo "Reverting ThinkPad T490s optimizations to stock defaults..."
 systemctl disable --now thinkpad-watchdog.service thinkpad-watchdog.timer 2>/dev/null || true
 rm -f /etc/systemd/system/thinkpad-watchdog.service /etc/systemd/system/thinkpad-watchdog.timer
 rm -f /usr/local/bin/thinkpad-watchdog.sh
+rm -f /usr/local/bin/thinkpad-charge-mode
 systemctl daemon-reload
 
 # 2. Remove configuration files
@@ -30,6 +31,7 @@ rm -f /etc/systemd/resolved.conf.d/00-cloudflare-family.conf
 rm -f /etc/pipewire/pipewire.conf.d/10-high-fidelity.conf
 rm -f /etc/wireplumber/wireplumber.conf.d/99-disable-ducking.conf
 rm -f /etc/udev/rules.d/99-thinkpad-battery-thresholds.rules
+rm -f /etc/thinkpad-charge-mode.conf
 
 # 3. Reload services & sysctl
 sysctl --system >/dev/null 2>&1 || true
