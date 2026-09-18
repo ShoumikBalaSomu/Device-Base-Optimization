@@ -17,6 +17,17 @@ BAT_START="/sys/class/power_supply/BAT0/charge_control_start_threshold"
 BAT_END="/sys/class/power_supply/BAT0/charge_control_end_threshold"
 CONFIG_FILE="/etc/thinkpad-charge-mode.conf"
 
+send_notification() {
+    local title="$1"
+    local msg="$2"
+    local real_user="${SUDO_USER:-$USER}"
+    if [[ -n "$real_user" && "$real_user" != "root" ]]; then
+        local user_uid=$(id -u "$real_user" 2>/dev/null || echo 1000)
+        sudo -u "$real_user" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${user_uid}/bus" \
+            notify-send -a "ThinkPad Power" -i "battery-good-charging" "$title" "$msg" 2>/dev/null || true
+    fi
+}
+
 # Status query requires no root privileges
 if [[ "$ACTION" != "status" ]] && [[ $EUID -ne 0 ]]; then
     exec sudo "$0" "$@"
@@ -28,6 +39,7 @@ case "$ACTION" in
         echo 100 > "$BAT_END" 2>/dev/null || true
         echo "MODE=full" > "$CONFIG_FILE"
         udevadm trigger --subsystem-match=power_supply 2>/dev/null || true
+        send_notification "⚡ Full Charge Mode Active" "Charging unlocked up to 100%. Continuous charging indicator active."
         echo "✓ Switched to FULL CHARGE mode: Charging to 100% (Charging indicator active)."
         ;;
     protect|80)
@@ -35,10 +47,11 @@ case "$ACTION" in
         echo 80 > "$BAT_END" 2>/dev/null || true
         echo "MODE=protect" > "$CONFIG_FILE"
         udevadm trigger --subsystem-match=power_supply 2>/dev/null || true
+        send_notification "🔋 Battery Protection Mode Active" "Threshold set to 75%-80%. Charging pauses at 80% to preserve battery health."
         echo "✓ Switched to BATTERY PROTECTION mode: Threshold set to 75%-80% (Halts at 80%)."
         ;;
     status)
-        MODE="full"
+        MODE="protect"
         [[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
         echo "=============================================================================="
         echo "                 THINKPAD T490s BATTERY CHARGE STATUS"
