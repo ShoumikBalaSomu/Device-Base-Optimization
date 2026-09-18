@@ -1,0 +1,11 @@
+[Unit]
+Description=Daffodil DC253D Autonomous Power & Battery Watchdog Timer
+Documentation=https://github.com/ShoumikBalaSomu/Device-Base-Optimization
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=10min
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
