@@ -1,0 +1,8 @@
+# ThinkPad T490s Battery Threshold & Power Event Rules
+# Repository: ShoumikBalaSomu/Device-Base-Optimization
+
+# Lock 75% start / 80% stop hardware charging threshold on BAT0
+SUBSYSTEM=="power_supply", ATTR{type}=="Battery", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
+
+# Trigger Watchdog on AC power connect/disconnect
+SUBSYSTEM=="power_supply", KERNEL=="AC", ACTION=="change", RUN+="/usr/local/bin/thinkpad-watchdog.sh"
