@@ -50,7 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **09** | **Battery Protection & Dual-Mode** | Dual-mode battery controller (`thinkpad-charge-mode [full|protect|status]`); persistent hardware thresholds locked via dynamic udev (supporting both AC and USB-C PD); GNOME top-bar battery percentage enabled. |
 | **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS-over-TLS (`DNSOverTLS=yes`) in `systemd-resolved`; `firewalld` active. |
 | **11** | **Display & Screen Backlight** | Intel DPST adaptive dimming disabled; subpixel RGB font antialiasing (`rgba`) locked; native screen backlight hotkeys bound via `acpi_backlight=native` and `brightnessctl`. |
-| **12** | **High-Fidelity Audio** | WirePlumber stream ducking eliminated; WebRTC acoustic echo cancellation and microphone noise suppression active; volume amplified to 130% (over-amplification enabled up to 150%). |
+| **12** | **High-Fidelity Audio & Studio Mic** | WirePlumber stream ducking eliminated; Studio WebRTC acoustic echo cancellation, high-pass rumble filter, and voice AGC active; ALSA analog mic boost calibrated; volume amplified to 130%. |
 | **13** | **Bus & Peripheral Latency** | USB autosuspend disabled on AC; Intel UHD 620 iGPU clock unlocked to 1.15GHz (`gt_boost_freq_mhz`). |
 | **14** | **Input Precision & TrackPoint** | Precision Touchpad calibrated; TrackPoint enabled via `psmouse.elantech_smbus=0` with middle-button scrolling and adaptive curves; keyboard repeat delay minimized (250ms). |
 | **15** | **Privacy Hardening** | Diagnostic problem reporting and software usage telemetry disabled in GNOME desktop. |

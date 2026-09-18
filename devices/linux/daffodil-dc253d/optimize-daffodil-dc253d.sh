@@ -359,13 +359,27 @@ wireplumber.settings = {
 EOF
 cat << 'EOF' > /etc/pipewire/pipewire.conf.d/20-echo-cancel.conf
 context.modules = [
-    { name = libpipewire-module-echo-cancel
-      args = {
-          aec.args = {
-              webrtc.extended_filter = true
-              webrtc.noise_suppression = true
-          }
-      }
+    {   name = libpipewire-module-echo-cancel
+        args = {
+            monitor.mode = true
+            aec.args = {
+                webrtc.extended_filter = true
+                webrtc.noise_suppression = true
+                webrtc.high_pass_filter = true
+                webrtc.gain_control = true
+                webrtc.voice_detection = true
+            }
+            capture.props = {
+                node.name = "ec_capture"
+                node.description = "Echo-Cancel Hardware Capture"
+            }
+            source.props = {
+                node.name = "echo-cancel-source"
+                node.description = "Studio Clean Noise-Suppressed Microphone"
+                priority.driver = 2500
+                priority.session = 2500
+            }
+        }
     }
 ]
 EOF
@@ -373,11 +387,18 @@ cat << 'EOF' > /etc/modprobe.d/audio-daffodil.conf
 # Eliminate DAC sleep popping and crackling on Realtek ALC269VC
 options snd_hda_intel power_save=0 power_save_controller=N
 EOF
+
+# Calibrate ALSA analog microphone gain to eliminate +60dB clipping and electronic hiss
+amixer sset 'Internal Mic Boost' 1 2>/dev/null || amixer sset 'Mic Boost' 1 2>/dev/null || true
+amixer sset 'Capture' 48 2>/dev/null || amixer sset 'Capture' 75% 2>/dev/null || true
+command -v alsactl >/dev/null 2>&1 && alsactl store 2>/dev/null || true
+
 run_user_gsettings set org.gnome.desktop.sound allow-volume-above-100-percent true
 if [[ -n "$REAL_USER" && -n "$USER_UID" && -d "/run/user/${USER_UID}" ]]; then
     sudo -u "$REAL_USER" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${USER_UID}/bus" wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.30 2>/dev/null || true
+    sudo -u "$REAL_USER" systemctl --user restart pipewire wireplumber 2>/dev/null || true
 fi
-echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; WebRTC noise suppression enabled; Audio amplified to 130%.${NC}"
+echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; Studio WebRTC noise suppression & AEC active; Mic calibrated; Audio amplified to 130%.${NC}"
 
 # ==============================================================================
 # SECTOR 13: BUS, WEBCAM & PERIPHERAL LATENCY
