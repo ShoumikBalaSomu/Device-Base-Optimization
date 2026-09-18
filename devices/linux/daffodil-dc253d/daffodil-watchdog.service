@@ -1,0 +1,14 @@
+[Unit]
+Description=Daffodil DC253D Autonomous Hardware & Power Watchdog
+Documentation=https://github.com/ShoumikBalaSomu/Device-Base-Optimization
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/daffodil-watchdog.sh
+RemainAfterExit=no
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
