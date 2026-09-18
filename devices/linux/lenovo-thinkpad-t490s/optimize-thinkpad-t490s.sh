@@ -162,19 +162,23 @@ echo -e "  ${GREEN}✓ Sched autogrouping enabled (foreground responsiveness gua
 # SECTOR 08: SERVICES & DEBLOAT
 # ==============================================================================
 echo -e "\n${BOLD}[Sector 08/18] Background Telemetry & Service Debloat...${NC}"
-systemctl disable --now abrt-journal-core abrt-oops abrt-xorg abrt-ccpp 2>/dev/null || true
+systemctl disable --now abrt-journal-core abrt-oops abrt-xorg abrt-ccpp ModemManager.service thermald.service 2>/dev/null || true
 mkdir -p /etc/systemd/coredump.conf.d
 cat << 'EOF' > /etc/systemd/coredump.conf.d/10-limit.conf
 [Coredump]
 Storage=external
 MaxUse=500M
 EOF
-echo -e "  ${GREEN}✓ Redundant error reporting services stopped; core dumps capped to 500MB.${NC}"
+echo -e "  ${GREEN}✓ Redundant error reporting & ModemManager services stopped; core dumps capped to 500MB.${NC}"
 
 # ==============================================================================
 # SECTOR 09: BATTERY CHEMISTRY PROTECTION (75% - 80% THRESHOLD)
 # ==============================================================================
 echo -e "\n${BOLD}[Sector 09/18] Permanent Battery Chemistry Protection...${NC}"
+# Copy watchdog script first so udev callouts succeed immediately
+cp "${SCRIPT_DIR}/thinkpad-watchdog.sh" /usr/local/bin/thinkpad-watchdog.sh
+chmod +x /usr/local/bin/thinkpad-watchdog.sh
+
 BAT_START="/sys/class/power_supply/BAT0/charge_control_start_threshold"
 BAT_END="/sys/class/power_supply/BAT0/charge_control_end_threshold"
 if [[ -f "$BAT_START" ]]; then
@@ -238,7 +242,11 @@ wireplumber.settings = {
     linking.role-based.duck-level = 1.0
 }
 EOF
-echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; WirePlumber stream ducking eliminated.${NC}"
+if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+    sudo -u "$REAL_USER" gsettings set org.gnome.desktop.sound allow-volume-above-100-percent true 2>/dev/null || true
+    sudo -u "$REAL_USER" wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.30 2>/dev/null || true
+fi
+echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; WirePlumber stream ducking eliminated; Audio amplified to 130% (over-amplification enabled).${NC}"
 
 # ==============================================================================
 # SECTOR 13: BUS & PERIPHERAL LATENCY
