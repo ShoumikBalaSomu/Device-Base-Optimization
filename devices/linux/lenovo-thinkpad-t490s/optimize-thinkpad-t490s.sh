@@ -414,6 +414,7 @@ echo -e "${GREEN}${BOLD}   ✨ ALL 18 SECTORS APPLIED & VERIFIED SUCCESSFULLY! �
 echo -e "${CYAN}${BOLD}==============================================================================${NC}"
 echo -e "  • CPU SpeedShift EPP : $(cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference 2>/dev/null || echo N/A)"
 echo -e "  • DYTC Thermal Mode  : $(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo N/A)"
+echo -e "  • Desktop Power Mode : $(gdbus call --system --dest net.hadess.PowerProfiles --object-path /net/hadess/PowerProfiles --method org.freedesktop.DBus.Properties.Get "net.hadess.PowerProfiles" "ActiveProfile" 2>/dev/null | awk -F"'" '{print $2}' || echo N/A) (TuneD: $(tuned-adm active 2>/dev/null | sed -n 's/^Current active profile: //p' || echo N/A))"
 echo -e "  • RAM Swappiness     : $(sysctl -n vm.swappiness)"
 echo -e "  • NVMe APST Latency  : $(cat /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || echo N/A) us"
 echo -e "  • TCP Congestion Ctrl: $(sysctl -n net.ipv4.tcp_congestion_control)"

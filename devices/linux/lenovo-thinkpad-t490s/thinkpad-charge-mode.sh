@@ -53,10 +53,14 @@ case "$ACTION" in
     status)
         MODE="protect"
         [[ -f "$CONFIG_FILE" ]] && source "$CONFIG_FILE"
+        PPD_PROFILE=$(gdbus call --system --dest net.hadess.PowerProfiles --object-path /net/hadess/PowerProfiles --method org.freedesktop.DBus.Properties.Get "net.hadess.PowerProfiles" "ActiveProfile" 2>/dev/null | awk -F"'" '{print $2}' || echo "N/A")
+        TUNED_PROFILE=$(tuned-adm active 2>/dev/null | sed -n 's/^Current active profile: //p' || echo "N/A")
+        
         echo "=============================================================================="
-        echo "                 THINKPAD T490s BATTERY CHARGE STATUS"
+        echo "                 THINKPAD T490s BATTERY & POWER STATUS"
         echo "=============================================================================="
         echo "  • Active Charge Mode : ${MODE^^}"
+        echo "  • Desktop Power Mode : ${PPD_PROFILE^^} (TuneD: ${TUNED_PROFILE})"
         echo "  • Start Threshold    : $(cat "$BAT_START" 2>/dev/null || echo N/A)%"
         echo "  • Stop Threshold     : $(cat "$BAT_END" 2>/dev/null || echo N/A)%"
         echo "  • Hardware Status    : $(cat /sys/class/power_supply/BAT0/status 2>/dev/null || echo N/A)"

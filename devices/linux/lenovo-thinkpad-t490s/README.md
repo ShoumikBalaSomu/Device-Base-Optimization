@@ -75,8 +75,8 @@ stateDiagram-v2
         Probe_AC --> AC_Connected: AC Plugged In
         Probe_AC --> Battery_Powered: On Battery
     }
-    AC_Connected --> Maximum_Performance: EPP=performance, DYTC=performance, GPU=1.15GHz, APST=0, USB=on
-    Battery_Powered --> Extreme_Battery_Saver: EPP=balance_power, DYTC=low-power, USB=auto (~8-10h Life)
+    AC_Connected --> Maximum_Performance: GNOME=performance, TuneD=throughput-perf, EPP=perf, DYTC=perf, GPU=1.15GHz, APST=0
+    Battery_Powered --> Extreme_Battery_Saver: GNOME=power-saver, TuneD=powersave, EPP=balance_power, DYTC=low-power (~8-10h Life)
     Maximum_Performance --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
     Extreme_Battery_Saver --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
     Guard_Battery --> [*]: Idle (Timer / udev)
