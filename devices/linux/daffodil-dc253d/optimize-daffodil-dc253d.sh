@@ -380,9 +380,9 @@ fi
 echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; WebRTC noise suppression enabled; Audio amplified to 130%.${NC}"
 
 # ==============================================================================
-# SECTOR 13: BUS & PERIPHERAL LATENCY
+# SECTOR 13: BUS, WEBCAM & PERIPHERAL LATENCY
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 13/18] Bus Latency, PCIe ASPM & iGPU Boost...${NC}"
+echo -e "\n${BOLD}[Sector 13/18] Bus Latency, Webcam Calibration & iGPU Boost...${NC}"
 if [[ -f /sys/module/pcie_aspm/parameters/policy ]]; then
     echo performance > /sys/module/pcie_aspm/parameters/policy 2>/dev/null || true
 fi
@@ -395,7 +395,25 @@ for card in /sys/class/drm/card1 /sys/class/drm/card0; do
         echo 1250 > "$card/gt_max_freq_mhz" 2>/dev/null || true
     fi
 done
-echo -e "  ${GREEN}✓ PCIe ASPM set to performance; USB autosuspend disabled; Intel UHD clock unlocked to 1250MHz.${NC}"
+
+# Webcam Hardware Shield & Driver Tuning
+if [[ -f "${SCRIPT_DIR}/99-daffodil-camera.rules" ]]; then
+    cp "${SCRIPT_DIR}/99-daffodil-camera.rules" /etc/udev/rules.d/99-daffodil-camera.rules
+fi
+if [[ -f "${SCRIPT_DIR}/uvcvideo-daffodil.conf" ]]; then
+    cp "${SCRIPT_DIR}/uvcvideo-daffodil.conf" /etc/modprobe.d/uvcvideo-daffodil.conf
+fi
+if [[ -f "${SCRIPT_DIR}/50-camera-priority.conf" ]]; then
+    mkdir -p /etc/wireplumber/wireplumber.conf.d
+    cp "${SCRIPT_DIR}/50-camera-priority.conf" /etc/wireplumber/wireplumber.conf.d/50-camera-priority.conf
+fi
+udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
+
+# Add active desktop user to video and render hardware groups
+if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+    usermod -aG video,render "$REAL_USER" 2>/dev/null || true
+fi
+echo -e "  ${GREEN}✓ PCIe ASPM performance active; USB autosuspend disabled; Webcam shielded (no-drop/anti-sleep); iGPU boost 1250MHz.${NC}"
 
 # ==============================================================================
 # SECTOR 14: INPUT PRECISION & RESPONSIVENESS

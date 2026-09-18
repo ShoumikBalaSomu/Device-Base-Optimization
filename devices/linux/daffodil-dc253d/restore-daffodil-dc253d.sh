@@ -31,6 +31,8 @@ sysctl --system >/dev/null 2>&1 || true
 rm -f /etc/modprobe.d/nvme-daffodil.conf
 rm -f /etc/modprobe.d/i915-daffodil.conf
 rm -f /etc/modprobe.d/audio-daffodil.conf
+rm -f /etc/modprobe.d/uvcvideo-daffodil.conf
+rm -f /etc/udev/rules.d/99-daffodil-camera.rules
 rm -f /etc/environment.d/10-mesa-shader.conf
 rm -f /etc/modules-load.d/bbr.conf
 
@@ -38,9 +40,10 @@ rm -f /etc/modules-load.d/bbr.conf
 rm -f /etc/systemd/resolved.conf.d/00-cloudflare-family.conf
 systemctl restart systemd-resolved 2>/dev/null || true
 
-# 5. Remove audio configs
+# 5. Remove audio & camera configs
 rm -f /etc/pipewire/pipewire.conf.d/10-high-fidelity.conf
 rm -f /etc/wireplumber/wireplumber.conf.d/99-disable-ducking.conf
+rm -f /etc/wireplumber/wireplumber.conf.d/50-camera-priority.conf
 rm -f /etc/pipewire/pipewire.conf.d/20-echo-cancel.conf
 
 # 6. Re-enable default services

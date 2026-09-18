@@ -1,0 +1,6 @@
+# ==============================================================================
+# Daffodil DC253D SunplusIT / Chicony FHD Webcam (04f2:b650) Power Shield
+# ==============================================================================
+# Prevent USB selective autosuspend from putting the internal webcam to sleep,
+# preventing application timeouts, camera connection dropouts, and frame freezing.
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="04f2", ATTR{idProduct}=="b650", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
