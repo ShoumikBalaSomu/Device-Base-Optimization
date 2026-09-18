@@ -436,6 +436,37 @@ if [[ -f "${SCRIPT_DIR}/99-daffodil-touchpad.rules" ]]; then
     cp "${SCRIPT_DIR}/99-daffodil-touchpad.rules" /etc/udev/rules.d/99-daffodil-touchpad.rules
     udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
 fi
+
+# System-wide GNOME & GDM defaults (Ensures tap-to-click works at GDM login & all users)
+mkdir -p /etc/dconf/db/local.d
+cat << 'EOF' > /etc/dconf/db/local.d/01-touchpad
+[org/gnome/desktop/peripherals/touchpad]
+tap-to-click=true
+natural-scroll=true
+two-finger-scrolling-enabled=true
+accel-profile='default'
+speed=0.15
+EOF
+dconf update 2>/dev/null || true
+
+# ACPI sleep/resume recovery hook for touchpad
+mkdir -p /usr/lib/systemd/system-sleep
+cat << 'EOF' > /usr/lib/systemd/system-sleep/99-daffodil-touchpad.sh
+#!/bin/bash
+case "$1" in
+    post)
+        for dev in /sys/bus/pci/drivers/intel-lpss/*/power/control /sys/bus/i2c/devices/i2c-SYNA*/power/control; do
+            [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
+        done
+        if [[ ! -d /sys/bus/i2c/devices/i2c-SYNA3602:00 ]]; then
+            modprobe -r i2c_hid_acpi 2>/dev/null || true
+            modprobe i2c_hid_acpi 2>/dev/null || true
+        fi
+        ;;
+esac
+EOF
+chmod +x /usr/lib/systemd/system-sleep/99-daffodil-touchpad.sh
+
 echo -e "  ${GREEN}✓ Mouse flat 1:1; Touchpad adaptive precision & tap-to-click active; I2C controller shielded; keyboard repeat 250ms.${NC}"
 
 # ==============================================================================
@@ -473,6 +504,12 @@ if command -v grubby >/dev/null 2>&1; then
     grubby --update-kernel=ALL --args="split_lock_mitigate=0 nowatchdog transparent_hugepage=madvise loglevel=3" >/dev/null 2>&1 || true
 fi
 sed -i "s|GRUB_CMDLINE_LINUX=\"rhgb quiet\"|GRUB_CMDLINE_LINUX=\"rhgb quiet split_lock_mitigate=0 nowatchdog transparent_hugepage=madvise loglevel=3\"|g" /etc/default/grub 2>/dev/null || true
+
+# Force Intel LPSS and I2C-HID drivers into early initramfs to eliminate cold boot probe races
+cat << 'EOF' > /etc/dracut.conf.d/99-daffodil-touchpad.conf
+force_drivers+=" intel_lpss_pci pinctrl_tigerlake i2c_designware_platform i2c_hid_acpi "
+EOF
+
 dracut --regenerate-all --force >/dev/null 2>&1 || true
 echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings & module configs permanently embedded.${NC}"
 

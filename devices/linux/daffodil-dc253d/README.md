@@ -72,6 +72,22 @@ daffodil-charge-mode status
 
 ---
 
+## 🖱️ Troubleshooting: Touchpad Frozen on Clean Fedora Install (Before Running Script)
+
+If a user installs Fedora fresh on the Daffodil DC253D and the touchpad does not respond on the very first boot:
+
+1. **Dual-Boot Windows Fast Startup Lock**:
+   - Windows 11 Fast Startup (enabled by default from the factory) hibernates hardware states and locks the Intel Serial IO I2C host controller (`00:15.0`) into an ACPI `D3hot` sleep state. When Linux boots, the I2C bus fails to communicate with `SYNA3602:00`.
+   - **Fix**: Boot into Windows, open **Command Prompt as Administrator** and run `powercfg /h off`, then power cycle the laptop.
+2. **BIOS Fast Boot Skipping I2C Controller**:
+   - In BIOS Setup (`F2` at boot) -> `Boot` tab -> set **Fast Boot** to **`Disabled`** (forces UEFI to enumerate and clock the I2C controller during POST).
+3. **5-Second Lid Workaround (Suspend/Resume)**:
+   - Close the laptop lid for 3–5 seconds until the power LED pulses (sleep state), then open it. The ACPI wake event forces the kernel to reset and re-bind `i2c_hid_acpi`.
+4. **Stock Tap-to-Click is Disabled in Fedora**:
+   - Stock Fedora GNOME leaves tap-to-click turned OFF out-of-the-box. Firmly press down until the trackpad mechanically clicks, or enable **Settings -> Mouse & Touchpad -> Tap to Click**.
+
+---
+
 ## 🔄 Factory Rollback
 
 To safely restore factory defaults:
