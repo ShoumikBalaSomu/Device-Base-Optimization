@@ -129,7 +129,7 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 * **Daffodil DC253D Linux**: Download [**`Daffodil-DC253D-Linux-v1.3.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.0/Daffodil-DC253D-Linux-v1.3.0.zip) and run `run-once.sh`.
 * **Daffodil DC253D Windows**: Download [**`Daffodil-DC253D-Windows-v1.3.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.0/Daffodil-DC253D-Windows-v1.3.0.zip) and double-click `Run-Once.cmd`.
 * **ThinkPad T490s Windows**: Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) and double-click `Run-Once.cmd`.
-* **ThinkPad T490s Linux**: Download [**`ThinkPad-T490s-Linux-Autonomous-v1.2.1.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.2.1/ThinkPad-T490s-Linux-Autonomous-v1.2.1.zip) and run `run-once.sh`.
+* **ThinkPad T490s Linux**: Download [**`ThinkPad-T490s-Linux-Autonomous-v1.2.2.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.2.2/ThinkPad-T490s-Linux-Autonomous-v1.2.2.zip) and run `run-once.sh`.
 
 #### Method C: Via Git Repository
 ```bash
