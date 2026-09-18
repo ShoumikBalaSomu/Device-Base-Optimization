@@ -295,8 +295,8 @@ fi
 
 cat << 'EOF' > /etc/udev/rules.d/99-daffodil-battery.rules
 # Daffodil DC253D Dynamic Power & Charge Mode Watchdog Rules
-SUBSYSTEM=="power_supply", KERNEL=="ADP1", ACTION=="change", RUN+="/usr/local/bin/daffodil-watchdog.sh"
-SUBSYSTEM=="power_supply", KERNEL=="BAT0", ACTION=="change", RUN+="/usr/local/bin/daffodil-watchdog.sh"
+# Triggers instantly on AC adapter connect/disconnect and battery status transitions
+SUBSYSTEM=="power_supply", ACTION=="change", RUN+="/usr/local/bin/daffodil-watchdog.sh"
 EOF
 udevadm control --reload-rules && udevadm trigger 2>/dev/null || true
 

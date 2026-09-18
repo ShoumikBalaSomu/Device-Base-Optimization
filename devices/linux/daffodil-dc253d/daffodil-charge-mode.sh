@@ -45,6 +45,12 @@ show_status() {
     else
         echo -e "  • Active Charge Mode   : ${YELLOW}${BOLD}FULL${NC} (100% Express Charge for Travel)"
     fi
+
+    local ppd_profile
+    ppd_profile=$(gdbus call --system --dest net.hadess.PowerProfiles --object-path /net/hadess/PowerProfiles --method org.freedesktop.DBus.Properties.Get "net.hadess.PowerProfiles" "ActiveProfile" 2>/dev/null | awk -F"'" '{print $2}' || echo "N/A")
+    local tuned_profile
+    tuned_profile=$(tuned-adm active 2>/dev/null | sed -n 's/^Current active profile: //p' || echo "N/A")
+    echo -e "  • Desktop Power Mode   : ${CYAN}${BOLD}${ppd_profile^^}${NC} (TuneD: ${tuned_profile})"
     if [[ "$e_design" -gt 0 && "$e_full" -gt 0 ]]; then
         local health
         health=$(awk "BEGIN {printf \"%.1f\", ($e_full / $e_design) * 100}")
