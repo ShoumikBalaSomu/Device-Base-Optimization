@@ -34,6 +34,10 @@ rm -f /etc/modprobe.d/audio-daffodil.conf
 rm -f /etc/modprobe.d/uvcvideo-daffodil.conf
 rm -f /etc/udev/rules.d/99-daffodil-camera.rules
 rm -f /etc/udev/rules.d/99-daffodil-touchpad.rules
+rm -f /usr/lib/systemd/system-sleep/99-daffodil-touchpad.sh
+rm -f /etc/dracut.conf.d/99-daffodil-touchpad.conf
+rm -f /etc/dconf/db/local.d/01-touchpad
+dconf update 2>/dev/null || true
 rm -f /etc/environment.d/10-mesa-shader.conf
 rm -f /etc/modules-load.d/bbr.conf
 
