@@ -52,10 +52,10 @@ daffodil-charge-mode status
 | Sector | Hardware Target | Applied Optimization |
 |---|---|---|
 | **01. CPU SpeedShift** | Intel Core i3-1315U | SpeedShift EPP set to `performance` (0) on AC, EPB=0, unparks all 8 logical cores (2P + 4E). |
-| **02. Memory Subsystem** | 8GB DDR4-3200 MT/s | `zram0` upgraded to `zstd` algorithm; `vm.swappiness = 10`; `vm.vfs_cache_pressure = 50`; `vm.max_map_count = 2147483642`. |
-| **03. NVMe Storage** | MAXIO MAP1202 DRAM-less | Zero APST latency (`default_ps_max_latency_us=0`) on AC to prevent DRAM-less freezes; Btrfs mounted with `noatime,commit=60`; weekly TRIM enabled. |
-| **04. GPU Acceleration** | Intel Raptor Lake UHD | Intel `i915` options `enable_dpst=0 enable_guc=2`; Mesa shader cache 4GB (`MESA_SHADER_CACHE_MAX_SIZE=4G`); Intel QuickSync VA-API enabled. |
-| **05. Network Stack** | Intel CNVi Wi-Fi + RTL8168 | TCP BBR congestion control + FQ qdisc; low latency buffer scaling; Wi-Fi power save disabled on AC. |
+| **02. Memory Subsystem** | 8GB DDR4-3200 MT/s | `zram0` upgraded to `zstd` (7.5GB); `vm.swappiness = 10`; `vfs_cache_pressure = 50`; anti-stutter VM watermarks (`watermark_boost_factor = 0`, `watermark_scale_factor = 125`); `MALLOC_ARENA_MAX = 2` glibc fragmentation limiter; file descriptors scaled to 1M. |
+| **03. NVMe Storage** | MAXIO MAP1202 DRAM-less | Zero APST latency (`default_ps_max_latency_us=0`) on AC; NVMe queue request CPU affinity locked to `2` for cache locality; Btrfs mounted with `noatime,commit=60`; weekly TRIM enabled. |
+| **04. GPU Acceleration** | Intel Raptor Lake UHD | Intel `i915` options `enable_dpst=0 enable_guc=2`; Mesa shader cache 4GB (`MESA_SHADER_CACHE_MAX_SIZE=4G`, single-file cache); Intel QuickSync VA-API enabled. |
+| **05. Network Stack** | Intel CNVi Wi-Fi + RTL8168 | TCP BBR congestion control + FQ qdisc; socket backlog scaled (16K/8K); Intel Hybrid IRQ affinity pinned to P-Cores (`CPU 0-3`) via `irqbalance`; Wi-Fi power save disabled on AC. |
 | **06. OEM BIOS & Thermals** | Emdoor IDL528 Platform | DPTF platform profile performance locking; UEFI NVRAM boot order optimized (`efibootmgr`); firmware ACPI bug logging suppressed with `loglevel=3`. See [BIOS Recommendations](BIOS_RECOMMENDATIONS.md). |
 | **07. Kernel Scheduler** | Linux PREEMPT_DYNAMIC | `sched_autogroup_enabled = 1` for instantaneous foreground app responsiveness; panic safety timeout 10s. |
 | **08. Services & Debloat** | Fedora Systemd | Disabled `NetworkManager-wait-online.service` (**saves 7.1s boot time**); disabled `ModemManager` and `abrt-*`; systemd journal vacuumed and capped to 100MB. |
@@ -66,7 +66,7 @@ daffodil-charge-mode status
 | **13. Bus Latency** | PCIe & USB 3.2 | PCIe ASPM set to `performance` on AC; USB autosuspend disabled on AC; Intel UHD iGPU unlocked to full 1250 MHz turbo boost. |
 | **14. Input Precision** | Synaptics Precision Touchpad | Flat 1:1 acceleration profile (zero mouse curve acceleration); tap-to-click enabled; keyboard repeat delay 250ms / interval 25ms. |
 | **15. Privacy Hardening** | GNOME Desktop | GNOME technical problem auto-reporting and software usage telemetry disabled. |
-| **16. Desktop Snappiness** | GNOME 48 Shell | Start menu external web search queries disabled for instantaneous local searches. |
+| **16. Desktop Snappiness** | GNOME 48 Shell | Start menu external web search queries disabled for instantaneous local searches; Mutter Wayland `scale-monitor-framebuffer` active. |
 | **17. Gaming & Throughput** | Mesa & Proton | GameMode integration; TCP BBR maximum throughput for low ping gaming and streaming. |
 | **18. Driver Resilience** | Linux Kernel 7.2 | Kernel boot parameters embedded via grubby: `split_lock_mitigate=0 nowatchdog transparent_hugepage=madvise loglevel=3`. |
 

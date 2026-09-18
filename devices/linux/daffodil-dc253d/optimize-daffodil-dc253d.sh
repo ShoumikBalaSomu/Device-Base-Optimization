@@ -104,15 +104,20 @@ swapon -a 2>/dev/null || true
 
 cat << 'EOF' > /etc/sysctl.d/99-daffodil-dc253d-performance.conf
 # ==============================================================================
-# Daffodil DC253D Hardware Performance & Latency Sysctls
+# Daffodil DC253D Hardware Performance & Latency Sysctls (Ultra-Deep Tuning)
 # ==============================================================================
 
-# Memory Subsystem (8GB DDR4 RAM Tuning)
+# Memory Subsystem (8GB DDR4 RAM Tuning & Anti-Stutter)
 vm.swappiness = 10
 vm.vfs_cache_pressure = 50
 vm.dirty_ratio = 10
 vm.dirty_background_ratio = 5
 vm.max_map_count = 2147483642
+vm.watermark_boost_factor = 0
+vm.watermark_scale_factor = 125
+vm.page_lock_unfairness = 1
+vm.compaction_proactiveness = 20
+vm.zone_reclaim_mode = 0
 
 # Network Stack & TCP Low Latency
 net.core.default_qdisc = fq
@@ -127,16 +132,40 @@ net.ipv4.tcp_wmem = 4096 65536 16777216
 net.ipv4.tcp_window_scaling = 1
 net.ipv4.tcp_timestamps = 1
 net.ipv4.tcp_sack = 1
+net.core.netdev_max_backlog = 16384
+net.core.somaxconn = 8192
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_intvl = 15
+net.ipv4.tcp_keepalive_probes = 5
 
 # Kernel Scheduler Autogrouping
 kernel.sched_autogroup_enabled = 1
+
+# File System & Inotify Watcher Scalers (IDE, Webpack, Search Snappiness)
+fs.inotify.max_user_watches = 1048576
+fs.inotify.max_user_instances = 1024
+fs.file-max = 2097152
 
 # Crash & Reboot Safety
 kernel.panic = 10
 kernel.sysrq = 1
 EOF
-sysctl --system >/dev/null 2>&1 || true
-echo -e "  ${GREEN}✓ Sysctl applied: swappiness=10, vfs_cache_pressure=50, zram zstd configured.${NC}"
+sysctl -p /etc/sysctl.d/99-daffodil-dc253d-performance.conf >/dev/null 2>&1 || true
+
+cat << 'EOF' > /etc/security/limits.d/99-daffodil-limits.conf
+# Daffodil DC253D Process & File Descriptor Scalers
+* soft nofile 1048576
+* hard nofile 1048576
+* soft memlock unlimited
+* hard memlock unlimited
+root soft nofile 1048576
+root hard nofile 1048576
+EOF
+
+echo "MALLOC_ARENA_MAX=2" >> /etc/environment 2>/dev/null || true
+echo -e "  ${GREEN}✓ Sysctl applied: swappiness=10, anti-stutter watermarks, zram zstd, limits scaled.${NC}"
 
 # ==============================================================================
 # SECTOR 03: STORAGE & NVMe MAXIO DRAM-LESS ZERO APST LATENCY
@@ -156,7 +185,16 @@ mount -o remount,noatime,commit=60 / 2>/dev/null || true
 mount -o remount,noatime,commit=60 /home 2>/dev/null || true
 systemctl enable --now fstrim.timer >/dev/null 2>&1 || true
 fstrim -av 2>/dev/null || true
-echo -e "  ${GREEN}✓ NVMe APST latency zeroed; noatime/commit=60 mounted; fstrim.timer active.${NC}"
+# Set NVMe Request Completion CPU Affinity to 2 (complete on submitting CPU for cache locality)
+cat << 'EOF' > /etc/udev/rules.d/60-nvme-affinity.rules
+# Daffodil DC253D NVMe CPU Cache Locality (Complete I/O on submitting CPU)
+ACTION=="add|change", KERNEL=="nvme[0-9]*n[0-9]*", ATTR{queue/rq_affinity}="2"
+EOF
+for dev in /sys/block/nvme[0-9]*n[0-9]*/queue/rq_affinity; do
+    [[ -f "$dev" ]] && echo 2 > "$dev" 2>/dev/null || true
+done
+udevadm control --reload 2>/dev/null || true
+echo -e "  ${GREEN}✓ NVMe APST latency zeroed; cache affinity locked to 2; noatime/commit=60 mounted.${NC}"
 
 # ==============================================================================
 # SECTOR 04: GPU ACCELERATION, VA-API & SHADER CACHE
@@ -169,6 +207,7 @@ EOF
 mkdir -p /etc/environment.d
 cat << 'EOF' > /etc/environment.d/10-mesa-shader.conf
 MESA_SHADER_CACHE_MAX_SIZE=4G
+MESA_DISK_CACHE_SINGLE_FILE=1
 MESA_VK_ENABLE_SUBGROUP_EXTENSIONS=1
 LIBVA_DRIVER_NAME=iHD
 EOF
@@ -183,11 +222,16 @@ echo "tcp_bbr" > /etc/modules-load.d/bbr.conf
 modprobe tcp_bbr 2>/dev/null || true
 sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1 || true
 sysctl -w net.core.default_qdisc=fq >/dev/null 2>&1 || true
+# Route hardware interrupts to Golden Cove P-Cores (CPU 0-3), freeing Gracemont E-Cores (CPU 4-7)
+cat << 'EOF' > /etc/sysconfig/irqbalance
+IRQBALANCE_BANNED_CPUS=000000f0
+EOF
+systemctl restart irqbalance.service 2>/dev/null || true
 # Turn off Wi-Fi power save on AC
 for wiface in $(iw dev 2>/dev/null | awk '$1=="Interface"{print $2}'); do
     iw dev "$wiface" set power_save off 2>/dev/null || true
 done
-echo -e "  ${GREEN}✓ TCP BBR + FQ active; delayed ACK eliminated; Wi-Fi power save disabled on AC.${NC}"
+echo -e "  ${GREEN}✓ TCP BBR + FQ active; irqbalance P-core pinned; Wi-Fi power save disabled on AC.${NC}"
 
 # ==============================================================================
 # SECTOR 06: OEM BIOS & THERMAL POLICIES
@@ -377,7 +421,8 @@ echo -e "  ${GREEN}✓ Automatic problem reports and usage telemetry disabled.${
 # ==============================================================================
 echo -e "\n${BOLD}[Sector 16/18] Desktop Snappiness & Local Search Focus...${NC}"
 run_user_gsettings set org.gnome.desktop.search-providers disable-external true
-echo -e "  ${GREEN}✓ Start menu external web queries disabled for instantaneous local searches.${NC}"
+run_user_gsettings set org.gnome.mutter experimental-features "['scale-monitor-framebuffer']"
+echo -e "  ${GREEN}✓ Start menu external web queries disabled; Mutter Wayland fractional scaling active.${NC}"
 
 # ==============================================================================
 # SECTOR 17: GAMING & THROUGHPUT ENHANCEMENT
