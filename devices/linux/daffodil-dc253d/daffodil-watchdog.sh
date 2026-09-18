@@ -28,10 +28,13 @@ CHARGE_MODE="${MODE:-protect}"
 
 # Determine Power State: AC vs Battery
 IS_AC=0
-for ac in /sys/class/power_supply/AD*/online /sys/class/power_supply/AC*/online; do
-    if [[ -f "$ac" ]] && [[ "$(cat "$ac" 2>/dev/null)" == "1" ]]; then
-        IS_AC=1
-        break
+for ac_dev in /sys/class/power_supply/*/online; do
+    if [[ -f "$ac_dev" && "$ac_dev" != *"BAT"* ]]; then
+        val=$(cat "$ac_dev" 2>/dev/null || echo 0)
+        if [[ "$val" -eq 1 ]]; then
+            IS_AC=1
+            break
+        fi
     fi
 done
 
@@ -48,6 +51,10 @@ if [[ $IS_AC -eq 1 ]]; then
     # AC POWER PROFILE: MAXIMUM UNLEASHED PERFORMANCE
     # ==========================================================================
     log "Power Source: AC Mains Connected -> Unleashing Peak Hardware Performance"
+
+    # 0. Synchronize GNOME Quick Settings & TuneD via D-Bus net.hadess.PowerProfiles
+    gdbus call --system --dest net.hadess.PowerProfiles --object-path /net/hadess/PowerProfiles \
+        --method org.freedesktop.DBus.Properties.Set "net.hadess.PowerProfiles" "ActiveProfile" '<"performance">' 2>/dev/null || true
 
     # 1. CPU SpeedShift EPP = performance (0)
     for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
@@ -119,6 +126,10 @@ else
     # BATTERY POWER PROFILE: EXTREME BATTERY SAVER (8-10+ HRS RUNTIME)
     # ==========================================================================
     log "Power Source: Battery Discharged -> Activating Extreme Battery Saver"
+
+    # 0. Synchronize GNOME Quick Settings & TuneD via D-Bus net.hadess.PowerProfiles
+    gdbus call --system --dest net.hadess.PowerProfiles --object-path /net/hadess/PowerProfiles \
+        --method org.freedesktop.DBus.Properties.Set "net.hadess.PowerProfiles" "ActiveProfile" '<"power-saver">' 2>/dev/null || true
 
     # 1. CPU SpeedShift EPP = balance_power
     for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
