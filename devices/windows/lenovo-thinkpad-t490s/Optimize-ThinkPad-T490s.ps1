@@ -268,7 +268,9 @@ function Invoke-Sector2_MemorySubsystem {
     Set-ItemProperty -Path $memKey -Name "DisablePagingExecutive" -Value 1 -Type DWord -Force
     Set-ItemProperty -Path $memKey -Name "ClearPageFileAtShutdown" -Value 0 -Type DWord -Force
     Set-ItemProperty -Path $memKey -Name "LargeSystemCache" -Value 0 -Type DWord -Force
-    Write-Log "Windows Kernel locked in physical 32GB RAM; memory compression disabled." "SUCCESS"
+    # Configure Tier-2 32GB RAM NTFS Metadata Cache
+    try { fsutil behavior set MemoryUsage 2 | Out-Null } catch {}
+    Write-Log "Windows Kernel locked in physical 32GB RAM; memory compression disabled; NTFS Tier-2 cache enabled." "SUCCESS"
 }
 
 # -------------------------------------------------------------------------
@@ -315,6 +317,21 @@ function Invoke-Sector5_NetworkStack {
         Set-NetAdapterAdvancedProperty -Name "Wi-Fi" -DisplayName "Preferred Band" -DisplayValue "3. Prefer 5GHz band" -ErrorAction SilentlyContinue
         Set-NetAdapterAdvancedProperty -Name "Wi-Fi" -DisplayName "MIMO Power Save Mode" -DisplayValue "No SMPS" -ErrorAction SilentlyContinue
     }
+    # Direct Intel 9560 & I219-LM Silicon Driver Parameter Tuning
+    $wifiDriverKey = Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" -ErrorAction SilentlyContinue | Where-Object {
+        (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).DriverDesc -like "*9560*"
+    }
+    if ($wifiDriverKey) {
+        Set-ItemProperty -Path $wifiDriverKey.PSPath -Name "MIMO_Power_Save_Mode" -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $wifiDriverKey.PSPath -Name "ThroughputBoosterEnabled" -Value "1" -Type String -Force -ErrorAction SilentlyContinue
+    }
+    $ethDriver = Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" -ErrorAction SilentlyContinue | Where-Object {
+        (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).DriverDesc -like "*I219*"
+    }
+    if ($ethDriver) {
+        Set-ItemProperty -Path $ethDriver.PSPath -Name "ReduceSpeedOnPowerDown" -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $ethDriver.PSPath -Name "AutoPowerSaveModeEnabled" -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+    }
     netsh int tcp set global autotuninglevel=normal | Out-Null
     try {
         netsh int tcp set supplemental template=internet congestionprovider=bbr | Out-Null
@@ -339,7 +356,10 @@ function Invoke-Sector6_ThinkPadBIOS {
             "CPUPowerManagement,Enable",
             "ChargeInBatteryMode,Disable",
             "ThunderboltSecurityLevel,UserAuthorization",
-            "PreBootForThunderboltDevice,Disable"
+            "PreBootForThunderboltDevice,Disable",
+            "EthernetLANOptionROM,Disable",
+            "AMTControl,Disable",
+            "KeyboardBeep,Disable"
         )
         foreach ($s in $settings) {
             Invoke-CimMethod -InputObject $setBiosObj -MethodName SetBiosSetting -Arguments @{ Parameter = $s } | Out-Null
