@@ -65,26 +65,28 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 
 ---
 
-## 🔬 The 18 Ultra-Deep Optimization Sectors
+## 🔬 The 20 Ultra-Deep Optimization Sectors
 
 1. **CPU SpeedShift EPP & Core Unparking**: SpeedShift EPP set to `0` on AC (instant clock scaling) and all 8 logical threads unparked on charger.
 2. **32GB RAM Architecture**: Windows Memory Compression disabled (`Disable-MMAgent -MemoryCompression`), eliminating CPU decompression micro-stutter; kernel locked in physical RAM (`DisablePagingExecutive = 1`).
 3. **Storage & NVMe Engine**: NVMe APST transition timeout set to `0` on AC; NTFS tunneling cache disabled; 8.3 filenames and `LastAccess` flash wear writes suppressed.
 4. **GPU & DWM Snappiness Engine**: Hardware-Accelerated GPU Scheduling (HAGS Mode 2) enabled; `MenuShowDelay = 0` for instant desktop UI popups; DirectX shader cache purged.
 5. **Low-Latency Network Stack**: Nagle's algorithm disabled (`TCPNoDelay = 1`); delayed ACKs disabled (`TcpAckFrequency = 1`) to eliminate 200ms packet buffering delay; BBR/Cubic TCP congestion provider.
-6. **ThinkPad WMI BIOS Thermal Maxima**: Embedded Controller configured for `AdaptiveThermalManagementAC,MaximizePerformance` and committed directly to ThinkPad NVRAM.
+6. **ThinkPad WMI BIOS Thermal & Thunderbolt Maxima**: EC configured for `AdaptiveThermalManagementAC,MaximizePerformance`, `ThunderboltSecurityLevel,UserAuthorization` (aligning with Windows 11 Kernel DMA Protection), and `PreBootForThunderboltDevice,Disable` (eliminating Event 9006 boot timeouts) committed directly to ThinkPad NVRAM.
 7. **Kernel Scheduler Quantum**: `Win32PrioritySeparation = 38` (Hex `0x26`: short variable quanta with 3:1 foreground boost) for esports-grade input responsiveness.
 8. **Services Demand-Start & Telemetry Debloat**: Non-essential services (`MapsBroker`, `WerSvc`, `RetailDemo`, `DiagTrack`) converted to Manual (Demand-Start) to guarantee 0% idle CPU waste.
 9. **Continuous Battery Preservation & Extreme Battery Mode**: Permanent 75%-80% threshold enforcement + automatic 1.9GHz clock capping on battery.
 10. **Security & DNS Hardening**: Defender RTP, Firewall active on all profiles, and Cloudflare 1.1.1.3 Family DNS with automated backup.
 11. **Display Quality & Visual Clarity Engine**: Disables Intel DPST (Display Power Saving Technology / Adaptive Contrast Dimming via `FeatureTestControl = 0x8210`) to eliminate washed-out dark scenes and sudden stepping; activates ClearType 2.0 RGB subpixel rendering (`Gamma 1400`) for pinpoint font sharpness.
-12. **High-Fidelity Audio & Realtek Low-Latency Stack**: Disables Windows Communication Audio Ducking (`UserDuckingPreference = 3`), eliminating 80% volume drop during Discord/Teams calls; elevates MMCSS Audio Task priority (`Priority 6, High Scheduling, SFIO High, Latency Sensitive`) to prevent audio buffer underruns and crackling.
+12. **High-Fidelity Audio, Microphone Calibration & Dolby Engine**: Calibrates Microphone Array volume to 95% (+20dB gain) with dual-array beamforming and acoustic echo cancellation; fixes the stuck `LidClose: 0` Dolby DAX registry bug restoring full open-lid acoustic bandwidth; disables communication ducking (`UserDuckingPreference = 3`); elevates MMCSS Audio Task priority (`Priority 6, High Scheduling, SFIO High, Latency Sensitive`).
 13. **Peripheral & Bus Latency Engine**: PCIe Link State Power Management (ASPM) set to `Off` on AC to eliminate NVMe SSD and Wi-Fi bus latency spikes; USB Selective Suspend disabled on AC to stop external drive/DAC disconnects; Intel UHD 620 iGPU set to Maximum Performance (1.15GHz boost).
-14. **Input Precision & Responsiveness Engine**: Enforces 1:1 linear pointer tracking without artificial acceleration curves (`MouseSpeed = 0`, `MouseThreshold = 0`); calibrates Precision Touchpad sensitivity to prevent palm rejection locks while keeping responsive tapping; minimizes keyboard repeat delay (`KeyboardDelay = 0`, `KeyboardSpeed = 31`).
+14. **Input Precision & Responsiveness Engine**: Enforces 1:1 linear pointer tracking without artificial acceleration curves (`MouseSpeed = 0`, `MouseThreshold = 0`); minimizes keyboard repeat delay (`KeyboardDelay = 0`, `KeyboardSpeed = 31`); removes tap delays on Precision Touchpad.
 15. **Privacy, Diagnostics & Telemetry Hardening**: Reduces Windows Diagnostic Data from Full (Level 3) to Basic (Level 1); disables Advertising ID and tailored diagnostics; purges Activity History feed; suppresses Windows Error Reporting UI freezes.
 16. **Desktop Environment & Shell Snappiness**: Window minimize/maximize animation delay disabled (`MinAnimate = 0`); Bing search in Start Menu disabled for instantaneous local-only file/app search.
 17. **Gaming & Network Bandwidth Engine**: Background GameDVR video capture disabled (saves GPU/RAM cycles); Windows Game Mode active; 20% QoS reserved network bandwidth unlocked (`NonBestEffortLimit = 0`); modern BBR2/Cubic TCP congestion provider active.
 18. **ThinkPad OEM Driver Shield & Crash Safety**: Protects ThinkPad OEM drivers against generic Windows Update downgrades (`ExcludeWUDriversInQualityUpdate = 1`); enforces MiniDump crash control to prevent 32GB RAM from thrashing the SSD during system halts.
+19. **Webcam Video Stream Fidelity & 50Hz Anti-Flicker**: Locks camera power line anti-flicker frequency to 50 Hz matching regional mains electricity (stopping horizontal strobing/banding and shutter speed drops); activates Media Foundation GPU Hardware MFT acceleration for zero-CPU video processing; tunes SunplusIT camera driver low-light compensation and eliminates snapshot freeze delays.
+20. **OS Integrity, Component Store & Audio Bus Repair**: Verifies Windows DISM component store health; purges stalled MSI installer transaction locks; zeroes Intel SST and Realtek audio controller power-gating idle latency on AC to eliminate stream start/stop pops.
 
 ---
 
