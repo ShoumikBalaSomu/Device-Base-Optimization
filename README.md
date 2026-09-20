@@ -40,9 +40,11 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 
 | Platform / OS | Manufacturer | Device Model | Status / Depth | Profile & Documentation |
 |:---|:---|:---|:---|:---|
-| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors)** | [**📖 View ThinkPad T490s Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors)** | [**📖 View ThinkPad T490s Windows Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Windows 11 / 10** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View Daffodil DC253D Windows Guide**](devices/windows/daffodil-dc253d/README.md) |
+| **Linux (Fedora / Ubuntu)** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View Daffodil DC253D Linux Guide**](devices/linux/daffodil-dc253d/README.md) |
+| **Linux (Fedora / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**📖 View Universal Windows Guide**](devices/windows/universal/README.md) |
-| **Linux** | Any OEM | Ubuntu / Debian / Fedora / Arch | 🟡 *In Roadmap (Sysctl / TLP)* | [**📖 View Linux Roadmap**](devices/linux/README.md) |
 | **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap (pmset / defaults)* | [**📖 View macOS Roadmap**](devices/macos/README.md) |
 
 ---
@@ -51,35 +53,35 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 
 ```mermaid
 flowchart TD
-    Start(["Launch Run-Once.cmd"]) --> UAC["Self-Elevation (Administrator)"]
-    UAC --> Restore["Create Windows System Restore Point"]
+    Start(["Launch Run-Once.cmd / run-once.sh"]) --> UAC["Self-Elevation (Root / Admin)"]
+    UAC --> Restore["Create System Snapshot / Restore Point"]
     Restore --> Audit["Hardware & Diagnostic Audit"]
     
-    subgraph Execution ["21-Sector Optimization Engine"]
+    subgraph Execution ["Autonomous Multi-Sector Engine"]
         Audit --> S1["CPU SpeedShift EPP 0 & Unparking"]
-        S1 --> S2["32GB RAM Zero-Compression"]
+        S1 --> S2["RAM Subsystem & Zero-Compression"]
         S2 --> S3["NVMe APST Latency Zeroing"]
-        S3 --> S4["GPU HAGS & DWM Snappiness"]
-        S4 --> S5["TCP NoDelay & Instant ACK"]
-        S5 --> S6["ThinkPad BIOS Thermal & Boot Maxima"]
-        S6 --> S7["Scheduler Quantum 0x26"]
-        S7 --> S8["Services Demand-Start"]
-        S8 --> S9["75-80% Battery Limit Locked"]
+        S3 --> S4["GPU HAGS & DWM / Wayland Snappiness"]
+        S4 --> S5["TCP NoDelay & Low-Latency Network"]
+        S5 --> S6["OEM BIOS / UEFI Thermal & Boot Maxima"]
+        S6 --> S7["Kernel Scheduler Quantum & Priority"]
+        S7 --> S8["Services Demand-Start & Debloat"]
+        S8 --> S9["Hardware Battery Conservation Locked"]
         S9 --> S10["Security & Cloudflare 1.1.1.3 DNS"]
-        S10 --> S11["Display: Intel DPST Disabled"]
-        S11 --> S12["Audio: Mic Gain 95%, Dolby LidClose Fix & MMCSS"]
-        S12 --> S13["PCIe ASPM Off & USB Sleep Off"]
-        S13 --> S14["1:1 Mouse & Fast Keyboard"]
-        S14 --> S15["Privacy & Basic Telemetry"]
-        S15 --> S16["Instant Window Animation"]
-        S16 --> S17["GameDVR Off & 100% Bandwidth"]
-        S17 --> S18["OEM Driver Protection & MiniDump"]
-        S18 --> S19["Webcam: 50Hz Anti-Flicker & Hardware MFT"]
-        S19 --> S20["OS & Driver: Component Store & Audio Bus Fix"]
-        S20 --> S21["Hardware Limits: AV1 HW Pref & FastStartup Off"]
+        S10 --> S11["Display: DPST Disabled & Subpixel Rendering"]
+        S11 --> S12["Audio: Mic Gain, Dynamic Acoustic & Real-Time Bus"]
+        S12 --> S13["PCIe ASPM Off & Peripheral Sleep Shield"]
+        S13 --> S14["1:1 Pointer Precision & Touchpad Sleep Shield"]
+        S14 --> S15["Privacy Hardening & Telemetry Purge"]
+        S15 --> S16["Instant Animation & Shell Snappiness"]
+        S16 --> S17["Throughput & Bandwidth Optimization"]
+        S17 --> S18["OEM Driver Protection & Crash Safety"]
+        S18 --> S19["Webcam: 50Hz Anti-Flicker & Hardware Acceleration"]
+        S19 --> S20["OS Integrity & Bus Latency Repair"]
+        S20 --> S21["Hardware Limitation Mitigations (AV1 / AI / FastBoot)"]
     end
     
-    Execution --> Watchdog["Install Event-105 Real-Time Watchdog Task"]
+    Execution --> Watchdog["Install Autonomous AC/DC Watchdog"]
     Watchdog --> Complete(["Finished! Run-Once Complete"])
 ```
 
@@ -87,17 +89,35 @@ flowchart TD
 
 ## ⚡ 1-Click Quickstart (Run-Once & Forget)
 
-### 🚀 Instant 1-Line PowerShell Launch (Zero Download / Zero Git)
+### 🚀 Instant 1-Line Execution (Zero Download / Zero Git)
 
-Just open **PowerShell** (Standard or Administrator) and paste the command for your machine:
+Just open your terminal and paste the command for your machine:
 
-#### 💻 1. Lenovo ThinkPad T490s (`20NYS64T00`)
+#### 💻 1. Lenovo ThinkPad T490s (`20NYS64T00`) — Windows 11 / 10
 ```powershell
 irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/lenovo-thinkpad-t490s/Optimize-ThinkPad-T490s.ps1 | iex
 ```
-*(Auto-elevates, executes all 21 sectors, locks 75%-80% battery threshold, and installs the real-time watchdog task in ~15s).*
+*(Auto-elevates, executes all 21 sectors, locks 75%-80% battery threshold, and installs the real-time Event-105 watchdog task in ~15s).*
 
-#### 🖥️ 2. Universal Windows 10 / 11 PC (Any OEM)
+#### 💻 2. Daffodil Computers Ltd. DC253D — Windows 11 / 10
+```powershell
+irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/daffodil-dc253d/Optimize-Daffodil-DC253D.ps1 | iex
+```
+*(Auto-elevates, optimizes Intel i3-1315U Raptor Lake P/E cores, MAXIO DRAM-less NVMe, HAGS 2, and locks 80% battery protection).*
+
+#### 🐧 3. Daffodil Computers Ltd. DC253D — Linux (Fedora 44 / Ubuntu)
+```bash
+curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/linux/daffodil-dc253d/run-once.sh | sudo bash
+```
+*(Full 18 sectors, zram zstd, P-core IRQ affinity, PipeWire studio WebRTC mic filter, and I2C touchpad sleep shield).*
+
+#### 🐧 4. Lenovo ThinkPad T490s (`20NYS64T00`) — Linux (Fedora / Debian)
+```bash
+curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/linux/lenovo-thinkpad-t490s/run-once.sh | sudo bash
+```
+*(Full 18 sectors, dual-mode battery charging switcher, TrackPoint tuning, and ACPI backlight fixes).*
+
+#### 🖥️ 5. Universal Windows 10 / 11 PC (Any OEM)
 ```powershell
 irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/windows/universal/Optimize-Windows-Universal.ps1 | iex
 ```
@@ -105,19 +125,16 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 
 ---
 
-### 📦 Alternative Launch Methods (ThinkPad T490s)
+### 📦 Standalone Release Archive Downloads
 
-#### Method B: Double-Click Launcher (Zero CLI)
-1. Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip).
-2. Extract the archive.
-3. Double-click **`Run-Once.cmd`** and click **Yes** on the UAC prompt.
+Prefer offline or double-click `.zip` packages? Download the latest pre-compiled release bundles:
 
-#### Method C: Via Git Repository
-```powershell
-git clone https://github.com/ShoumikBalaSomu/Device-Base-Optimization.git
-cd Device-Base-Optimization\devices\windows\lenovo-thinkpad-t490s
-powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1
-```
+| Device | Operating System | Release Archive | Launcher |
+|---|---|---|---|
+| **Lenovo ThinkPad T490s** | **Windows 11 / 10** | [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) | Double-click `Run-Once.cmd` |
+| **Daffodil DC253D** | **Windows 11 / 10** | [**`Daffodil-DC253D-Windows-v1.3.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.0/Daffodil-DC253D-Windows-v1.3.0.zip) | Double-click `Run-Once.cmd` |
+| **Daffodil DC253D** | **Linux (Fedora / Ubuntu)** | [**`Daffodil-DC253D-Linux-v1.3.1.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.1/Daffodil-DC253D-Linux-v1.3.1.zip) | `sudo ./run-once.sh` |
+| **Lenovo ThinkPad T490s** | **Linux (Fedora / Debian)** | [**`ThinkPad-T490s-Linux-Autonomous-v1.2.5.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.2.5/ThinkPad-T490s-Linux-Autonomous-v1.2.5.zip) | `sudo ./run-once.sh` |
 
 ---
 
@@ -177,20 +194,37 @@ Device-Base-Optimization/
 ├── README.md                                    # Central Multi-Device Hub & Documentation
 ├── LICENSE                                      # MIT Open Source License
 ├── docs/
-│   └── DEVICE_SPEC_TEMPLATE.md                  # Standard blueprint for contributing new devices
+│   ├── DEVICE_SPEC_TEMPLATE.md                  # Standard blueprint for contributing new devices
+│   └── MASTER_OPTIMIZATION_PROMPT.md            # Definitive Antigravity CLI prompt for any computer
 ├── devices/
 │   ├── windows/
-│   │   ├── lenovo-thinkpad-t490s/               # Custom Ultra-Deep ThinkPad T490s profile
-│   │   │   ├── README.md                        # 18-Sector hardware, display & audio guide
-│   │   │   ├── Run-Once.cmd                     # 1-Click Double-Clickable Auto-Elevating Launcher
+│   │   ├── lenovo-thinkpad-t490s/               # Custom Ultra-Deep ThinkPad T490s Windows suite (21 Sectors)
+│   │   │   ├── README.md                        # Hardware, display & audio calibration guide
+│   │   │   ├── Run-Once.cmd                     # 1-Click double-click launcher
 │   │   │   └── Optimize-ThinkPad-T490s.ps1      # Autonomous kernel & hardware optimization engine
-│   │   └── universal/                           # Generic Windows fallback
+│   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D Windows suite (18 Sectors)
+│   │   │   ├── README.md                        # Hardware specs & 18-sector architecture
+│   │   │   ├── Run-Once.cmd                     # 1-Click double-click launcher
+│   │   │   └── Optimize-Daffodil-DC253D.ps1     # Raptor Lake i3-1315U optimization engine
+│   │   └── universal/                           # Generic Windows fallback maintenance
 │   │       ├── README.md                        # Universal Windows guide
 │   │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic maintenance script
-│   ├── linux/                                   # Linux distributions and devices
-│   │   └── README.md                            # Roadmap & kernel sysctl architecture
-│   └── macos/                                   # Apple Mac systems
-│       └── README.md                            # Roadmap & macOS defaults architecture
+│   ├── linux/
+│   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D Fedora/Ubuntu Linux suite
+│   │   │   ├── README.md                        # Linux specs, PipeWire studio mic & touchpad guide
+│   │   │   ├── run-once.sh                      # 1-Click bash launcher
+│   │   │   ├── optimize-daffodil-dc253d.sh      # Autonomous Linux kernel & hardware engine
+│   │   │   └── daffodil-charge-mode.sh          # Dual-mode 80%/100% battery charge controller
+│   │   ├── lenovo-thinkpad-t490s/               # Custom ThinkPad T490s Linux suite
+│   │   │   ├── README.md                        # Linux guide & TrackPoint calibration
+│   │   │   ├── run-once.sh                      # 1-Click bash launcher
+│   │   │   ├── optimize-thinkpad-t490s.sh       # Autonomous Linux optimization engine
+│   │   │   └── thinkpad-charge-mode.sh          # Dual-mode battery charge controller
+│   │   └── README.md                            # Linux roadmap & kernel sysctl architecture
+│   └── macos/                                   # Apple Mac systems roadmap
+├── dist/
+│   ├── ThinkPad-T490s/                          # Standalone ThinkPad T490s bundle
+│   └── Daffodil-DC253D/                         # Standalone Daffodil DC253D bundle
 └── scripts/
     └── windows/
         └── Optimize-Device.ps1                  # Synchronized core engine script
