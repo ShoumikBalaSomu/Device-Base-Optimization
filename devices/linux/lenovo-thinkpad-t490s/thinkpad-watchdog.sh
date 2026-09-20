@@ -64,69 +64,79 @@ if [[ "$AC_ONLINE" -eq 1 ]]; then
         echo performance > /sys/firmware/acpi/platform_profile 2>/dev/null || true
     fi
 
-    # 4. NVMe SSD: Zero APST sleep latency
+    # 4. Intel Dynamic Boost: Instant clock ramp for interactive bursts
+    if [[ -f /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost ]]; then
+        echo 1 > /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost 2>/dev/null || true
+    fi
+
+    # 5. NVMe SSD: Zero APST sleep latency
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
         echo 0 > /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || true
     fi
 
-    # 5. Intel UHD 620 iGPU: Full 1.15GHz boost clock
+    # 6. Intel UHD 620 iGPU: Full 1.15GHz boost clock
     if [[ -f /sys/class/drm/card1/gt_boost_freq_mhz ]]; then
         echo 1150 > /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || true
         echo 1150 > /sys/class/drm/card1/gt_max_freq_mhz 2>/dev/null || true
     fi
 
-    # 6. USB Autosuspend: Disabled on AC for zero peripheral latency
+    # 7. USB Autosuspend: Disabled on AC for zero peripheral latency
     for dev in /sys/bus/usb/devices/*/power/control; do
         [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
     done
 
-    # 7. Intel AC 9560 Wi-Fi: Zero-latency mode (disable power-saving for minimal ping jitter)
+    # 8. Intel AC 9560 Wi-Fi: Zero-latency mode (disable power-saving for minimal ping jitter)
     if command -v iw >/dev/null 2>&1; then
         for iface in $(iw dev 2>/dev/null | awk '$1=="Interface"{print $2}'); do
             iw dev "$iface" set power_save off 2>/dev/null || true
         done
     fi
 
-    logger -t thinkpad-watchdog "Power state: AC Connected -> Maximum Performance Mode Synchronized (GNOME=performance, TuneD=throughput-performance, EPP=performance, DYTC=performance, GPU=1150MHz, APST=0, WiFi-PS=off)"
+    logger -t thinkpad-watchdog "Power state: AC Connected -> Maximum Performance Mode Synchronized (GNOME=performance, TuneD=throughput-performance, EPP=performance, DYTC=performance, DynamicBoost=1, GPU=1150MHz, APST=0, WiFi-PS=off)"
 else
     # --------------------------------------------------------------------------
-    # ON BATTERY: EXTREME BATTERY SAVER MODE (~8-10+ Hours Runtime)
+    # ON BATTERY: RESPONSIVE HIGH-EFFICIENCY MODE (~8-10+ Hours Runtime)
     # --------------------------------------------------------------------------
     # 1. Synchronize GNOME Quick Settings & TuneD via D-Bus net.hadess.PowerProfiles
     gdbus call --system --dest net.hadess.PowerProfiles --object-path /net/hadess/PowerProfiles \
-        --method org.freedesktop.DBus.Properties.Set "net.hadess.PowerProfiles" "ActiveProfile" '<"power-saver">' 2>/dev/null || true
+        --method org.freedesktop.DBus.Properties.Set "net.hadess.PowerProfiles" "ActiveProfile" '<"balanced">' 2>/dev/null || true
 
-    # 2. CPU: Intel SpeedShift EPP -> balance_power
+    # 2. CPU: Intel SpeedShift EPP -> balance_power (dynamic scaling 800MHz - 4.80GHz)
     for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
         [[ -f "$epp" ]] && echo balance_power > "$epp" 2>/dev/null || true
     done
 
-    # 3. ThinkPad EC DYTC Platform Profile -> low-power
+    # 3. ThinkPad EC DYTC Platform Profile -> balanced (PREVENTS 800MHz THROTTLE TRAP)
     if [[ -f /sys/firmware/acpi/platform_profile ]]; then
-        echo low-power > /sys/firmware/acpi/platform_profile 2>/dev/null || true
+        echo balanced > /sys/firmware/acpi/platform_profile 2>/dev/null || true
     fi
 
-    # 4. NVMe SSD: Standard APST power savings
+    # 4. Intel Dynamic Boost: Off on battery to conserve energy
+    if [[ -f /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost ]]; then
+        echo 0 > /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost 2>/dev/null || true
+    fi
+
+    # 5. NVMe SSD: Standard APST power savings
     if [[ -f /sys/module/nvme_core/parameters/default_ps_max_latency_us ]]; then
         echo 100000 > /sys/module/nvme_core/parameters/default_ps_max_latency_us 2>/dev/null || true
     fi
 
-    # 5. Intel UHD 620 iGPU: Conservative frequency
+    # 6. Intel UHD 620 iGPU: Fluid 1000MHz boost (prevents 60fps frame drops in Wayland)
     if [[ -f /sys/class/drm/card1/gt_boost_freq_mhz ]]; then
-        echo 800 > /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || true
+        echo 1000 > /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || true
     fi
 
-    # 6. USB Autosuspend: Enabled on Battery
+    # 7. USB Autosuspend: Enabled on Battery
     for dev in /sys/bus/usb/devices/*/power/control; do
         [[ -f "$dev" ]] && echo auto > "$dev" 2>/dev/null || true
     done
 
-    # 7. Intel AC 9560 Wi-Fi: Enable power-saving to maximize battery runtime
+    # 8. Intel AC 9560 Wi-Fi: Enable power-saving to maximize battery runtime
     if command -v iw >/dev/null 2>&1; then
         for iface in $(iw dev 2>/dev/null | awk '$1=="Interface"{print $2}'); do
             iw dev "$iface" set power_save on 2>/dev/null || true
         done
     fi
 
-    logger -t thinkpad-watchdog "Power state: Battery -> Extreme Battery Saver Active (GNOME=power-saver, TuneD=powersave, EPP=balance_power, DYTC=low-power, USB=auto, WiFi-PS=on)"
+    logger -t thinkpad-watchdog "Power state: Battery -> Responsive High-Efficiency Mode Synchronized (GNOME=balanced, TuneD=balanced, EPP=balance_power, DYTC=balanced, DynamicBoost=0, GPU=1000MHz, USB=auto, WiFi-PS=on)"
 fi

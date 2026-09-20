@@ -13,13 +13,17 @@
 
 | Component | Detected Hardware Specification | Linux Subsystem & Driver |
 |:---|:---|:---|
-| **System / Motherboard** | Lenovo ThinkPad T490s (`20NYS64T00`), BIOS `N2JETB0W (1.88)` | `thinkpad_acpi`, DYTC Thermal Management |
-| **CPU Architecture** | Intel Core i7-8665U (Whiskey Lake-U, 4C/8T, 1.90GHz - 4.80GHz) | `intel_pstate` (SpeedShift HWP active) |
-| **RAM Memory** | 32 GB LPDDR3/DDR4 Physical RAM | `zram0` Swap, `vm.swappiness = 10` |
-| **GPU / Graphics** | Intel UHD Graphics 620 (WhiskeyLake-U GT2 [8086:3ea0], rev 02) | `i915`, Wayland GNOME Shell |
-| **Storage / NVMe** | Intel SSD Pro 7600p NVMe (512GB) | `nvme_core` (Zero APST Sleep Latency), Btrfs Root |
-| **Network (Wi-Fi / LAN)** | Intel Cannon Point CNVi Wi-Fi + Intel I219-LM Gigabit Ethernet | `iwlwifi`, `e1000e`, TCP BBR + FQ |
+| **System / Motherboard** | Lenovo ThinkPad T490s (`20NYS64T00`), BIOS `N2JETB0W (1.88)` | `thinkpad_acpi`, `thinklmi` UEFI firmware driver |
+| **CPU Architecture** | Intel Core i7-8665U (Whiskey Lake-U, 4C/8T, 1.90GHz - 4.80GHz) | `intel_pstate` (SpeedShift HWP active + Dynamic Boost) |
+| **RAM Memory** | 32 GB LPDDR3/DDR4 Physical RAM | `zram0` Swap, `vm.swappiness = 10`, `vfs_cache_pressure = 50` |
+| **GPU / Graphics** | Intel UHD Graphics 620 (WhiskeyLake-U GT2 [8086:3ea0], rev 02) | `i915`, Wayland GNOME Shell, 512MB BIOS VRAM |
+| **Display Panel** | **LG Display LP140WFA-SPD4** (14.0", 1920x1080 FHD, IPS, 400 nits Low Power) | 100% sRGB / 72% NTSC non-touch; PrivacyGuard (`lcdshadow`) unsupported |
+| **Storage / NVMe** | Intel SSD Pro 7600p NVMe (512GB) | `nvme_core` (Zero APST Sleep Latency on AC), Btrfs Root |
+| **Audio Subsystem** | Realtek ALC257 + Intel Kabylake HDMI | PipeWire 48kHz / 512 quantum (Resample Quality 10), WebRTC AEC |
+| **Camera & Biometrics** | Bison SunplusIT 720p HD Webcam (`5986:2113`) | `uvcvideo` (Standard RGB webcam; NO IR camera; NO Fingerprint reader) |
+| **Network (Wi-Fi / LAN)** | Intel Cannon Point CNVi Wi-Fi + Intel I219-LM Gigabit Ethernet | `iwlwifi`, `e1000e`, TCP BBR + FQ (NO WWAN card installed) |
 | **Battery Subsystem** | SMP 57Wh Li-poly (`02DL014`), Cycle Count ~1079 | `/sys/class/power_supply/BAT0/charge_control_*` |
+| **Absent HW Disabled** | WWAN, Fingerprint, NFC, SmartCard, WoL, PXE, Switcheroo | Programmatically disabled in BIOS via ThinkLMI & masked in OS |
 
 ---
 
@@ -39,24 +43,24 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 
 | Sector | Target Subsystem | Technical Implementation & Hardware Action |
 |:---:|:---|:---|
-| **01** | **CPU Architecture & Scaling** | SpeedShift EPP set to `performance` on AC; unparked all 8 logical cores (`cpu0`–`cpu7`). |
+| **01** | **CPU Architecture & Scaling** | SpeedShift EPP set to `performance` on AC; dynamic Intel HWP boost enabled; unparked all 8 logical cores (`cpu0`–`cpu7`). |
 | **02** | **32GB RAM Architecture** | `vm.swappiness = 10` to eliminate zram swap churn; `vm.vfs_cache_pressure = 50`; zram upgraded to high-density `zstd` compression. |
 | **03** | **Storage & NVMe** | Intel NVMe APST sleep latency zeroed on AC (`default_ps_max_latency_us=0`); Btrfs mounted with `noatime,commit=60` for flash wear protection; periodic TRIM active via `fstrim.timer`. |
-| **04** | **GPU & UI Snappiness** | Intel GuC enabled (`i915.enable_guc=2`); Intel QuickSync VA-API hardware video decode active (`libva-intel-media-driver`); DPST disabled; Mesa cache capped at 4GB. |
+| **04** | **GPU & UI Snappiness** | Intel GuC enabled (`i915.enable_guc=2`); RPM Fusion free/nonfree repos configured; QuickSync VA-API hardware video decode active (`intel-media-driver` + `gstreamer1-vaapi` for H.264/HEVC 4K); DPST disabled; Mesa cache capped at 4GB. |
 | **05** | **Low-Latency Network & Wi-Fi** | Kernel module `tcp_bbr` loaded with Fair Queuing (`fq`); TCP Fast Open enabled; Intel AC 9560 Wi-Fi dynamic power-saving (`power_save off` on AC for zero ping jitter, `power_save on` on Battery). |
 | **06** | **OEM BIOS & Thermals** | ThinkPad ACPI DYTC platform profile locked to `performance` on AC for sustained 4.80GHz Turbo boost. |
 | **07** | **Kernel Scheduler** | `kernel.sched_autogroup_enabled = 1` for instantaneous foreground desktop responsiveness under background load. |
-| **08** | **Services & Debloat** | Non-essential services disabled (`abrt`, `ModemManager`, `thermald`); `NetworkManager-wait-online` disabled (-5.6s boot); journal logs capped to 100MB. |
+| **08** | **Services & Absent HW Debloat** | Non-existent hardware daemons masked (`fprintd`, `pcscd`, `switcheroo-control`, `ModemManager`); telemetry disabled (`abrt`, `thermald`); `NetworkManager-wait-online` disabled (-5.6s boot); journal logs capped to 100MB. |
 | **09** | **Battery Protection & Dual-Mode** | Dual-mode battery controller (`thinkpad-charge-mode [full|protect|status]`); persistent hardware thresholds locked via dynamic udev (supporting both AC and USB-C PD); GNOME top-bar battery percentage enabled. |
 | **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS-over-TLS (`DNSOverTLS=yes`) in `systemd-resolved`; `firewalld` active. |
-| **11** | **Display & Screen Backlight** | Intel DPST adaptive dimming disabled; subpixel RGB font antialiasing (`rgba`) locked; native screen backlight hotkeys bound via `acpi_backlight=native` and `brightnessctl`. |
-| **12** | **High-Fidelity Audio & Studio Mic** | WirePlumber stream ducking eliminated; Studio WebRTC acoustic echo cancellation, high-pass rumble filter, and voice AGC active; ALSA analog mic boost calibrated; volume amplified to 130%. |
-| **13** | **Bus & Peripheral Latency** | USB autosuspend disabled on AC; Intel UHD 620 iGPU clock unlocked to 1.15GHz (`gt_boost_freq_mhz`). |
+| **11** | **Display Quality & Font Antialiasing** | Intel DPST adaptive dimming disabled; subpixel RGB font antialiasing (`rgba`) locked with slight hinting; native screen backlight hotkeys bound via `acpi_backlight=native` and `brightnessctl`. |
+| **12** | **High-Fidelity Audio & Studio Mic** | WirePlumber stream ducking eliminated; audiophile PipeWire resampler (`resample.quality = 10`); Studio WebRTC acoustic echo cancellation, high-pass rumble filter, and voice AGC active; ALSA analog mic boost calibrated; distortion-free baseline volume (100%) with 130% boost headroom. |
+| **13** | **Bus & Peripheral Latency** | USB autosuspend disabled on AC; Intel UHD 620 iGPU clock unlocked to 1.15GHz on AC (`gt_boost_freq_mhz`) and 1.00GHz on battery for 60fps fluidity. |
 | **14** | **Input Precision & TrackPoint** | Precision Touchpad calibrated; TrackPoint enabled via `psmouse.elantech_smbus=0` with middle-button scrolling and adaptive curves; keyboard repeat delay minimized (250ms). |
 | **15** | **Privacy Hardening** | Diagnostic problem reporting and software usage telemetry disabled in GNOME desktop. |
 | **16** | **Desktop Snappiness** | GNOME overview search restricted to local documents (external web search queries suppressed). |
 | **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; DNF 10x parallel downloads enabled; GameMode compatibility active. |
-| **18** | **OEM Driver Shield & BIOS VRAM** | Embedded kernel parameters (`split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0`); ThinkPad BIOS VRAM pre-allocation upgraded to 512MB via thinklmi; uninstalled WWAN slot disabled to eliminate ACPI table collisions. |
+| **18** | **OEM Driver Shield & ThinkLMI BIOS** | Embedded kernel parameters (`split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0`); ThinkPad BIOS tuned via ThinkLMI: 512MB VRAM, Quick Boot, absent hardware disabled (WWAN, Fingerprint, NFC, SmartCard, WakeOnLAN, PXE stacks, AMT), MaximizePerformance on AC. |
 
 ---
 
@@ -75,10 +79,10 @@ stateDiagram-v2
         Probe_AC --> AC_Connected: AC Plugged In
         Probe_AC --> Battery_Powered: On Battery
     }
-    AC_Connected --> Maximum_Performance: GNOME=performance, TuneD=throughput-perf, EPP=perf, DYTC=perf, GPU=1.15GHz, APST=0
-    Battery_Powered --> Extreme_Battery_Saver: GNOME=power-saver, TuneD=powersave, EPP=balance_power, DYTC=low-power (~8-10h Life)
+    AC_Connected --> Maximum_Performance: GNOME=performance, TuneD=throughput-perf, EPP=perf, DYTC=perf, DynamicBoost=1, GPU=1.15GHz, APST=0
+    Battery_Powered --> Responsive_Battery_Mode: GNOME=balanced, TuneD=balanced, EPP=balance_power, DYTC=balanced, GPU=1.0GHz (800MHz-4.8GHz Dynamic, No Stutter)
     Maximum_Performance --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
-    Extreme_Battery_Saver --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
+    Responsive_Battery_Mode --> Guard_Battery: Re-assert Configured Threshold (Full vs Protect)
     Guard_Battery --> [*]: Idle (Timer / udev)
 ```
 
@@ -154,4 +158,11 @@ systemctl is-active thinkpad-watchdog.service thinkpad-watchdog.timer
 
 # 5. Verify DNS-over-TLS Resolution
 resolvectl query cloudflare.com
+
+# 6. Verify Absent Hardware Masking
+systemctl is-active fprintd pcscd switcheroo-control ModemManager
+
+# 7. Verify ThinkLMI BIOS VRAM & Disabled Hardware
+cat /sys/class/firmware-attributes/thinklmi/attributes/TotalGraphicsMemory/current_value
+cat /sys/class/firmware-attributes/thinklmi/attributes/WirelessWANAccess/current_value
 ```

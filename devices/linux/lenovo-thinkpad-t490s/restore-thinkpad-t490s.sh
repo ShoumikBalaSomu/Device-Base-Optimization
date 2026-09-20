@@ -34,6 +34,7 @@ rm -f /etc/udev/rules.d/99-thinkpad-battery-thresholds.rules
 rm -f /etc/thinkpad-charge-mode.conf
 
 # 3. Reload services & sysctl
+systemctl unmask fprintd.service pcscd.service pcscd.socket switcheroo-control.service ModemManager.service 2>/dev/null || true
 sysctl --system >/dev/null 2>&1 || true
 systemctl restart systemd-resolved 2>/dev/null || true
 udevadm control --reload-rules 2>/dev/null || true

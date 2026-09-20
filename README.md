@@ -38,9 +38,18 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 
 ## 🧭 Supported Devices & Operating Systems Matrix
 
+<<<<<<< HEAD
 | Platform / OS | Manufacturer | Device Model | Status / Depth | Profile & Documentation |
 |:---|:---|:---|:---|:---|
 | **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View ThinkPad T490s Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+=======
+| Operating System | Manufacturer | Device Model & CPU | Optimization Depth | Guide & Scripts |
+|:---:|:---:|:---:|:---:|:---:|
+| **Linux (Fedora 44)** | **Daffodil** | **DC253D (Intel Core i3-1315U 6C/8T)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View Daffodil DC253D Linux Guide**](devices/linux/daffodil-dc253d/README.md) |
+| **Windows 11 / 10** | **Daffodil** | **DC253D (Intel Core i3-1315U 6C/8T)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View Daffodil DC253D Windows Guide**](devices/windows/daffodil-dc253d/README.md) |
+| **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors)** | [**📖 View ThinkPad T490s Windows Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
+| **Linux (Fedora 44 / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors + ThinkLMI BIOS)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
+>>>>>>> a698247 (feat(thinkpad): deep hardware audit, 800MHz battery throttle fix, ThinkLMI BIOS tuning, and absent HW debloat)
 | **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**📖 View Universal Windows Guide**](devices/windows/universal/README.md) |
 | **Linux** | Any OEM | Ubuntu / Debian / Fedora / Arch | 🟡 *In Roadmap (Sysctl / TLP)* | [**📖 View Linux Roadmap**](devices/linux/README.md) |
 | **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap (pmset / defaults)* | [**📖 View macOS Roadmap**](devices/macos/README.md) |
@@ -107,15 +116,26 @@ irm https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/m
 ### 📦 Alternative Launch Methods (ThinkPad T490s)
 
 #### Method B: Double-Click Launcher (Zero CLI)
-1. Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip).
-2. Extract the archive.
-3. Double-click **`Run-Once.cmd`** and click **Yes** on the UAC prompt.
+* **ThinkPad T490s Linux**: Download [**`ThinkPad-T490s-Linux-Autonomous-v1.4.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.4.0/ThinkPad-T490s-Linux-Autonomous-v1.4.0.zip) and run `run-once.sh`.
+* **ThinkPad T490s Windows**: Download [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) and double-click `Run-Once.cmd`.
+* **Daffodil DC253D Linux**: Download [**`Daffodil-DC253D-Linux-v1.3.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.0/Daffodil-DC253D-Linux-v1.3.0.zip) and run `run-once.sh`.
+* **Daffodil DC253D Windows**: Download [**`Daffodil-DC253D-Windows-v1.3.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.0/Daffodil-DC253D-Windows-v1.3.0.zip) and double-click `Run-Once.cmd`.
 
 #### Method C: Via Git Repository
+
+**Windows (PowerShell as Admin):**
 ```powershell
 git clone https://github.com/ShoumikBalaSomu/Device-Base-Optimization.git
 cd Device-Base-Optimization\devices\windows\lenovo-thinkpad-t490s
 powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1
+```
+
+**Linux (Terminal):**
+```bash
+git clone https://github.com/ShoumikBalaSomu/Device-Base-Optimization.git
+cd Device-Base-Optimization/devices/linux/lenovo-thinkpad-t490s
+chmod +x run-once.sh optimize-thinkpad-t490s.sh
+sudo ./run-once.sh
 ```
 
 ---
@@ -124,32 +144,32 @@ powershell -ExecutionPolicy Bypass -File .\Optimize-ThinkPad-T490s.ps1
 
 | Sector | Target Area | Technical Implementation & Hardware Impact |
 |:---:|:---|:---|
-| **01** | **CPU SpeedShift EPP** | SpeedShift EPP set to `0` on AC; all 8 logical cores unparked. |
-| **02** | **32GB RAM Architecture** | Memory Compression disabled (`Disable-MMAgent`); Kernel locked in RAM (`DisablePagingExecutive = 1`). |
-| **03** | **NVMe SSD Storage** | Intel NVMe APST sleep latency zeroed on AC; NTFS wear writes and tunneling cache disabled. |
-| **04** | **GPU Scheduling & DWM** | Hardware-Accelerated GPU Scheduling (HAGS Mode 2); `MenuShowDelay = 0` for instant UI popups. |
-| **05** | **Low-Latency Network** | Nagle's algorithm disabled (`TCPNoDelay = 1`); delayed ACKs eliminated (`TcpAckFrequency = 1`). |
-| **06** | **ThinkPad BIOS Maxima** | WMI NVRAM thermal limits set to `MaximizePerformance`; Thunderbolt DMA aligned (`UserAuthorization`); pre-boot boot timeouts eliminated. |
-| **07** | **Kernel Scheduler** | `Win32PrioritySeparation = 38 (0x26)`: Short variable quanta with 3:1 foreground boost. |
-| **08** | **Services & Debloat** | Non-essential services set to Manual; telemetry scheduled tasks purged. |
-| **09** | **Battery Preservation** | Permanent 75% start / 80% stop threshold locked in Lenovo Power Manager (`PWRMGRV`). |
-| **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS (blocks malware & adult content); Defender RTP active. |
-| **11** | **Display Quality** | Intel DPST adaptive contrast dimming disabled (`FeatureTestControl = 0x8210`); ClearType 2.0 RGB subpixel rendering. |
-| **12** | **High-Fidelity Audio & Mic** | Mic array volume calibrated to 95% (+20dB gain) with dual-array beamforming; Dolby DAX `LidClose: 0` bug fixed (open-lid acoustic profile); communication ducking disabled; MMCSS Priority 6 real-time scheduling. |
-| **13** | **Bus & Peripherals** | PCIe ASPM set to Off on AC (zero NVMe/Wi-Fi wake delay); USB Selective Suspend disabled on AC; Intel UHD 620 iGPU Maximum Performance (1.15GHz). |
-| **14** | **Input Precision** | 1:1 linear pointer tracking (`MouseSpeed = 0`, no acceleration); fast keyboard repeat (250ms); Precision Touchpad zero tap latency. |
-| **15** | **Privacy Hardening** | Diagnostic telemetry reduced to Basic (Level 1); Advertising ID and Activity History purged; Windows Error Reporting UI freezes eliminated. |
-| **16** | **Desktop Snappiness** | Window minimize/maximize animation delay disabled (`MinAnimate = 0`); Start Menu Bing search removed for instant local-only search. |
-| **17** | **Gaming & Bandwidth** | Background GameDVR video recording disabled; Windows Game Mode active; 20% QoS reserved bandwidth unlocked (`NonBestEffortLimit = 0`); BBR2/Cubic TCP. |
-| **18** | **Driver Shield & Crash** | ThinkPad OEM drivers protected against generic Windows Update downgrades; MiniDump crash safety enforced. |
+| **01** | **CPU SpeedShift EPP** | SpeedShift EPP set to `0` / `performance` on AC; dynamic Intel HWP boost enabled; all 8 logical cores unparked. |
+| **02** | **32GB RAM Architecture** | Memory Compression disabled (`Disable-MMAgent`); Kernel locked in RAM (`DisablePagingExecutive = 1`); Linux swappiness 10 + vfs cache pressure 50; zram zstd. |
+| **03** | **NVMe SSD Storage** | Intel NVMe APST sleep latency zeroed on AC; NTFS wear writes suppressed; Btrfs mounted with `noatime,commit=60`. |
+| **04** | **GPU Scheduling & VA-API** | Hardware-Accelerated GPU Scheduling (HAGS Mode 2); QuickSync VA-API hardware video decode active (RPM Fusion H.264/HEVC 4K); DPST disabled. |
+| **05** | **Low-Latency Network** | Nagle's algorithm disabled (`TCPNoDelay = 1`); delayed ACKs eliminated (`TcpAckFrequency = 1`); Linux BBR + FQ congestion provider. |
+| **06** | **ThinkPad BIOS Maxima** | WMI NVRAM & DYTC thermal limits set to `MaximizePerformance` on AC for sustained 4.80GHz Turbo boost. |
+| **07** | **Kernel Scheduler** | `Win32PrioritySeparation = 38 (0x26)` / Linux `sched_autogroup_enabled = 1`: Foreground responsiveness guaranteed. |
+| **08** | **Services & Absent HW Debloat** | Non-existent hardware daemons masked (`fprintd`, `pcscd`, `switcheroo-control`, `ModemManager`, `WbioSrvc`, `SCardSvr`); telemetry services purged. |
+| **09** | **Battery Preservation** | Permanent 75% start / 80% stop threshold locked in Lenovo Power Manager (`PWRMGRV` / sysfs EC). |
+| **10** | **Security & DNS** | Cloudflare Family 1.1.1.3 DNS (blocks malware & adult content); Defender / Firewalld active. |
+| **11** | **Display Quality** | Intel DPST adaptive contrast dimming disabled; ClearType / RGB subpixel antialiasing (`rgba`) locked for LP140WFA-SPD4 panel. |
+| **12** | **High-Fidelity Audio & Mic** | Mic array calibrated (+20dB gain/ALSA boost 1) with dual-array beamforming & Studio WebRTC AEC; communication ducking disabled; MMCSS Priority 6 / PipeWire resample quality 10; distortion-free baseline volume. |
+| **13** | **Bus & Peripherals** | PCIe ASPM set to Off on AC (zero NVMe/Wi-Fi wake delay); USB Selective Suspend disabled on AC; Intel UHD 620 iGPU 1.15GHz boost. |
+| **14** | **Input Precision** | 1:1 linear pointer tracking (`MouseSpeed = 0`); TrackPoint native PS/2 companion pass-through (`psmouse.elantech_smbus=0`); fast keyboard repeat (250ms). |
+| **15** | **Privacy Hardening** | Diagnostic telemetry reduced to Basic (Level 1); Advertising ID and Activity History purged; error reporting UI freezes eliminated. |
+| **16** | **Desktop Snappiness** | Window minimize/maximize animation delay disabled (`MinAnimate = 0`); Start Menu external web searches removed for instant local search. |
+| **17** | **Gaming & Bandwidth** | Background GameDVR video recording disabled; Windows Game Mode active; 20% QoS reserved bandwidth unlocked; BBR2/Cubic TCP. |
+| **18** | **ThinkLMI BIOS & Driver Shield** | ThinkPad OEM drivers protected against generic Windows Update downgrades; ThinkLMI BIOS tuned: 512MB VRAM, Quick Boot, absent hardware disabled (WWAN, FP, NFC, SmartCard, WoL, PXE, AMT). |
 | **19** | **Webcam Stream Fidelity** | Locks camera power line anti-flicker frequency to 50 Hz matching regional AC electricity; activates Media Foundation GPU Hardware MFT acceleration; tunes low-light exposure. |
-| **20** | **OS Integrity & Audio Bus** | Verifies Windows DISM component store health; purges stalled MSI installer transaction locks; zeroes Intel SST power-gating idle latency to prevent stream start pops. |
+| **20** | **OS Integrity & Audio Bus** | Verifies DISM / Btrfs component health; zeroes Intel SST power-gating idle latency to prevent stream start pops. |
 
 ---
 
 ## 🤖 Autonomous Background Watchdog
 
-The background watchdog task (`ThinkPad-Autonomous-Optimization`) is registered in Windows Task Scheduler and executes silently:
+The background watchdog task executes silently in the background:
 
 ```mermaid
 stateDiagram-v2
@@ -159,10 +179,10 @@ stateDiagram-v2
         CheckStatus --> Is_AC: Plugged In
         CheckStatus --> Is_DC: On Battery
     }
-    Is_AC --> Maximum_Performance: EPP=0, ASPM=Off, USB=Active, GPU=Max Boost
-    Is_DC --> Extreme_Battery: 1.9GHz Cap, ASPM=Max Savings, USB=Sleep, GPU=Saver (~10h Life)
+    Is_AC --> Maximum_Performance: EPP=0/perf, DYTC=perf, DynamicBoost=1, ASPM=Off, USB=Active, GPU=1.15GHz
+    Is_DC --> Responsive_Battery: EPP=60/balance_power, DYTC=balanced, DynamicBoost=0, GPU=1.0GHz (~8-10h Life, No 800MHz Stutter)
     Maximum_Performance --> Battery_Guard: Check 75%-80% Threshold
-    Extreme_Battery --> Battery_Guard: Check 75%-80% Threshold
+    Responsive_Battery --> Battery_Guard: Check 75%-80% Threshold
     Battery_Guard --> Maintenance: Run Weekly TRIM & Temp Purge
 ```
 

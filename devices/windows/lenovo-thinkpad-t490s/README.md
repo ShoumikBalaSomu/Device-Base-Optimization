@@ -40,7 +40,7 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
    - Even if Windows Update, Lenovo Vantage, or a driver reset wipes your settings, the watchdog immediately re-enforces the threshold to protect your SMP 57Wh battery cells.
 2. **Dynamic Power State Auto-Switching**:
    - **Plugged into AC Charger**: Automatically enables **Maximum Performance**, sets Intel SpeedShift EPP to `0`, unparks all 8 cores, and maximizes boost clocks.
-   - **Unplugged (On Battery)**: Automatically enables **Extreme Battery Saver** by capping the CPU clock to its cool 1.9GHz base clock, eliminating 25W Turbo spikes and doubling battery life to **8–10+ hours**.
+   - **Unplugged (On Battery)**: Automatically sets Intel SpeedShift EPP to `60` with dynamic boost scaling, ensuring fluid 60fps responsiveness during active multitasking without 800MHz/1.9GHz lockup, while sipping minimal milliwatts at idle for **8–10+ hours** runtime.
 3. **Silent Weekly Maintenance**:
    - Periodically triggers volume ReTrim on the Intel NVMe SSD.
    - Purges temp caches silently in the background every 7 days.
@@ -54,6 +54,7 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 | **Chassis / Model** | Lenovo ThinkPad T490s (Machine Type: `20NYS64T00`) | `(Get-CimInstance Win32_ComputerSystem).Model` |
 | **Processor** | Intel(R) Core(TM) i7-8665U @ 1.90GHz (4C/8T, Whiskey Lake-U) | Intel SpeedShift (HWP) + WMI BIOS |
 | **Graphics** | Intel(R) UHD Graphics 620 (QuickSync Hardware Decoder) | DirectX 12, WDDM 3.1, HAGS Mode 2 |
+| **Display Panel** | **LG Display LP140WFA-SPD4** (14.0" FHD IPS 400-nit Low Power) | 100% sRGB non-touch; DPST disabled |
 | **System Memory** | 32 GB DDR4 High-Capacity RAM | Zero-compression kernel memory engine |
 | **Primary Storage** | INTEL SSDPEKKF512G8L 512GB PCIe NVMe SSD | PCIe 3.0 x4, APST latency zeroing on AC |
 | **Secondary Storage** | Realtek PCIe Card Reader (32 GB SD slot) | SCSI block bus |
@@ -74,8 +75,8 @@ Once executed, the script registers a silent, 0%-overhead Windows Scheduled Task
 5. **Low-Latency Network Stack**: Nagle's algorithm disabled (`TCPNoDelay = 1`); delayed ACKs disabled (`TcpAckFrequency = 1`) to eliminate 200ms packet buffering delay; BBR/Cubic TCP congestion provider.
 6. **ThinkPad WMI BIOS Thermal & Thunderbolt Maxima**: EC configured for `AdaptiveThermalManagementAC,MaximizePerformance`, `ThunderboltSecurityLevel,UserAuthorization` (aligning with Windows 11 Kernel DMA Protection), and `PreBootForThunderboltDevice,Disable` (eliminating Event 9006 boot timeouts) committed directly to ThinkPad NVRAM.
 7. **Kernel Scheduler Quantum**: `Win32PrioritySeparation = 38` (Hex `0x26`: short variable quanta with 3:1 foreground boost) for esports-grade input responsiveness.
-8. **Services Demand-Start & Telemetry Debloat**: Non-essential services (`MapsBroker`, `WerSvc`, `RetailDemo`, `DiagTrack`) converted to Manual (Demand-Start) to guarantee 0% idle CPU waste.
-9. **Continuous Battery Preservation & Extreme Battery Mode**: Permanent 75%-80% threshold enforcement + automatic 1.9GHz clock capping on battery.
+8. **Services Demand-Start & Absent HW Debloat**: Non-essential and absent hardware services (`WbioSrvc`, `SCardSvr`, `MapsBroker`, `WerSvc`, `RetailDemo`, `DiagTrack`) converted to Manual (Demand-Start) to guarantee 0% idle CPU waste.
+9. **Continuous Battery Preservation & High-Efficiency Mode**: Permanent 75%-80% threshold enforcement + dynamic EPP 60 energy-efficient battery scaling.
 10. **Security & DNS Hardening**: Defender RTP, Firewall active on all profiles, and Cloudflare 1.1.1.3 Family DNS with automated backup.
 11. **Display Quality & Visual Clarity Engine**: Disables Intel DPST (Display Power Saving Technology / Adaptive Contrast Dimming via `FeatureTestControl = 0x8210`) to eliminate washed-out dark scenes and sudden stepping; activates ClearType 2.0 RGB subpixel rendering (`Gamma 1400`) for pinpoint font sharpness.
 12. **High-Fidelity Audio, Microphone Calibration & Dolby Engine**: Calibrates Microphone Array volume to 95% (+20dB gain) with dual-array beamforming and acoustic echo cancellation; fixes the stuck `LidClose: 0` Dolby DAX registry bug restoring full open-lid acoustic bandwidth; disables communication ducking (`UserDuckingPreference = 3`); elevates MMCSS Audio Task priority (`Priority 6, High Scheduling, SFIO High, Latency Sensitive`).

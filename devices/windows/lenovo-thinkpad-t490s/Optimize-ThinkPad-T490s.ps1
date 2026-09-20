@@ -393,7 +393,7 @@ function Invoke-Sector7_KernelScheduler {
 # -------------------------------------------------------------------------
 function Invoke-Sector8_ServicesAndDebloat {
     Write-Log "Sector 8: Background Services Demand-Start Optimization & Telemetry Purge" "STEP"
-    $demandServices = @("MapsBroker", "WerSvc", "RetailDemo", "XblAuthManager", "XblGameSave", "XboxNetApiSvc", "DiagTrack", "dmwappushservice")
+    $demandServices = @("MapsBroker", "WerSvc", "RetailDemo", "XblAuthManager", "XblGameSave", "XboxNetApiSvc", "DiagTrack", "dmwappushservice", "WbioSrvc", "SCardSvr")
     foreach ($svc in $demandServices) {
         try {
             Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
@@ -923,19 +923,19 @@ if ($isAC) {
     powercfg /setactive SCHEME_CURRENT
     Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] AC Detected: Maximum Performance active (EPP 0, PCIe ASPM Off, USB Active, GPU Max)." -ErrorAction SilentlyContinue
 } else {
-    # On Battery: Extreme Battery Saver
-    # - SpeedShift EPP = 60
-    # - Cap CPU at 1.9GHz base clock (zero 25W turbo spikes, ~8-10h runtime)
+    # On Battery: Responsive High-Efficiency Mode (~8-10h runtime)
+    # - SpeedShift EPP = 60 (Dynamic energy-efficient scaling)
+    # - Dynamic CPU Boost enabled (allows bursting to 4.8GHz on load, idling at 800MHz)
     # - PCIe ASPM = 2 (Maximum Power Savings)
     # - USB Selective Suspend = 1 (Enabled)
-    # - Intel UHD 620 iGPU = 0 (Maximum Battery Life)
+    # - Intel UHD 620 iGPU = 0 (Balanced Battery Life)
     powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 60
-    powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 99
+    powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
     powercfg /setdcvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 2
     powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
     powercfg /setdcvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 0
     powercfg /setactive SCHEME_CURRENT
-    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Battery Detected: Extreme Battery Saver active (1.9GHz cap, PCIe ASPM Max, USB Sleep, GPU Saver)." -ErrorAction SilentlyContinue
+    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Battery Detected: Responsive High-Efficiency active (EPP 60, Dynamic Boost, PCIe ASPM Max, USB Sleep, GPU Saver)." -ErrorAction SilentlyContinue
 }
 
 # 3. Audio & Dolby Acoustic Quality Enforcement

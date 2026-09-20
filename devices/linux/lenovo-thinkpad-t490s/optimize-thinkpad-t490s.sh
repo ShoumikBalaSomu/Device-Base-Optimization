@@ -63,11 +63,15 @@ echo -e "\n${BOLD}[Sector 01/18] CPU SpeedShift EPP & Core Unparking...${NC}"
 for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
     [[ -f "$epp" ]] && echo performance > "$epp" 2>/dev/null || true
 done
+# Enable Intel SpeedShift dynamic boost for instant clock ramp during interactive tasks
+if [[ -f /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost ]]; then
+    echo 1 > /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost 2>/dev/null || true
+fi
 # Ensure all 8 logical cores are unparked
 for cpu in /sys/devices/system/cpu/cpu[1-7]/online; do
     [[ -f "$cpu" ]] && echo 1 > "$cpu" 2>/dev/null || true
 done
-echo -e "  ${GREEN}✓ All 8 logical cores online; SpeedShift EPP set to 'performance'.${NC}"
+echo -e "  ${GREEN}✓ All 8 logical cores online; SpeedShift EPP set to 'performance'; Dynamic Boost active.${NC}"
 
 # ==============================================================================
 # SECTOR 02: 32GB RAM ARCHITECTURE & VM SYSCTL
@@ -147,11 +151,15 @@ cat << 'EOF' > /etc/environment.d/10-mesa-shader.conf
 MESA_SHADER_CACHE_MAX_SIZE=4G
 MESA_VK_ENABLE_SUBGROUP_EXTENSIONS=1
 EOF
-# Ensure Intel QuickSync VA-API drivers are present
-if ! rpm -q libva-intel-media-driver libva-utils >/dev/null 2>&1; then
-    dnf install -y libva-intel-media-driver libva-utils >/dev/null 2>&1 || true
+# Ensure RPM Fusion repositories and full VA-API hardware video decode (H.264/HEVC) packages are installed
+if ! rpm -q rpmfusion-free-release >/dev/null 2>&1; then
+    dnf install -y "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" >/dev/null 2>&1 || true
 fi
-echo -e "  ${GREEN}✓ Intel i915 locked (DPST disabled, GuC enabled); QuickSync VA-API active; Mesa cache configured.${NC}"
+if ! rpm -q rpmfusion-nonfree-release >/dev/null 2>&1; then
+    dnf install -y "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" >/dev/null 2>&1 || true
+fi
+dnf install -y libva-intel-media-driver libva-utils intel-media-driver gstreamer1-plugins-ugly-free gstreamer1-vaapi >/dev/null 2>&1 || true
+echo -e "  ${GREEN}✓ Intel i915 locked (DPST disabled, GuC enabled); QuickSync VA-API & RPM Fusion codecs active; Mesa cache configured.${NC}"
 
 # ==============================================================================
 # SECTOR 05: LOW-LATENCY NETWORK STACK & BBR
@@ -186,8 +194,9 @@ echo -e "  ${GREEN}✓ Sched autogrouping enabled (foreground responsiveness gua
 # ==============================================================================
 # SECTOR 08: SERVICES & DEBLOAT
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 08/18] Background Telemetry & Service Debloat...${NC}"
-systemctl disable --now abrt-journal-core abrt-oops abrt-xorg abrt-ccpp ModemManager.service thermald.service 2>/dev/null || true
+# Disable and mask services for hardware features this laptop physically cannot deliver
+systemctl mask --now fprintd.service pcscd.service pcscd.socket switcheroo-control.service ModemManager.service 2>/dev/null || true
+systemctl disable --now abrtd.service abrt-journal-core abrt-oops abrt-xorg abrt-ccpp thermald.service 2>/dev/null || true
 systemctl disable NetworkManager-wait-online.service 2>/dev/null || true
 mkdir -p /etc/systemd/coredump.conf.d /etc/systemd/journald.conf.d
 cat << 'EOF' > /etc/systemd/coredump.conf.d/10-limit.conf
@@ -201,7 +210,7 @@ SystemMaxUse=100M
 RuntimeMaxUse=50M
 EOF
 systemctl restart systemd-journald 2>/dev/null || true
-echo -e "  ${GREEN}✓ Redundant services stopped; NetworkManager-wait-online disabled (-5.6s boot); logs capped to 100MB.${NC}"
+echo -e "  ${GREEN}✓ Absent hardware services masked (fprintd, pcscd, switcheroo, modem); telemetry stopped; logs capped to 100MB.${NC}"
 
 # ==============================================================================
 # SECTOR 09: BATTERY CHARGING ENGINE & DUAL-MODE CONTROLLER
@@ -289,6 +298,7 @@ context.properties = {
     default.clock.quantum       = 512
     default.clock.min-quantum   = 256
     default.clock.max-quantum   = 1024
+    resample.quality            = 10
 }
 EOF
 cat << 'EOF' > /etc/wireplumber/wireplumber.conf.d/99-disable-ducking.conf
@@ -335,10 +345,10 @@ command -v alsactl >/dev/null 2>&1 && alsactl store 2>/dev/null || true
 
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.sound allow-volume-above-100-percent true 2>/dev/null || true
-    sudo -u "$REAL_USER" wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.30 2>/dev/null || true
+    sudo -u "$REAL_USER" wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.00 2>/dev/null || true
     sudo -u "$REAL_USER" systemctl --user restart pipewire wireplumber 2>/dev/null || true
 fi
-echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active; Studio WebRTC noise suppression & AEC active; Mic calibrated; Audio amplified to 130%.${NC}"
+echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active (resample quality 10); Studio WebRTC noise suppression & AEC active; Mic calibrated; Audio baseline calibrated to 100% with boost headroom.${NC}"
 
 # ==============================================================================
 # SECTOR 13: BUS & PERIPHERAL LATENCY
@@ -424,17 +434,39 @@ dracut --regenerate-all --force >/dev/null 2>&1 || true
 # ThinkPad BIOS firmware tuning via thinklmi
 THINKLMI_ATTRS="/sys/class/firmware-attributes/thinklmi/attributes"
 if [[ -d "$THINKLMI_ATTRS" ]]; then
-    # Double pre-allocated iGPU VRAM from 256MB to 512MB for 4K video decoding & Wayland fluidity
-    if [[ -f "${THINKLMI_ATTRS}/TotalGraphicsMemory/current_value" ]]; then
-        echo "512MB" > "${THINKLMI_ATTRS}/TotalGraphicsMemory/current_value" 2>/dev/null || true
-    fi
-    # Disable uninstalled WWAN slot to eliminate ACPI AE_ALREADY_EXISTS DSDT errors
-    if [[ -f "${THINKLMI_ATTRS}/WirelessWANAccess/current_value" ]]; then
-        echo "Disable" > "${THINKLMI_ATTRS}/WirelessWANAccess/current_value" 2>/dev/null || true
-    fi
+    echo -e "  🔧 Applying ThinkPad UEFI BIOS hardware optimizations via thinklmi..."
+
+    # 1. Double pre-allocated iGPU VRAM from 256MB to 512MB for 4K video decoding & Wayland fluidity
+    [[ -f "${THINKLMI_ATTRS}/TotalGraphicsMemory/current_value" ]] && echo "512MB" > "${THINKLMI_ATTRS}/TotalGraphicsMemory/current_value" 2>/dev/null || true
+
+    # 2. Disable absent hardware subsystems to eliminate firmware polling & ACPI DSDT conflicts
+    for attr in WirelessWANAccess \
+                FingerprintReaderAccess FingerprintPasswordAuthentication FingerprintPredesktopAuthentication \
+                NfcAccess SmartCardSlotAccess AMTControl; do
+        if [[ -f "${THINKLMI_ATTRS}/${attr}/current_value" ]]; then
+            echo "Disable" > "${THINKLMI_ATTRS}/${attr}/current_value" 2>/dev/null || true
+        fi
+    done
+
+    # 3. Disable Wake-On-LAN & Preboot Network ROMs to shave ~3s off UEFI POST and eliminate sleep battery drain
+    for attr in WakeOnLAN WakeOnLANDock EthernetLANOptionROM IPv4NetworkStack IPv6NetworkStack WiFiNetworkBoot \
+                PreBootForThunderboltDevice WakeByThunderbolt; do
+        if [[ -f "${THINKLMI_ATTRS}/${attr}/current_value" ]]; then
+            echo "Disable" > "${THINKLMI_ATTRS}/${attr}/current_value" 2>/dev/null || true
+        fi
+    done
+
+    # 4. Optimize Boot, Audio Beep & Thermal Policies
+    [[ -f "${THINKLMI_ATTRS}/BootMode/current_value" ]] && echo "Quick" > "${THINKLMI_ATTRS}/BootMode/current_value" 2>/dev/null || true
+    [[ -f "${THINKLMI_ATTRS}/BootTimeExtension/current_value" ]] && echo "Disable" > "${THINKLMI_ATTRS}/BootTimeExtension/current_value" 2>/dev/null || true
+    [[ -f "${THINKLMI_ATTRS}/KeyboardBeep/current_value" ]] && echo "Disable" > "${THINKLMI_ATTRS}/KeyboardBeep/current_value" 2>/dev/null || true
+    [[ -f "${THINKLMI_ATTRS}/PasswordBeep/current_value" ]] && echo "Disable" > "${THINKLMI_ATTRS}/PasswordBeep/current_value" 2>/dev/null || true
+    [[ -f "${THINKLMI_ATTRS}/AdaptiveThermalManagementAC/current_value" ]] && echo "MaximizePerformance" > "${THINKLMI_ATTRS}/AdaptiveThermalManagementAC/current_value" 2>/dev/null || true
+    [[ -f "${THINKLMI_ATTRS}/AdaptiveThermalManagementBattery/current_value" ]] && echo "Balanced" > "${THINKLMI_ATTRS}/AdaptiveThermalManagementBattery/current_value" 2>/dev/null || true
+    [[ -f "${THINKLMI_ATTRS}/ThunderboltBIOSAssistMode/current_value" ]] && echo "Disable" > "${THINKLMI_ATTRS}/ThunderboltBIOSAssistMode/current_value" 2>/dev/null || true
 fi
 
-echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings, backlight, TrackPoint & BIOS VRAM permanently optimized.${NC}"
+echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings, backlight, TrackPoint & ThinkLMI BIOS permanently optimized.${NC}"
 
 # ==============================================================================
 # PHASE 4: INSTALL AUTONOMOUS BACKGROUND WATCHDOG
