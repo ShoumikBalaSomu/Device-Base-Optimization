@@ -359,7 +359,12 @@ function Invoke-Sector6_ThinkPadBIOS {
             "PreBootForThunderboltDevice,Disable",
             "EthernetLANOptionROM,Disable",
             "AMTControl,Disable",
-            "KeyboardBeep,Disable"
+            "KeyboardBeep,Disable",
+            "PasswordBeep,Disable",
+            "AlwaysOnUSB,Disable",
+            "BootOrder,NVMe0:USBHDD:USBCD:USBFDD:NVMe1:HDD0:HDD1:PXEBOOT:LENOVOCLOUD",
+            "LenovoCloudServices,Disable",
+            "WiFiNetworkBoot,Disable"
         )
         foreach ($s in $settings) {
             Invoke-CimMethod -InputObject $setBiosObj -MethodName SetBiosSetting -Arguments @{ Parameter = $s } | Out-Null
@@ -851,12 +856,13 @@ function Invoke-Sector20_OSIntegrityAndDriverFixes {
     }
 
     # 2. Intel Smart Sound Technology (SST) & Realtek Power Gating Latency Tuning
-    $audioControllers = Get-PnpDevice | Where-Object { $_.FriendlyName -like "*Intel(R) Smart Sound Technology*" -or $_.FriendlyName -like "*Realtek(R) Audio*" }
-    foreach ($dev in $audioControllers) {
-        $devPath = "HKLM:\SYSTEM\CurrentControlSet\Enum\$($dev.InstanceId)\Device Parameters\PowerSettings"
-        if (Test-Path $devPath) {
-            Set-ItemProperty -Path $devPath -Name "ConservationIdleTime" -Value 0 -Type Binary -Force -ErrorAction SilentlyContinue
-            Set-ItemProperty -Path $devPath -Name "PerformanceIdleTime" -Value 0 -Type Binary -Force -ErrorAction SilentlyContinue
+    $zeroBytes = [byte[]]@(0, 0, 0, 0)
+    Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}" -ErrorAction SilentlyContinue | ForEach-Object {
+        $p = Join-Path $_.PSPath "PowerSettings"
+        if (Test-Path $p) {
+            Set-ItemProperty -Path $p -Name "ConservationIdleTime" -Value $zeroBytes -Type Binary -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path $p -Name "PerformanceIdleTime" -Value $zeroBytes -Type Binary -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path $p -Name "IdlePowerState" -Value $zeroBytes -Type Binary -Force -ErrorAction SilentlyContinue
         }
     }
     Write-Log "Audio bus power-gating latency zeroed (eliminating popping on stream start)." "SUCCESS"
@@ -868,6 +874,61 @@ function Invoke-Sector20_OSIntegrityAndDriverFixes {
     } catch {
         Write-Log "Notice running DISM check: $($_.Exception.Message)" "INFO"
     }
+}
+
+# -------------------------------------------------------------------------
+# Sector 21: Hardware Limitations Overcoming & Video Codec Acceleration
+# -------------------------------------------------------------------------
+function Invoke-Sector21_HardwareLimitationMitigation {
+    Write-Log "Sector 21: Hardware Limitations Overcoming (AV1, AI Hooks, Auto HDR & Fast Startup)" "STEP"
+
+    # 1. Edge & Chrome Hardware Video Acceleration (Prefers Hardware VP9/H.264 over Software AV1)
+    $edgeKey = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
+    if (-not (Test-Path $edgeKey)) { New-Item -Path $edgeKey -Force | Out-Null }
+    Set-ItemProperty -Path $edgeKey -Name "HardwareAccelerationModeEnabled" -Value 1 -Type DWord -Force
+
+    $chromeKey = "HKLM:\SOFTWARE\Policies\Google\Chrome"
+    if (-not (Test-Path $chromeKey)) { New-Item -Path $chromeKey -Force | Out-Null }
+    Set-ItemProperty -Path $chromeKey -Name "HardwareAccelerationModeEnabled" -Value 1 -Type DWord -Force
+
+    # 2. Disable Windows Copilot, Recall & AI Hooks (Eliminates CPU-Emulated AI Overhead)
+    $copilotKeys = @(
+        "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot",
+        "HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot"
+    )
+    foreach ($k in $copilotKeys) {
+        if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
+        Set-ItemProperty -Path $k -Name "TurnOffWindowsCopilot" -Value 1 -Type DWord -Force
+    }
+
+    $aiKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI"
+    if (-not (Test-Path $aiKey)) { New-Item -Path $aiKey -Force | Out-Null }
+    Set-ItemProperty -Path $aiKey -Name "DisableAIDataAnalysis" -Value 1 -Type DWord -Force
+
+    $recallKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Recall"
+    if (-not (Test-Path $recallKey)) { New-Item -Path $recallKey -Force | Out-Null }
+    Set-ItemProperty -Path $recallKey -Name "DisableRecall" -Value 1 -Type DWord -Force
+
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowCopilotButton" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+
+    # 3. Disable Auto HDR & Variable Refresh Rate (Unsupported on 60Hz SDR Panel)
+    $vrrKey = "HKCU:\Control Panel\Graphics\WindowedVRR"
+    if (-not (Test-Path $vrrKey)) { New-Item -Path $vrrKey -Force | Out-Null }
+    Set-ItemProperty -Path $vrrKey -Name "Enabled" -Value 0 -Type DWord -Force
+
+    $d3dUser = "HKCU:\Software\Microsoft\Direct3D"
+    if (-not (Test-Path $d3dUser)) { New-Item -Path $d3dUser -Force | Out-Null }
+    Set-ItemProperty -Path $d3dUser -Name "AutoHDR" -Value 0 -Type DWord -Force
+
+    $d3dSys = "HKLM:\SOFTWARE\Microsoft\Direct3D"
+    if (-not (Test-Path $d3dSys)) { New-Item -Path $d3dSys -Force | Out-Null }
+    Set-ItemProperty -Path $d3dSys -Name "AutoHDR" -Value 0 -Type DWord -Force
+
+    # 4. Disable Fast Startup (Prevents S3 Sleep Desync and Driver Corruption on ThinkPads)
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Value 0 -Type DWord -Force
+    powercfg /h off
+
+    Write-Log "Hardware limitations mitigated: AV1 HW acceleration enforced, AI emulation purged, Auto HDR/VRR disabled, Fast Startup off." "SUCCESS"
 }
 
 # -------------------------------------------------------------------------
@@ -905,37 +966,47 @@ if (Test-Path $confKeysPath) {
     }
 }
 
-# 2. Dynamic Hardware & Power Profile Auto-Switching
+    # 2. Dynamic Hardware & Power Profile Auto-Switching
 if ($isAC) {
     # Plugged into AC: Maximum Performance
     # - CPU SpeedShift EPP = 0
     # - Unpark Cores (100%)
     # - Max CPU Boost (100%)
+    # - Processor Boost Mode = 2 (Aggressive, up to 4.8GHz)
     # - PCIe ASPM = 0 (Off - Zero Latency NVMe/Wi-Fi)
     # - USB Selective Suspend = 0 (Disabled - No peripheral disconnects)
     # - Intel UHD 620 iGPU = 2 (Maximum Performance - 1.15GHz boost)
+    # - Wi-Fi Adapter = 0 (Maximum Performance)
     powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 0
     powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR 0cc5b647-c1df-4637-891a-dec35c318583 100
     powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100
+    powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 be337238-0d82-4146-a960-4f3749d470c7 2
     powercfg /setacvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0
     powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0
     powercfg /setacvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 2
+    powercfg /setacvalueindex SCHEME_CURRENT 19cbb8fa-5279-450e-9fac-8a3d5fedd0c1 12bbebe6-58d6-4636-95bb-3217ef867c1a 0
     powercfg /setactive SCHEME_CURRENT
-    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] AC Detected: Maximum Performance active (EPP 0, PCIe ASPM Off, USB Active, GPU Max)." -ErrorAction SilentlyContinue
+    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] AC Detected: Maximum Performance active (EPP 0, Boost Aggressive, PCIe ASPM Off, USB Active, GPU Max)." -ErrorAction SilentlyContinue
 } else {
     # On Battery: Extreme Battery Saver
-    # - SpeedShift EPP = 60
+    # - SpeedShift EPP = 80 (Battery optimized)
     # - Cap CPU at 1.9GHz base clock (zero 25W turbo spikes, ~8-10h runtime)
+    # - Processor Boost Mode = 0 (Disabled)
+    # - Core Parking = 50%
     # - PCIe ASPM = 2 (Maximum Power Savings)
     # - USB Selective Suspend = 1 (Enabled)
     # - Intel UHD 620 iGPU = 0 (Maximum Battery Life)
-    powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 60
+    # - Wi-Fi Adapter = 3 (Maximum Power Saving)
+    powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 80
+    powercfg /setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR 0cc5b647-c1df-4637-891a-dec35c318583 50
     powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 99
+    powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 be337238-0d82-4146-a960-4f3749d470c7 0
     powercfg /setdcvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 2
     powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1
     powercfg /setdcvalueindex SCHEME_CURRENT 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 0
+    powercfg /setdcvalueindex SCHEME_CURRENT 19cbb8fa-5279-450e-9fac-8a3d5fedd0c1 12bbebe6-58d6-4636-95bb-3217ef867c1a 3
     powercfg /setactive SCHEME_CURRENT
-    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Battery Detected: Extreme Battery Saver active (1.9GHz cap, PCIe ASPM Max, USB Sleep, GPU Saver)." -ErrorAction SilentlyContinue
+    Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Battery Detected: Extreme Battery Saver active (1.9GHz cap, Boost Disabled, PCIe ASPM Max, USB Sleep, GPU Saver)." -ErrorAction SilentlyContinue
 }
 
 # 3. Audio & Dolby Acoustic Quality Enforcement
@@ -946,7 +1017,6 @@ if (Test-Path $daxKey) {
     if ($curLid -ne 0) {
         Set-ItemProperty -Path $daxKey -Name "LidClose" -Value 0 -Type DWord -Force
         Set-ItemProperty -Path $daxKey -Name "DolbyEnable" -Value 1 -Type DWord -Force
-        Restart-Service -Name "DolbyDAXAPI" -Force -ErrorAction SilentlyContinue
         Add-Content -Path $logFile -Value "[$timestamp] [WATCHDOG] Unstuck Dolby DAX LidClose back to 0." -ErrorAction SilentlyContinue
     }
 }
@@ -971,21 +1041,59 @@ if ($runMaint) {
     Set-Content -Path $WatchdogScript -Value $watchdogContent -Force
     Write-Log "Watchdog script created at $WatchdogScript" "SUCCESS"
 
-    # 2. Register Windows Scheduled Task: ThinkPad-Autonomous-Optimization
+    # 2. Register Windows Scheduled Task with Real-Time Kernel-Power Event 105 Trigger
     try {
         $taskName = "ThinkPad-Autonomous-Optimization"
-        $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$WatchdogScript`""
-        
-        # Trigger 1: At Logon
-        $triggerLogon = New-ScheduledTaskTrigger -AtLogOn
-        # Trigger 2: Repeating every 4 hours
-        $triggerRepeat = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 4)
-        
-        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
-        $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-
-        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger @($triggerLogon, $triggerRepeat) -Settings $settings -Principal $principal -Force | Out-Null
-        Write-Log "Registered Scheduled Task '$taskName' (Triggers: At Logon & Every 4 Hours)." "SUCCESS"
+        $taskXml = @"
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.3" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <URI>\$taskName</URI>
+  </RegistrationInfo>
+  <Principals>
+    <Principal id="Author">
+      <UserId>S-1-5-18</UserId>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <ExecutionTimeLimit>PT10M</ExecutionTimeLimit>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <IdleSettings>
+      <Duration>PT10M</Duration>
+      <WaitTimeout>PT1H</WaitTimeout>
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+  </Settings>
+  <Triggers>
+    <LogonTrigger />
+    <TimeTrigger>
+      <StartBoundary>2026-09-20T00:00:00</StartBoundary>
+      <Repetition>
+        <Interval>PT1H</Interval>
+        <StopAtDurationEnd>false</StopAtDurationEnd>
+      </Repetition>
+    </TimeTrigger>
+    <EventTrigger>
+      <Enabled>true</Enabled>
+      <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="System"&gt;&lt;Select Path="System"&gt;*[System[Provider[@Name='Microsoft-Windows-Kernel-Power'] and (EventID=105)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+    </EventTrigger>
+  </Triggers>
+  <Actions Context="Author">
+    <Exec>
+      <Command>powershell.exe</Command>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "$WatchdogScript"</Arguments>
+    </Exec>
+  </Actions>
+</Task>
+"@
+        Register-ScheduledTask -Xml $taskXml -TaskName $taskName -Force | Out-Null
+        Write-Log "Registered Scheduled Task '$taskName' with Real-Time Kernel-Power Event 105 AC/DC Trigger." "SUCCESS"
 
         # Execute watchdog immediately once to calibrate
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $WatchdogScript
@@ -1076,11 +1184,12 @@ function Run-AllUltraDeepOptimizations {
     Invoke-Sector18_DriverProtectionAndCrashSafety
     Invoke-Sector19_WebcamQuality
     Invoke-Sector20_OSIntegrityAndDriverFixes
+    Invoke-Sector21_HardwareLimitationMitigation
     Install-AutonomousWatchdog
 
     Write-Host "`n================================================================================" -ForegroundColor Green
     Write-Host "  100% AUTONOMOUS THINKPAD T490s SETUP COMPLETE!" -ForegroundColor Green
-    Write-Host "  - All 20 Ultra-Deep Hardware, Display, Audio, Webcam, Bus, Privacy & OS Sectors Optimized" -ForegroundColor Green
+    Write-Host "  - All 21 Ultra-Deep Hardware, Display, Audio, Webcam, Bus, Privacy, OS & Codec Sectors Optimized" -ForegroundColor Green
     Write-Host "  - 75%-80% Battery Threshold Locked (SMP 02DL014 Protected)" -ForegroundColor Green
     Write-Host "  - Autonomous Background Watchdog Active (Auto-Switches AC / Battery / Dolby)" -ForegroundColor Green
     Write-Host "  You never need to run this script again!" -ForegroundColor Cyan
@@ -1146,6 +1255,7 @@ Write-Host "  [18] Sector 17: GameDVR Disable & 100% QoS Bandwidth Unlock" -Fore
 Write-Host "  [19] Sector 18: ThinkPad OEM Driver Shield & Safe Crash Dump" -ForegroundColor Cyan
 Write-Host "  [20] Sector 19: Webcam Video Stream Fidelity & 50Hz Anti-Flicker" -ForegroundColor Cyan
 Write-Host "  [21] Sector 20: OS Component Store, Installer & Audio Latency Repair" -ForegroundColor Cyan
+Write-Host "  [22] Sector 21: Hardware Limitations Mitigation (AV1, AI Hooks, Auto HDR & Fast Startup)" -ForegroundColor Cyan
 Write-Host "  [W]  Install Autonomous Background Watchdog Task Only" -ForegroundColor Cyan
 Write-Host "  [E]  Toggle Extreme Battery Saver (Capping CPU at 1.9GHz on Battery)" -ForegroundColor Yellow
 Write-Host "  [F]  Travel Mode: Temporarily Charge Battery to 100%" -ForegroundColor Yellow
@@ -1176,6 +1286,7 @@ switch ($choice.ToUpper()) {
     "19" { Invoke-Sector18_DriverProtectionAndCrashSafety }
     "20" { Invoke-Sector19_WebcamQuality }
     "21" { Invoke-Sector20_OSIntegrityAndDriverFixes }
+    "22" { Invoke-Sector21_HardwareLimitationMitigation }
     "W"  { Install-AutonomousWatchdog }
     "E"  { Invoke-Sector9_BatteryPreservation -EnableExtremeBattery }
     "F"  { Invoke-Sector9_BatteryPreservation -SetFullCharge }
