@@ -35,11 +35,11 @@ Open any Linux terminal and execute:
 curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/linux/lenovo-thinkpad-t490s/optimize-thinkpad-t490s.sh | sudo bash
 ```
 
-*(Automatically creates a safety Btrfs snapshot, tunes all 18 sectors, locks 75%–80% battery threshold, and installs the background watchdog in ~10 seconds).*
+*(Automatically creates a safety Btrfs snapshot, tunes all 21 sectors, locks 75%–80% battery threshold, and installs the background watchdog in ~10 seconds).*
 
 ---
 
-## 🔬 The 18 Ultra-Deep Optimization Sectors
+## 🔬 The 21 Ultra-Deep Optimization Sectors
 
 | Sector | Target Subsystem | Technical Implementation & Hardware Action |
 |:---:|:---|:---|
@@ -61,6 +61,9 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 | **16** | **Desktop Snappiness** | GNOME overview search restricted to local documents (external web search queries suppressed). |
 | **17** | **Gaming & Bandwidth** | Full QoS TCP throughput unlocked; DNF 10x parallel downloads enabled; GameMode compatibility active. |
 | **18** | **OEM Driver Shield & ThinkLMI BIOS** | Embedded kernel parameters (`split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0`); ThinkPad BIOS tuned via ThinkLMI: 512MB VRAM, Quick Boot, absent hardware disabled (WWAN, Fingerprint, NFC, SmartCard, WakeOnLAN, PXE stacks, AMT), MaximizePerformance on AC. |
+| **19** | **Webcam Stream Fidelity** | SunplusIT 720p HD Camera (`5986:2113`) protected from USB autosuspend (`power/control="on"`); `uvcvideo nodrop=1 quirks=128` prevents frame drops and fixes bandwidth calculations; 50Hz anti-flicker frequency locks to regional AC electricity. |
+| **20** | **OS Integrity & Audio Bus** | Realtek ALC257 DAC idle latency zeroed (`snd_hda_intel power_save=0 power_save_controller=N`) to eliminate speaker stream startup pops; PipeWire quantum lock (1024 / min 512); weekly TRIM active via `fstrim.timer`. |
+| **21** | **Hardware Limitation Mitigation** | Overcomes lack of AV1 hardware decode on Intel UHD 620 via Chrome/Chromium & Firefox enterprise policies; `LIBVA_DRIVER_NAME=iHD` locked for QuickSync Gen 9.5 GT2; S3 sleep desynchronization prevented by masking hibernation targets (`hibernate.target`, `hybrid-sleep.target`). |
 
 ---
 

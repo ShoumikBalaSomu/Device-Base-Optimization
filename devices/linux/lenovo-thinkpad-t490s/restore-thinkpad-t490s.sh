@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # ThinkPad T490s 1-Click Rollback Script
-# Reverts all 18 sectors to stock Fedora / Lenovo defaults
+# Reverts all 21 sectors to stock Fedora / Lenovo defaults
 # Repository: ShoumikBalaSomu/Device-Base-Optimization
 # ==============================================================================
 set -euo pipefail
@@ -25,16 +25,24 @@ rm -f /etc/sysctl.d/99-thinkpad-t490s-performance.conf
 rm -f /etc/modprobe.d/nvme-thinkpad.conf
 rm -f /etc/modprobe.d/i915-thinkpad.conf
 rm -f /etc/modprobe.d/thinkpad_acpi.conf
+rm -f /etc/modprobe.d/uvcvideo-thinkpad.conf
+rm -f /etc/modprobe.d/snd-hda-intel-thinkpad.conf
 rm -f /etc/modules-load.d/bbr.conf
 rm -f /etc/environment.d/10-mesa-shader.conf
+rm -f /etc/environment.d/20-intel-vaapi.conf
 rm -f /etc/systemd/resolved.conf.d/00-cloudflare-family.conf
 rm -f /etc/pipewire/pipewire.conf.d/10-high-fidelity.conf
+rm -f /etc/pipewire/pipewire.conf.d/20-latency-lock.conf
 rm -f /etc/wireplumber/wireplumber.conf.d/99-disable-ducking.conf
 rm -f /etc/udev/rules.d/99-thinkpad-battery-thresholds.rules
+rm -f /etc/udev/rules.d/99-thinkpad-camera.rules
 rm -f /etc/thinkpad-charge-mode.conf
+rm -f /etc/opt/chrome/policies/managed/default_managed_policy.json
+rm -f /etc/chromium/policies/managed/default_managed_policy.json
+rm -f /etc/firefox/policies/policies.json
 
 # 3. Reload services & sysctl
-systemctl unmask fprintd.service pcscd.service pcscd.socket switcheroo-control.service ModemManager.service 2>/dev/null || true
+systemctl unmask fprintd.service pcscd.service pcscd.socket switcheroo-control.service ModemManager.service hibernate.target hybrid-sleep.target 2>/dev/null || true
 sysctl --system >/dev/null 2>&1 || true
 systemctl restart systemd-resolved 2>/dev/null || true
 udevadm control --reload-rules 2>/dev/null || true

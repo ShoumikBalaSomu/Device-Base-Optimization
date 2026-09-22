@@ -15,7 +15,7 @@
 
 [⚡ 1-Click Quickstart](#-1-click-quickstart-run-once--forget) • 
 [🧭 Supported Devices](#-supported-devices--operating-systems-matrix) • 
-[🔬 18-Sector Breakdown](#-the-18-ultra-deep-optimization-sectors) • 
+[🔬 21-Sector Breakdown](#-the-21-ultra-deep-optimization-sectors) • 
 [🤖 Background Watchdog](#-autonomous-background-watchdog) • 
 [➕ Add Your Device](#-contributing-a-new-device-profile)
 
@@ -43,7 +43,7 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 | **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors)** | [**📖 View ThinkPad T490s Windows Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (21 Sectors + Driver Fix)** | [**📖 View Daffodil DC253D Windows Guide**](devices/windows/daffodil-dc253d/README.md) |
 | **Linux (Fedora / Ubuntu)** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View Daffodil DC253D Linux Guide**](devices/linux/daffodil-dc253d/README.md) |
-| **Linux (Fedora / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
+| **Linux (Fedora / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors + ThinkLMI BIOS)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**📖 View Universal Windows Guide**](devices/windows/universal/README.md) |
 | **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap (pmset / defaults)* | [**📖 View macOS Roadmap**](devices/macos/README.md) |
 
@@ -115,7 +115,7 @@ curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimiz
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ShoumikBalaSomu/Device-Base-Optimization/main/devices/linux/lenovo-thinkpad-t490s/run-once.sh | sudo bash
 ```
-*(Full 18 sectors, dual-mode battery charging switcher, TrackPoint tuning, and ACPI backlight fixes).*
+*(Full 21 sectors, dual-mode battery charging switcher, webcam & audio latency zeroing, and ThinkLMI BIOS).*
 
 #### 🖥️ 5. Universal Windows 10 / 11 PC (Any OEM)
 ```powershell
@@ -134,7 +134,7 @@ Prefer offline or double-click `.zip` packages? Download the latest pre-compiled
 | **Lenovo ThinkPad T490s** | **Windows 11 / 10** | [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) | Double-click `Run-Once.cmd` |
 | **Daffodil DC253D** | **Windows 11 / 10** | [**`Daffodil-DC253D-Optimization-v1.5.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.5.0/Daffodil-DC253D-Optimization-v1.5.0.zip) | Double-click `Run-Once.cmd` |
 | **Daffodil DC253D** | **Linux (Fedora / Ubuntu)** | [**`Daffodil-DC253D-Linux-v1.3.1.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.1/Daffodil-DC253D-Linux-v1.3.1.zip) | `sudo ./run-once.sh` |
-| **Lenovo ThinkPad T490s** | **Linux (Fedora / Debian)** | [**`ThinkPad-T490s-Linux-Autonomous-v1.2.5.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.2.5/ThinkPad-T490s-Linux-Autonomous-v1.2.5.zip) | `sudo ./run-once.sh` |
+| **Lenovo ThinkPad T490s** | **Linux (Fedora / Debian)** | [**`ThinkPad-T490s-Linux-Autonomous-v1.5.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.5.0/ThinkPad-T490s-Linux-Autonomous-v1.5.0.zip) | `sudo ./run-once.sh` |
 
 ---
 

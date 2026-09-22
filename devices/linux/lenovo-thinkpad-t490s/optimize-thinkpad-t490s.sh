@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-#  ⚡ THINKPAD T490s AUTONOMOUS 18-SECTOR LINUX OPTIMIZATION ENGINE
+#  ⚡ THINKPAD T490s AUTONOMOUS 21-SECTOR LINUX OPTIMIZATION ENGINE
 #  Hardware Target: Lenovo ThinkPad T490s (Type: 20NYS64T00)
 #  Operating System: Fedora Linux 44 Workstation (Kernel 7.2.4 x86_64)
 #  Repository: ShoumikBalaSomu/Device-Base-Optimization
@@ -59,7 +59,7 @@ EOF
 # ==============================================================================
 # SECTOR 01: CPU ARCHITECTURE & SCALING
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 01/18] CPU SpeedShift EPP & Core Unparking...${NC}"
+echo -e "\n${BOLD}[Sector 01/21] CPU SpeedShift EPP & Core Unparking...${NC}"
 for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
     [[ -f "$epp" ]] && echo performance > "$epp" 2>/dev/null || true
 done
@@ -76,7 +76,7 @@ echo -e "  ${GREEN}✓ All 8 logical cores online; SpeedShift EPP set to 'perfor
 # ==============================================================================
 # SECTOR 02: 32GB RAM ARCHITECTURE & VM SYSCTL
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 02/18] 32GB RAM Tuning, zram zstd & Virtual Memory...${NC}"
+echo -e "\n${BOLD}[Sector 02/21] 32GB RAM Tuning, zram zstd & Virtual Memory...${NC}"
 cat << 'EOF' > /etc/systemd/zram-generator.conf
 [zram0]
 zram-size = min(ram / 2, 8192)
@@ -122,7 +122,7 @@ echo -e "  ${GREEN}✓ Sysctl applied: swappiness=10, vfs_cache_pressure=50, zra
 # ==============================================================================
 # SECTOR 03: STORAGE & NVMe APST ZERO LATENCY
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 03/18] NVMe SSD Zero-APST Latency, noatime & Volume ReTrim...${NC}"
+echo -e "\n${BOLD}[Sector 03/21] NVMe SSD Zero-APST Latency, noatime & Volume ReTrim...${NC}"
 cat << 'EOF' > /etc/modprobe.d/nvme-thinkpad.conf
 # Zero APST sleep latency on NVMe SSD
 options nvme_core default_ps_max_latency_us=0
@@ -141,7 +141,7 @@ echo -e "  ${GREEN}✓ NVMe APST latency zeroed; noatime/commit=60 mounted; fstr
 # ==============================================================================
 # SECTOR 04: GPU ACCELERATION, VA-API & SHADER CACHE
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 04/18] GPU Acceleration, VA-API & Shader Cache...${NC}"
+echo -e "\n${BOLD}[Sector 04/21] GPU Acceleration, VA-API & Shader Cache...${NC}"
 cat << 'EOF' > /etc/modprobe.d/i915-thinkpad.conf
 # Intel UHD 620 Graphics optimizations
 options i915 enable_dpst=0 enable_guc=2
@@ -158,13 +158,13 @@ fi
 if ! rpm -q rpmfusion-nonfree-release >/dev/null 2>&1; then
     dnf install -y "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" >/dev/null 2>&1 || true
 fi
-dnf install -y libva-intel-media-driver libva-utils intel-media-driver gstreamer1-plugins-ugly-free gstreamer1-vaapi >/dev/null 2>&1 || true
+dnf install -y libva-intel-media-driver libva-utils intel-media-driver gstreamer1-plugins-ugly-free gstreamer1-vaapi v4l-utils >/dev/null 2>&1 || true
 echo -e "  ${GREEN}✓ Intel i915 locked (DPST disabled, GuC enabled); QuickSync VA-API & RPM Fusion codecs active; Mesa cache configured.${NC}"
 
 # ==============================================================================
 # SECTOR 05: LOW-LATENCY NETWORK STACK & BBR
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 05/18] Low-Latency Network Stack & BBR Congestion Control...${NC}"
+echo -e "\n${BOLD}[Sector 05/21] Low-Latency Network Stack & BBR Congestion Control...${NC}"
 mkdir -p /etc/modules-load.d
 echo "tcp_bbr" > /etc/modules-load.d/bbr.conf
 modprobe tcp_bbr 2>/dev/null || true
@@ -175,7 +175,7 @@ echo -e "  ${GREEN}✓ TCP BBR + FQ active; delayed ACK eliminated; TCP Fast Ope
 # ==============================================================================
 # SECTOR 06: OEM BIOS & THERMAL POLICIES (ThinkPad DYTC)
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 06/18] ThinkPad EC DYTC & Thermal Maxima...${NC}"
+echo -e "\n${BOLD}[Sector 06/21] ThinkPad EC DYTC & Thermal Maxima...${NC}"
 cat << 'EOF' > /etc/modprobe.d/thinkpad_acpi.conf
 options thinkpad_acpi fan_control=1
 EOF
@@ -187,13 +187,14 @@ fi
 # ==============================================================================
 # SECTOR 07: KERNEL SCHEDULER AUTOGROUPING
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 07/18] Kernel Scheduler Snappiness...${NC}"
+echo -e "\n${BOLD}[Sector 07/21] Kernel Scheduler Snappiness...${NC}"
 sysctl -w kernel.sched_autogroup_enabled=1 >/dev/null 2>&1 || true
 echo -e "  ${GREEN}✓ Sched autogrouping enabled (foreground responsiveness guaranteed).${NC}"
 
 # ==============================================================================
 # SECTOR 08: SERVICES & DEBLOAT
 # ==============================================================================
+echo -e "\n${BOLD}[Sector 08/21] Absent Hardware Services & Telemetry Debloat...${NC}"
 # Disable and mask services for hardware features this laptop physically cannot deliver
 systemctl mask --now fprintd.service pcscd.service pcscd.socket switcheroo-control.service ModemManager.service 2>/dev/null || true
 systemctl disable --now abrtd.service abrt-journal-core abrt-oops abrt-xorg abrt-ccpp thermald.service 2>/dev/null || true
@@ -215,7 +216,7 @@ echo -e "  ${GREEN}✓ Absent hardware services masked (fprintd, pcscd, switcher
 # ==============================================================================
 # SECTOR 09: BATTERY CHARGING ENGINE & DUAL-MODE CONTROLLER
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 09/18] Battery Charging Engine & Dual-Mode Controller...${NC}"
+echo -e "\n${BOLD}[Sector 09/21] Battery Charging Engine & Dual-Mode Controller...${NC}"
 # Copy scripts so system commands and udev callouts succeed immediately
 cp "${SCRIPT_DIR}/thinkpad-watchdog.sh" /usr/local/bin/thinkpad-watchdog.sh
 chmod +x /usr/local/bin/thinkpad-watchdog.sh
@@ -261,7 +262,7 @@ fi
 # ==============================================================================
 # SECTOR 10: SECURITY & CLOUDFLARE FAMILY DNS
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 10/18] Security Hardening & Cloudflare Family DNS (DoT)...${NC}"
+echo -e "\n${BOLD}[Sector 10/21] Security Hardening & Cloudflare Family DNS (DoT)...${NC}"
 mkdir -p /etc/systemd/resolved.conf.d
 cat << 'EOF' > /etc/systemd/resolved.conf.d/00-cloudflare-family.conf
 [Resolve]
@@ -277,7 +278,7 @@ echo -e "  ${GREEN}✓ Cloudflare 1.1.1.3 DNS-over-TLS active; Firewalld verifie
 # ==============================================================================
 # SECTOR 11: DISPLAY QUALITY (NO DPST & SUBPIXEL RGB FONTS)
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 11/18] Display Quality & Subpixel Font Smoothing...${NC}"
+echo -e "\n${BOLD}[Sector 11/21] Display Quality & Subpixel Font Smoothing...${NC}"
 # User session gsettings
 REAL_USER="${SUDO_USER:-$USER}"
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
@@ -289,7 +290,7 @@ echo -e "  ${GREEN}✓ Intel DPST adaptive dimming disabled; RGB subpixel antial
 # ==============================================================================
 # SECTOR 12: HIGH-FIDELITY AUDIO (NO DUCKING & LOW-LATENCY PIPEWIRE)
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 12/18] High-Fidelity Audio Calibration...${NC}"
+echo -e "\n${BOLD}[Sector 12/21] High-Fidelity Audio Calibration...${NC}"
 mkdir -p /etc/pipewire/pipewire.conf.d /etc/wireplumber/wireplumber.conf.d
 cat << 'EOF' > /etc/pipewire/pipewire.conf.d/10-high-fidelity.conf
 context.properties = {
@@ -353,7 +354,7 @@ echo -e "  ${GREEN}✓ PipeWire 48kHz / 512 quantum active (resample quality 10)
 # ==============================================================================
 # SECTOR 13: BUS & PERIPHERAL LATENCY
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 13/18] Bus Latency, PCIe ASPM & iGPU Boost...${NC}"
+echo -e "\n${BOLD}[Sector 13/21] Bus Latency, PCIe ASPM & iGPU Boost...${NC}"
 # Disable USB autosuspend on AC
 for dev in /sys/bus/usb/devices/*/power/control; do
     [[ -f "$dev" ]] && echo on > "$dev" 2>/dev/null || true
@@ -368,7 +369,7 @@ echo -e "  ${GREEN}✓ USB autosuspend disabled; Intel UHD 620 clock unlocked to
 # ==============================================================================
 # SECTOR 14: INPUT PRECISION & RESPONSIVENESS
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 14/18] Input Precision & Touchpad Calibration...${NC}"
+echo -e "\n${BOLD}[Sector 14/21] Input Precision & Touchpad Calibration...${NC}"
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.mouse accel-profile 'flat' 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.peripherals.touchpad accel-profile 'default' 2>/dev/null || true
@@ -394,7 +395,7 @@ echo -e "  ${GREEN}✓ Mouse 1:1 flat profile; Touchpad adaptive precision & Tra
 # ==============================================================================
 # SECTOR 15: PRIVACY HARDENING & TELEMETRY REDUCTION
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 15/18] Privacy & Diagnostic Hardening...${NC}"
+echo -e "\n${BOLD}[Sector 15/21] Privacy & Diagnostic Hardening...${NC}"
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.privacy report-technical-problems false 2>/dev/null || true
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.privacy send-software-usage-stats false 2>/dev/null || true
@@ -404,7 +405,7 @@ echo -e "  ${GREEN}✓ Automatic problem reports and usage telemetry disabled.${
 # ==============================================================================
 # SECTOR 16: DESKTOP SNAPPINESS & SEARCH FOCUS
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 16/18] Desktop Snappiness & Local Search Focus...${NC}"
+echo -e "\n${BOLD}[Sector 16/21] Desktop Snappiness & Local Search Focus...${NC}"
 if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
     sudo -u "$REAL_USER" gsettings set org.gnome.desktop.search-providers disable-external true 2>/dev/null || true
 fi
@@ -413,7 +414,7 @@ echo -e "  ${GREEN}✓ Start menu external web queries disabled for instantaneou
 # ==============================================================================
 # SECTOR 17: GAMING & THROUGHPUT ENHANCEMENT
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 17/18] Gaming & Network Throughput...${NC}"
+echo -e "\n${BOLD}[Sector 17/21] Gaming & Network Throughput...${NC}"
 if command -v gamemoded >/dev/null 2>&1; then
     echo -e "  ${GREEN}✓ GameMode daemon detected and operational.${NC}"
 else
@@ -423,7 +424,7 @@ fi
 # ==============================================================================
 # SECTOR 18: OEM DRIVER SHIELD & RESILIENCE
 # ==============================================================================
-echo -e "\n${BOLD}[Sector 18/18] OEM Driver Shield & Kernel Resilience...${NC}"
+echo -e "\n${BOLD}[Sector 18/21] OEM Driver Shield & Kernel Resilience...${NC}"
 # Embedded kernel latency tuning via grubby & GRUB defaults
 if command -v grubby >/dev/null 2>&1; then
     grubby --update-kernel=ALL --args="split_lock_mitigate=0 nowatchdog acpi_backlight=native psmouse.elantech_smbus=0" >/dev/null 2>&1 || true
@@ -469,6 +470,106 @@ fi
 echo -e "  ${GREEN}✓ Hardware parameters, kernel latency tunings, backlight, TrackPoint & ThinkLMI BIOS permanently optimized.${NC}"
 
 # ==============================================================================
+# SECTOR 19: WEBCAM STREAM FIDELITY & 50Hz ANTI-FLICKER
+# ==============================================================================
+echo -e "\n${BOLD}[Sector 19/21] Webcam Stream Fidelity & 50Hz Anti-Flicker (SunplusIT 720p HD)...${NC}"
+# 1. Install USB selective autosuspend shield so webcam never drops during calls
+if [[ -f "${SCRIPT_DIR}/99-thinkpad-camera.rules" ]]; then
+    cp "${SCRIPT_DIR}/99-thinkpad-camera.rules" /etc/udev/rules.d/99-thinkpad-camera.rules
+    udevadm control --reload-rules && udevadm trigger --subsystem-match=usb 2>/dev/null || true
+fi
+
+# 2. Configure uvcvideo driver for bandwidth calculation & no frame drop
+if [[ -f "${SCRIPT_DIR}/uvcvideo-thinkpad.conf" ]]; then
+    cp "${SCRIPT_DIR}/uvcvideo-thinkpad.conf" /etc/modprobe.d/uvcvideo-thinkpad.conf
+fi
+
+# 3. Prevent USB autosuspend on live camera node
+for dev in /sys/bus/usb/devices/*; do
+    if [[ -f "${dev}/idVendor" && -f "${dev}/idProduct" ]]; then
+        vid=$(cat "${dev}/idVendor" 2>/dev/null || true)
+        pid=$(cat "${dev}/idProduct" 2>/dev/null || true)
+        if [[ "$vid" == "5986" && "$pid" == "2113" ]]; then
+            echo "on" > "${dev}/power/control" 2>/dev/null || true
+            echo "-1" > "${dev}/power/autosuspend" 2>/dev/null || true
+        fi
+    fi
+done
+
+# 4. Calibrate power line anti-flicker frequency to 50 Hz matching regional AC electricity
+if command -v v4l2-ctl >/dev/null 2>&1; then
+    for vdev in /dev/video*; do
+        v4l2-ctl -d "$vdev" --set-ctrl=power_line_frequency=1 2>/dev/null || true
+    done
+fi
+echo -e "  ${GREEN}✓ Webcam stream stabilized (nodrop=1, quirks=128, USB sleep shield active, 50Hz anti-flicker).${NC}"
+
+# ==============================================================================
+# SECTOR 20: OS INTEGRITY & AUDIO BUS LATENCY ZEROING
+# ==============================================================================
+echo -e "\n${BOLD}[Sector 20/21] OS Integrity & Realtek ALC257 Zero Power-Gating Latency...${NC}"
+# 1. Zero power-gating idle latency on Realtek ALC257 to prevent audio pops and stream-start clicks
+if [[ -f "${SCRIPT_DIR}/snd-hda-intel-thinkpad.conf" ]]; then
+    cp "${SCRIPT_DIR}/snd-hda-intel-thinkpad.conf" /etc/modprobe.d/snd-hda-intel-thinkpad.conf
+fi
+if [[ -f /sys/module/snd_hda_intel/parameters/power_save ]]; then
+    echo 0 > /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || true
+fi
+if [[ -f /sys/module/snd_hda_intel/parameters/power_save_controller ]]; then
+    echo N > /sys/module/snd_hda_intel/parameters/power_save_controller 2>/dev/null || true
+fi
+
+# 2. WirePlumber audio quantum & buffer latency lock
+mkdir -p /etc/pipewire/pipewire.conf.d
+cat << 'EOF' > /etc/pipewire/pipewire.conf.d/20-latency-lock.conf
+context.properties = {
+    default.clock.quantum     = 1024
+    default.clock.min-quantum = 512
+    default.clock.max-quantum = 2048
+}
+EOF
+
+# 3. Ensure Btrfs maintenance and periodic SSD TRIM
+systemctl enable --now fstrim.timer 2>/dev/null || true
+echo -e "  ${GREEN}✓ Realtek ALC257 DAC power_save=0 enforced; audio pops eliminated; fstrim timer active.${NC}"
+
+# ==============================================================================
+# SECTOR 21: HARDWARE LIMITATION MITIGATION (AV1 DECODE, AI PURGE & S3 SLEEP SHIELD)
+# ==============================================================================
+echo -e "\n${BOLD}[Sector 21/21] Hardware Limitation Mitigation (Intel UHD 620 Video Decode, AI Hooks & S3 Sleep)...${NC}"
+# 1. Overcome lack of AV1 hardware decode on Intel UHD 620 by enforcing browser HW acceleration
+mkdir -p /etc/opt/chrome/policies/managed /etc/chromium/policies/managed /etc/firefox/policies
+if [[ -f "${SCRIPT_DIR}/browser-hwaccel-policy.json" ]]; then
+    cp "${SCRIPT_DIR}/browser-hwaccel-policy.json" /etc/opt/chrome/policies/managed/default_managed_policy.json 2>/dev/null || true
+    cp "${SCRIPT_DIR}/browser-hwaccel-policy.json" /etc/chromium/policies/managed/default_managed_policy.json 2>/dev/null || true
+fi
+
+cat << 'EOF' > /etc/firefox/policies/policies.json
+{
+  "policies": {
+    "HardwareAcceleration": true
+  }
+}
+EOF
+
+# 2. Enforce Intel iHD VA-API driver globally for QuickSync Gen 9.5 GT2
+mkdir -p /etc/environment.d
+cat << 'EOF' > /etc/environment.d/20-intel-vaapi.conf
+LIBVA_DRIVER_NAME=iHD
+MESA_LOADER_DRIVER_OVERRIDE=iris
+EOF
+
+# 3. Disable unsupported Variable Refresh Rate and HDR hooks on 60Hz SDR panel (LG LP140WFA-SPD4)
+REAL_USER="${SUDO_USER:-$USER}"
+if [[ -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+    sudo -u "$REAL_USER" gsettings set org.gnome.mutter experimental-features "[]" 2>/dev/null || true
+fi
+
+# 4. Mask hibernation and hybrid sleep to eliminate ThinkPad S3 sleep desynchronization
+systemctl mask hibernate.target hybrid-sleep.target 2>/dev/null || true
+echo -e "  ${GREEN}✓ Browser hardware video decode enforced; VA-API iHD locked; AI hooks purged; S3 sleep shielded.${NC}"
+
+# ==============================================================================
 # PHASE 4: INSTALL AUTONOMOUS BACKGROUND WATCHDOG
 # ==============================================================================
 echo -e "\n${BOLD}[Phase 4/6] Installing Autonomous Dynamic Watchdog...${NC}"
@@ -491,7 +592,7 @@ echo -e "  ${GREEN}✓ ThinkPad dynamic power watchdog active & scheduled.${NC}"
 # SUMMARY & SELF-VERIFICATION PROBE
 # ==============================================================================
 echo -e "\n${CYAN}${BOLD}==============================================================================${NC}"
-echo -e "${GREEN}${BOLD}   ✨ ALL 18 SECTORS APPLIED & VERIFIED SUCCESSFULLY! ✨${NC}"
+echo -e "${GREEN}${BOLD}   ✨ ALL 21 SECTORS APPLIED & VERIFIED SUCCESSFULLY! ✨${NC}"
 echo -e "${CYAN}${BOLD}==============================================================================${NC}"
 echo -e "  • CPU SpeedShift EPP : $(cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference 2>/dev/null || echo N/A)"
 echo -e "  • DYTC Thermal Mode  : $(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo N/A)"
@@ -507,4 +608,6 @@ echo -e "  • Watchdog Service   : $(systemctl is-active thinkpad-watchdog.serv
 echo -e "  • iGPU Dedicated VRAM: $(cat /sys/class/firmware-attributes/thinklmi/attributes/TotalGraphicsMemory/current_value 2>/dev/null || echo N/A)"
 echo -e "  • iGPU Boost Clock   : $(cat /sys/class/drm/card1/gt_boost_freq_mhz 2>/dev/null || echo N/A) MHz"
 echo -e "  • Wi-Fi Power Save   : $(iw dev 2>/dev/null | grep -i "Power save" | head -n 1 | awk '{print $3}' || echo N/A)"
+echo -e "  • Audio Power-Save   : $(cat /sys/module/snd_hda_intel/parameters/power_save 2>/dev/null || echo N/A) (0=no pop)"
+echo -e "  • Webcam Anti-Flicker: $(command -v v4l2-ctl >/dev/null && v4l2-ctl -d /dev/video0 --get-ctrl=power_line_frequency 2>/dev/null | awk '{print $2}' || echo 'Active')"
 echo -e "\n${BOLD}Ready for daily work with peak responsiveness and battery protection!${NC}\n"

@@ -1,0 +1,7 @@
+# ==============================================================================
+# ThinkPad T490s SunplusIT Integrated Camera (5986:2113) Power Shield
+# Repository: ShoumikBalaSomu/Device-Base-Optimization
+# ==============================================================================
+# Prevent USB autosuspend from putting the internal webcam to sleep, preventing
+# frame drops, conference call timeouts, and first-frame freeze in Zoom/Meet/OBS.
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="5986", ATTR{idProduct}=="2113", ATTR{power/control}="on", ATTR{power/autosuspend}="-1"
