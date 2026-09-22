@@ -1,9 +1,9 @@
 @echo off
 :: ============================================================================
-::  Daffodil Computers Ltd. DC253D - Autonomous 18-Sector Optimization Suite
+::  Daffodil Computers Ltd. DC253D - Autonomous 21-Sector Optimization Suite
 ::  Self-Elevating 1-Click Launcher (Windows 11 / 10)
 :: ============================================================================
-title Daffodil DC253D Optimization Launcher
+title Daffodil DC253D Autonomous 21-Sector Optimization Suite
 
 :: Check for Administrator elevation
 net session >nul 2>&1
@@ -15,7 +15,7 @@ if %errorlevel% neq 0 (
 
 cd /d "%~dp0"
 echo ==============================================================================
-echo   🚀 LAUNCHING DAFFODIL DC253D AUTONOMOUS OPTIMIZATION SUITE
+echo    DAFFODIL DC253D - AUTONOMOUS HARDWARE OPTIMIZATION & REPAIR
 echo ==============================================================================
 echo.
 
@@ -23,6 +23,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Optimize-Daffodil-
 
 echo.
 echo ==============================================================================
-echo   Press any key to exit.
+echo   Execution complete. Press any key to exit.
 echo ==============================================================================
 pause >nul

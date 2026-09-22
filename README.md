@@ -41,7 +41,7 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 | Platform / OS | Manufacturer | Device Model | Status / Depth | Profile & Documentation |
 |:---|:---|:---|:---|:---|
 | **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors)** | [**📖 View ThinkPad T490s Windows Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
-| **Windows 11 / 10** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (18 Sectors + Touchpad & Camera Fix)** | [**📖 View Daffodil DC253D Windows Guide**](devices/windows/daffodil-dc253d/README.md) |
+| **Windows 11 / 10** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (21 Sectors + Driver Fix)** | [**📖 View Daffodil DC253D Windows Guide**](devices/windows/daffodil-dc253d/README.md) |
 | **Linux (Fedora / Ubuntu)** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View Daffodil DC253D Linux Guide**](devices/linux/daffodil-dc253d/README.md) |
 | **Linux (Fedora / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**📖 View Universal Windows Guide**](devices/windows/universal/README.md) |
@@ -132,7 +132,7 @@ Prefer offline or double-click `.zip` packages? Download the latest pre-compiled
 | Device | Operating System | Release Archive | Launcher |
 |---|---|---|---|
 | **Lenovo ThinkPad T490s** | **Windows 11 / 10** | [**`ThinkPad-T490s-Autonomous-v1.0.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.0.0/ThinkPad-T490s-Autonomous-v1.0.0.zip) | Double-click `Run-Once.cmd` |
-| **Daffodil DC253D** | **Windows 11 / 10** | [**`Daffodil-DC253D-Optimization-v1.4.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.4.0/Daffodil-DC253D-Optimization-v1.4.0.zip) | Double-click `Run-Once.cmd` |
+| **Daffodil DC253D** | **Windows 11 / 10** | [**`Daffodil-DC253D-Optimization-v1.5.0.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.5.0/Daffodil-DC253D-Optimization-v1.5.0.zip) | Double-click `Run-Once.cmd` |
 | **Daffodil DC253D** | **Linux (Fedora / Ubuntu)** | [**`Daffodil-DC253D-Linux-v1.3.1.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.3.1/Daffodil-DC253D-Linux-v1.3.1.zip) | `sudo ./run-once.sh` |
 | **Lenovo ThinkPad T490s** | **Linux (Fedora / Debian)** | [**`ThinkPad-T490s-Linux-Autonomous-v1.2.5.zip`**](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/download/v1.2.5/ThinkPad-T490s-Linux-Autonomous-v1.2.5.zip) | `sudo ./run-once.sh` |
 

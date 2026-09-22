@@ -41,7 +41,7 @@ Or double-click `Run-Once.cmd` (auto-elevates to Administrator).
 
 ---
 
-## 🔬 18-Sector Architecture Overview
+## 🔬 21-Sector Architecture Overview
 
 | Sector | Target | Applied Optimization |
 |---|---|---|
@@ -63,6 +63,9 @@ Or double-click `Run-Once.cmd` (auto-elevates to Administrator).
 | **16. Desktop Snappiness** | Windows Shell | Window animation delay removed (`MinAnimate = 0`); Bing web search disabled in Start Menu for instant local search. |
 | **17. Gaming & Throughput** | Windows QoS | Unlocks 100% QoS network bandwidth (`NonBestEffortLimit = 0`); disables background GameDVR capture. |
 | **18. OEM Driver Shield** | Intel/Realtek Drivers | Prevents Windows Update from overwriting OEM drivers; enables MiniDump crash control. |
+| **19. Webcam Optimization** | Chicony FHD WebCam | Hardware MFT GPU acceleration enabled; 50Hz power line anti-flicker frequency locked. |
+| **20. OS Integrity & Latency** | Realtek Audio Bus | Audio bus power-gating latency zeroed (eliminates popping on stream start); stalled installer locks purged. |
+| **21. Hardware Mitigations** | Raptor Lake-U Architecture | Fast Startup disabled to eliminate sleep desync; Windows Copilot/Recall/AI emulated hooks purged; Auto HDR & VRR disabled on 60Hz SDR panel. |
 
 ---
 

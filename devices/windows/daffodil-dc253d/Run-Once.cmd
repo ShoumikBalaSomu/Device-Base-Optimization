@@ -1,9 +1,9 @@
 @echo off
 :: ============================================================================
-::  Daffodil Computers Ltd. DC253D - Autonomous 18-Sector Optimization Suite
+::  Daffodil Computers Ltd. DC253D - Autonomous 21-Sector Optimization Suite
 ::  Self-Elevating 1-Click Launcher (Windows 11 / 10)
 :: ============================================================================
-title Daffodil DC253D Autonomous Optimization Suite
+title Daffodil DC253D Autonomous 21-Sector Optimization Suite
 
 :: Check for Administrator elevation
 net session >nul 2>&1
