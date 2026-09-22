@@ -357,6 +357,7 @@ function Invoke-Sector6_ThinkPadBIOS {
             "ChargeInBatteryMode,Disable",
             "ThunderboltSecurityLevel,UserAuthorization",
             "PreBootForThunderboltDevice,Disable",
+            "WakeByThunderbolt,Disable",
             "EthernetLANOptionROM,Disable",
             "AMTControl,Disable",
             "KeyboardBeep,Disable",
@@ -398,7 +399,7 @@ function Invoke-Sector7_KernelScheduler {
 # -------------------------------------------------------------------------
 function Invoke-Sector8_ServicesAndDebloat {
     Write-Log "Sector 8: Background Services Demand-Start Optimization & Telemetry Purge" "STEP"
-    $demandServices = @("MapsBroker", "WerSvc", "RetailDemo", "XblAuthManager", "XblGameSave", "XboxNetApiSvc", "DiagTrack", "dmwappushservice")
+    $demandServices = @("MapsBroker", "WerSvc", "RetailDemo", "XblAuthManager", "XblGameSave", "XboxNetApiSvc", "DiagTrack", "dmwappushservice", "QianwenUpdaterService1.0.0.9", "QianwenUpdaterInternalService1.0.0.9")
     foreach ($svc in $demandServices) {
         try {
             Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
