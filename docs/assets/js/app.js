@@ -202,6 +202,145 @@
     }
   ];
 
+  // --- 1B. ALL REPOSITORY MARKDOWN (.MD) DOCUMENTATION REGISTRY ---
+  const DOCS_DATA = [
+    {
+      id: "readme",
+      cat: "core",
+      badge: "Architecture Standard",
+      title: "Root Architecture Portal",
+      file: "README.md",
+      desc: "Central repository nexus containing the 21-Sector Standard breakdown, cross-platform quickstarts, hardware matrix, and live telemetry data.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/README.md"
+    },
+    {
+      id: "about",
+      cat: "core",
+      badge: "Project & Creator",
+      title: "About Device-Base-Optimization",
+      file: "ABOUT.md",
+      desc: "Engineering vision by Shoumik Bala Somu (shoumik.bala@gmail.com), silicon-level philosophy, safety guarantees, and architecture pillars.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/ABOUT.md"
+    },
+    {
+      id: "daffodil-linux",
+      cat: "guides",
+      badge: "Device Guide",
+      title: "Daffodil DC253D Linux Suite",
+      file: "devices/linux/daffodil-dc253d/README.md",
+      desc: "Complete 21-Sector Linux deployment guide for Daffodil DC253D (Core i3-1315U). Covers 80% charge daemon, I2C touchpad fix, UVC 50Hz, and VA-API.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/linux/daffodil-dc253d/README.md"
+    },
+    {
+      id: "daffodil-bios",
+      cat: "specs",
+      badge: "Firmware Setup",
+      title: "Daffodil DC253D BIOS Guide",
+      file: "devices/linux/daffodil-dc253d/BIOS_RECOMMENDATIONS.md",
+      desc: "UEFI / BIOS tuning manual for Daffodil DC253D. Configuration steps for Intel VMD, C-states, PCIe ASPM, and Secure Boot.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/linux/daffodil-dc253d/BIOS_RECOMMENDATIONS.md"
+    },
+    {
+      id: "thinkpad-linux",
+      cat: "guides",
+      badge: "Device Guide",
+      title: "ThinkPad T490s Linux Suite",
+      file: "devices/linux/lenovo-thinkpad-t490s/README.md",
+      desc: "21-Sector tuning guide for Lenovo ThinkPad T490s on Linux. ThinkLMI dual-threshold charge control (75/80%), thermald, and throttled.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/linux/lenovo-thinkpad-t490s/README.md"
+    },
+    {
+      id: "linux-platform",
+      cat: "guides",
+      badge: "Platform Guide",
+      title: "Linux Ecosystem Overview",
+      file: "devices/linux/README.md",
+      desc: "High-level overview of Linux multi-device architecture, supported kernel versions (6.6+), and distribution compatibility (Fedora, Ubuntu, Debian).",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/linux/README.md"
+    },
+    {
+      id: "daffodil-windows",
+      cat: "guides",
+      badge: "Device Guide",
+      title: "Daffodil DC253D Windows Suite",
+      file: "devices/windows/daffodil-dc253d/README.md",
+      desc: "Windows 11/10 21-Sector PowerShell suite for Daffodil DC253D. Features touchpad filter registry fix, UVC camera driver calibration, and audio D-state.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/windows/daffodil-dc253d/README.md"
+    },
+    {
+      id: "thinkpad-windows",
+      cat: "guides",
+      badge: "Device Guide",
+      title: "ThinkPad T490s Windows Suite",
+      file: "devices/windows/lenovo-thinkpad-t490s/README.md",
+      desc: "Windows 11/10 21-Sector suite for ThinkPad T490s. Integrates Lenovo Vantage WMI charge threshold locking, DPTF profiles, and Modern Standby tuning.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/windows/lenovo-thinkpad-t490s/README.md"
+    },
+    {
+      id: "universal-windows",
+      cat: "guides",
+      badge: "Universal PC",
+      title: "Universal Windows PC Suite",
+      file: "devices/windows/universal/README.md",
+      desc: "Universal maintenance and system repair suite for any OEM Windows PC. DISM/SFC corruption repairs, memory compression, and diagnostic debloat.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/windows/universal/README.md"
+    },
+    {
+      id: "macos-platform",
+      cat: "specs",
+      badge: "Roadmap",
+      title: "macOS Optimization Roadmap",
+      file: "devices/macos/README.md",
+      desc: "Architectural roadmap for Apple Silicon (M1-M4) and Intel Mac platforms. Explores pmset power assertions, thermal profiles, and sleep wake-locks.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/devices/macos/README.md"
+    },
+    {
+      id: "spec-template",
+      cat: "specs",
+      badge: "Specification",
+      title: "Device Hardware Spec Template",
+      file: "docs/DEVICE_SPEC_TEMPLATE.md",
+      desc: "Standardized blueprint template for auditing, documenting, and profiling new device motherboards, D-states, and OEM battery controllers.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/docs/DEVICE_SPEC_TEMPLATE.md"
+    },
+    {
+      id: "master-prompt",
+      cat: "prompts",
+      badge: "AI Prompt",
+      title: "Master Optimization Prompt",
+      file: "docs/MASTER_OPTIMIZATION_PROMPT.md",
+      desc: "Complete prompt guide for AI coding assistants and Antigravity CLI agents to maintain the 21-Sector standard across new hardware.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/docs/MASTER_OPTIMIZATION_PROMPT.md"
+    },
+    {
+      id: "dist-daffodil",
+      cat: "prompts",
+      badge: "Dist Bundle",
+      title: "Standalone DC253D Bundle",
+      file: "dist/Daffodil-DC253D/README.md",
+      desc: "Documentation for the zero-dependency, self-contained offline distribution bundle for Daffodil DC253D systems.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/dist/Daffodil-DC253D/README.md"
+    },
+    {
+      id: "dist-thinkpad",
+      cat: "prompts",
+      badge: "Dist Bundle",
+      title: "Standalone T490s Bundle",
+      file: "dist/ThinkPad-T490s/README.md",
+      desc: "Documentation for the zero-dependency, self-contained offline distribution bundle for Lenovo ThinkPad T490s systems.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/dist/ThinkPad-T490s/README.md"
+    },
+    {
+      id: "agent-rules",
+      cat: "prompts",
+      badge: "Developer Rules",
+      title: "Autonomous Agent Invariants",
+      file: ".agents/rules/device-optimizer.md",
+      desc: "Architectural rules, coding guidelines, safety constraints, and 21-sector invariants enforced for all autonomous code modifications.",
+      url: "https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/.agents/rules/device-optimizer.md"
+    }
+  ];
+
   // --- 2. DEVICE SPECIFICATIONS & COMMAND MAPS ---
   const DEVICE_CONFIGS = {
     daffodil: {
@@ -685,12 +824,64 @@
     });
   }
 
+  // --- 8B. ALL MARKDOWN (.MD) DOCUMENTATION MATRIX HANDLER ---
+  function initDocsMatrix() {
+    const grid = document.getElementById("docs-grid");
+    const filterPills = document.querySelectorAll(".docs-filter-pill");
+
+    if (!grid) return;
+
+    function renderDocs(items) {
+      if (items.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 2.5rem; color: var(--text-muted); font-family: var(--font-mono);">
+            [!] No documentation files found in this category.
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = items
+        .map(
+          (d) => `
+        <div class="doc-card" data-cat="${d.cat}">
+          <div class="doc-card-header">
+            <span class="doc-badge">${d.badge}</span>
+            <span class="doc-format-tag">📄 Markdown</span>
+          </div>
+          <h3 class="doc-title">${d.title}</h3>
+          <span class="doc-filename">${d.file}</span>
+          <p class="doc-desc">${d.desc}</p>
+          <a href="${d.url}" target="_blank" rel="noopener noreferrer" class="doc-link-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            View Document (.md)
+          </a>
+        </div>
+      `
+        )
+        .join("");
+    }
+
+    renderDocs(DOCS_DATA);
+
+    filterPills.forEach((pill) => {
+      pill.addEventListener("click", () => {
+        filterPills.forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        const cat = pill.getAttribute("data-filter") || "all";
+        const filtered = cat === "all" ? DOCS_DATA : DOCS_DATA.filter((d) => d.cat === cat);
+        renderDocs(filtered);
+      });
+    });
+  }
+
   // --- 9. INITIALIZATION BOOTSTRAP ---
   document.addEventListener("DOMContentLoaded", () => {
     initBackgroundCanvas();
     initPowerSimulator();
     initAudioVisualizer();
     initSectorsMatrix();
+    initDocsMatrix();
     initDeviceTabs();
     initThemeToggle();
   });

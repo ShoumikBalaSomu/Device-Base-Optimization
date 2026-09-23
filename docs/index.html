@@ -38,6 +38,8 @@
         <li><a href="#sectors" class="nav-link">21 Sectors</a></li>
         <li><a href="#audio" class="nav-link">Audio Studio</a></li>
         <li><a href="#benchmarks" class="nav-link">Benchmarks</a></li>
+        <li><a href="#docs" class="nav-link">Docs (.md)</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -522,6 +524,134 @@
         </div>
       </div>
     </section>
+
+    <!-- Section: All Markdown Documentation Library (.md) -->
+    <section id="docs" class="section">
+      <div class="section-header">
+        <span class="section-eyebrow">REPOSITORY TECHNICAL LIBRARY</span>
+        <h2 class="section-title">All Markdown (.md) Guides & Specifications</h2>
+        <p class="section-desc">
+          Browse the complete documentation library of 15 markdown technical guides, hardware specifications, 
+          BIOS setup manuals, and autonomous agent rules.
+        </p>
+      </div>
+
+      <!-- Docs Filter Pills -->
+      <div class="docs-category-filter">
+        <button class="filter-pill docs-filter-pill active" data-filter="all">All Documents (.md)</button>
+        <button class="filter-pill docs-filter-pill" data-filter="core">Core Portals</button>
+        <button class="filter-pill docs-filter-pill" data-filter="guides">Device Guides</button>
+        <button class="filter-pill docs-filter-pill" data-filter="specs">Firmware & Specs</button>
+        <button class="filter-pill docs-filter-pill" data-filter="prompts">AI Prompts & Dist</button>
+      </div>
+
+      <!-- Dynamic Docs Grid (Rendered by JS) -->
+      <div class="docs-grid" id="docs-grid"></div>
+    </section>
+
+    <!-- Section: About the Project & Creator -->
+    <section id="about" class="section">
+      <div class="section-header">
+        <span class="section-eyebrow">ENGINEERING PHILOSOPHY & VISION</span>
+        <h2 class="section-title">About Device-Base-Optimization</h2>
+        <p class="section-desc">
+          Precision systems engineering designed to eliminate thermal throttling, latency pops, 
+          and battery degradation without destructive bloatware cleaners.
+        </p>
+      </div>
+
+      <div class="about-grid">
+        <!-- Author Profile Card -->
+        <div class="author-card">
+          <div class="author-avatar-box">
+            <div class="author-avatar-inner">⚡</div>
+          </div>
+          <h3 class="author-name">Shoumik Bala Somu</h3>
+          <div class="author-role">CREATOR & LEAD SYSTEMS ARCHITECT</div>
+
+          <div class="author-meta-list">
+            <div class="author-meta-item">
+              <span>📧</span>
+              <div>
+                <strong>Email:</strong><br />
+                <a href="mailto:shoumik.bala@gmail.com" style="color:var(--neon-cyan)">shoumik.bala@gmail.com</a>
+              </div>
+            </div>
+            <div class="author-meta-item">
+              <span>🐙</span>
+              <div>
+                <strong>GitHub:</strong><br />
+                <a href="https://github.com/ShoumikBalaSomu" target="_blank" rel="noopener noreferrer">@ShoumikBalaSomu</a>
+              </div>
+            </div>
+            <div class="author-meta-item">
+              <span>💻</span>
+              <div>
+                <strong>Daily Drivers:</strong><br />
+                Daffodil DC253D & ThinkPad T490s
+              </div>
+            </div>
+            <div class="author-meta-item">
+              <span>⚖️</span>
+              <div>
+                <strong>Open Source:</strong><br />
+                MIT License (100% Free)
+              </div>
+            </div>
+          </div>
+
+          <div class="author-social-links">
+            <a href="https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/ABOUT.md" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:0.82rem; padding:0.6rem 1.2rem;">
+              Read ABOUT.md
+            </a>
+          </div>
+        </div>
+
+        <!-- Mission & Pillars Card -->
+        <div class="about-content-card">
+          <h3 class="about-headline">Why Generic Optimizers Fail & Silicon-Level Tuning Wins</h3>
+          <p class="about-body-text">
+            Most generic "Windows debloaters" and "Linux speedup scripts" use blunt, destructive regex sweeps: 
+            disabling fundamental Windows services, breaking Bluetooth audio codecs, corrupting D-Bus dependencies, 
+            and leaving hardware running with uncalibrated C-states and thermal throttling micro-stutters.
+            <br /><br />
+            <strong>Device-Base-Optimization</strong> treats every motherboard and CPU as a unique silicon architecture. 
+            By auditing PCIe ASPM interconnects, Intel HWP energy preferences, Realtek DAC power-gating timeouts, and OEM battery charge registers, 
+            the suite delivers genuine, measurable battery extension and stutter-free latency with 100% rollback safety.
+          </p>
+
+          <div class="pillars-grid">
+            <div class="pillar-card">
+              <div class="pillar-title"><span>🔬</span> Silicon-Aware Tuning</div>
+              <div class="pillar-desc">
+                21 autonomous sectors calibrated against Intel P/E-core registers, NVMe APST microsecond latencies, and VA-API hardware decoders.
+              </div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-title"><span>🛡️</span> Lithium Cell Guard</div>
+              <div class="pillar-desc">
+                Permanent 80% charging threshold enforcement via ACPI and ThinkLMI registers, completely preventing dendrite formation.
+              </div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-title"><span>🎵</span> Zero-Pop Audio</div>
+              <div class="pillar-desc">
+                Locks <code>snd_hda_intel power_save=0</code> and deploys RNNoise neural echo cancellation to eliminate DAC click/pop stutter.
+              </div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-title"><span>🔄</span> 100% Reversible</div>
+              <div class="pillar-desc">
+                Every single script pairs with a clean rollback restore mechanism (<code>restore-*.sh</code> / <code>Restore-*.ps1</code>).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Footer -->
@@ -533,13 +663,15 @@
           <strong style="font-size:1.05rem;">Device-Base-Optimization</strong>
         </div>
         <div class="footer-credits">
-          Engineered by <strong>Shoumik Bala Somu</strong>. Released under the open-source MIT License.<br />
+          Engineered by <strong>Shoumik Bala Somu</strong> (<a href="mailto:shoumik.bala@gmail.com" style="color:var(--text-accent);">shoumik.bala@gmail.com</a>). Released under the MIT License.<br />
           Built for Daffodil DC253D (Core i3-1315U), Lenovo ThinkPad T490s & Universal PC Architectures.
         </div>
       </div>
 
       <ul class="footer-nav">
         <li><a href="https://github.com/ShoumikBalaSomu/Device-Base-Optimization" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+        <li><a href="https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/ABOUT.md" target="_blank" rel="noopener noreferrer">ABOUT.md</a></li>
+        <li><a href="#docs">All .md Docs</a></li>
         <li><a href="https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/latest" target="_blank" rel="noopener noreferrer">Releases (v1.5.1)</a></li>
         <li><a href="https://github.com/ShoumikBalaSomu/Device-Base-Optimization/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></li>
       </ul>

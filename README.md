@@ -15,6 +15,8 @@
 </p>
 
 [🌐 **Interactive Web Portal**](https://shoumikbalasomu.github.io/Device-Base-Optimization/) • 
+[📖 **About the Project**](ABOUT.md) • 
+[📚 **All Documentation (.md)**](#-documentation-library-all-md-files) • 
 [⚡ 1-Click Quickstart](#-1-click-quickstart-run-once--forget) • 
 [🧭 Supported Devices](#-supported-devices--operating-systems-matrix) • 
 [🔬 21-Sector Breakdown](#-the-21-ultra-deep-optimization-sectors) • 
@@ -231,6 +233,30 @@ Device-Base-Optimization/
     └── windows/
         └── Optimize-Device.ps1                  # Synchronized core engine script
 ```
+
+---
+
+## 📚 Documentation Library (All .md Files)
+
+The repository provides 15 technical documentation guides, specifications, and architecture manuals:
+
+| Document | Type | Scope & Focus |
+| :--- | :--- | :--- |
+| [**`README.md`**](README.md) | Central Portal | Full architecture overview, badges, quickstart, and telemetry tables |
+| [**`ABOUT.md`**](ABOUT.md) | Project Overview | Mission statement, author bio, engineering pillars, and contact info |
+| [**`devices/linux/daffodil-dc253d/README.md`**](devices/linux/daffodil-dc253d/README.md) | Device Guide | Daffodil DC253D (Core i3-1315U) Linux 21-Sector Suite |
+| [**`devices/linux/daffodil-dc253d/BIOS_RECOMMENDATIONS.md`**](devices/linux/daffodil-dc253d/BIOS_RECOMMENDATIONS.md) | Firmware Guide | UEFI / BIOS setup for Daffodil DC253D (VMD, C-states, ASPM) |
+| [**`devices/linux/lenovo-thinkpad-t490s/README.md`**](devices/linux/lenovo-thinkpad-t490s/README.md) | Device Guide | ThinkPad T490s Linux 21-Sector Suite (ThinkLMI & dual-thresholds) |
+| [**`devices/linux/README.md`**](devices/linux/README.md) | Platform Guide | Linux architecture overview, distribution support & common scripts |
+| [**`devices/windows/daffodil-dc253d/README.md`**](devices/windows/daffodil-dc253d/README.md) | Device Guide | Daffodil DC253D Windows 11/10 21-Sector Suite & driver fixes |
+| [**`devices/windows/lenovo-thinkpad-t490s/README.md`**](devices/windows/lenovo-thinkpad-t490s/README.md) | Device Guide | ThinkPad T490s Windows 11/10 21-Sector Suite (WMI & DPTF) |
+| [**`devices/windows/universal/README.md`**](devices/windows/universal/README.md) | Device Guide | Universal PC Windows maintenance, health checks & repair suite |
+| [**`devices/macos/README.md`**](devices/macos/README.md) | Platform Roadmap | macOS power management (`pmset`), thermal profiles & roadmap |
+| [**`dist/Daffodil-DC253D/README.md`**](dist/Daffodil-DC253D/README.md) | Dist Bundle | Standalone offline bundle for Daffodil DC253D |
+| [**`dist/ThinkPad-T490s/README.md`**](dist/ThinkPad-T490s/README.md) | Dist Bundle | Standalone offline bundle for Lenovo ThinkPad T490s |
+| [**`docs/DEVICE_SPEC_TEMPLATE.md`**](docs/DEVICE_SPEC_TEMPLATE.md) | Specification | Standardized hardware specification template for adding new devices |
+| [**`docs/MASTER_OPTIMIZATION_PROMPT.md`**](docs/MASTER_OPTIMIZATION_PROMPT.md) | AI / CLI Prompt | Master prompt for Antigravity CLI and autonomous agent tuning |
+| [**`.agents/rules/device-optimizer.md`**](.agents/rules/device-optimizer.md) | Developer Rules | Architectural invariants and coding standards for agents |
 
 ---
 
