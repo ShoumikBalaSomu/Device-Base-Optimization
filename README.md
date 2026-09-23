@@ -4,6 +4,7 @@
 ### *Precision Hardware-Aware System Optimization & Autonomous Battery Protection*
 
 [![Latest Release](https://img.shields.io/github/v/release/ShoumikBalaSomu/Device-Base-Optimization?color=blue&label=Latest%20Release&logo=github)](https://github.com/ShoumikBalaSomu/Device-Base-Optimization/releases/latest)
+[![Interactive Showcase](https://img.shields.io/badge/Web%20Portal-GitHub%20Pages%20Live-brightgreen?logo=googlechrome)](https://shoumikbalasomu.github.io/Device-Base-Optimization/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: Windows | Linux | macOS](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-informational?logo=windows)](devices/)
 [![PowerShell: 5.1+](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)](devices/windows/)
@@ -13,6 +14,7 @@
   <b>A modular, multi-platform ecosystem delivering deep, hardware-specific kernel tuning, latency zeroing, display/audio calibration, and permanent battery cell protection.</b>
 </p>
 
+[🌐 **Interactive Web Portal**](https://shoumikbalasomu.github.io/Device-Base-Optimization/) • 
 [⚡ 1-Click Quickstart](#-1-click-quickstart-run-once--forget) • 
 [🧭 Supported Devices](#-supported-devices--operating-systems-matrix) • 
 [🔬 21-Sector Breakdown](#-the-21-ultra-deep-optimization-sectors) • 
@@ -42,7 +44,7 @@ Generic "Windows Optimizer" scripts use a blunt, one-size-fits-all approach that
 |:---|:---|:---|:---|:---|
 | **Windows 11 / 10** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors)** | [**📖 View ThinkPad T490s Windows Guide**](devices/windows/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (21 Sectors + Driver Fix)** | [**📖 View Daffodil DC253D Windows Guide**](devices/windows/daffodil-dc253d/README.md) |
-| **Linux (Fedora / Ubuntu)** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (18 Sectors + Charge Control)** | [**📖 View Daffodil DC253D Linux Guide**](devices/linux/daffodil-dc253d/README.md) |
+| **Linux (Fedora / Ubuntu)** | **Daffodil Computers** | **DC253D (`Intel Core i3-1315U`)** | ⚡ **100% Autonomous (21 Sectors + Charge Control)** | [**📖 View Daffodil DC253D Linux Guide**](devices/linux/daffodil-dc253d/README.md) |
 | **Linux (Fedora / Debian)** | **Lenovo** | **ThinkPad T490s (`20NYS64T00`)** | ⚡ **100% Autonomous (21 Sectors + ThinkLMI BIOS)** | [**📖 View ThinkPad T490s Linux Guide**](devices/linux/lenovo-thinkpad-t490s/README.md) |
 | **Windows 11 / 10** | Any OEM | Universal PC (Desktop / Laptop) | 🟢 **Standard (Maintenance & Repair)** | [**📖 View Universal Windows Guide**](devices/windows/universal/README.md) |
 | **macOS** | Apple | MacBook / Mac mini (Apple Silicon / Intel) | 🟡 *In Roadmap (pmset / defaults)* | [**📖 View macOS Roadmap**](devices/macos/README.md) |
