@@ -39,6 +39,8 @@ rm -f /etc/dracut.conf.d/99-daffodil-touchpad.conf
 rm -f /etc/dconf/db/local.d/01-touchpad
 dconf update 2>/dev/null || true
 rm -f /etc/environment.d/10-mesa-shader.conf
+rm -f /etc/environment.d/20-vaapi-hardware-acceleration.conf
+rm -f /etc/firefox/policies/policies.json
 rm -f /etc/modules-load.d/bbr.conf
 
 # 4. Remove resolved config
@@ -51,8 +53,9 @@ rm -f /etc/wireplumber/wireplumber.conf.d/99-disable-ducking.conf
 rm -f /etc/wireplumber/wireplumber.conf.d/50-camera-priority.conf
 rm -f /etc/pipewire/pipewire.conf.d/20-echo-cancel.conf
 
-# 6. Re-enable default services
+# 6. Re-enable default services & unmask targets
 systemctl enable NetworkManager-wait-online.service 2>/dev/null || true
+systemctl unmask hibernate.target hybrid-sleep.target 2>/dev/null || true
 
 # 7. Restore kernel command line
 if command -v grubby >/dev/null 2>&1; then

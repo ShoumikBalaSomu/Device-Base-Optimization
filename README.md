@@ -202,23 +202,23 @@ Device-Base-Optimization/
 │   │   │   ├── README.md                        # Hardware, display & audio calibration guide
 │   │   │   ├── Run-Once.cmd                     # 1-Click double-click launcher
 │   │   │   └── Optimize-ThinkPad-T490s.ps1      # Autonomous kernel & hardware optimization engine
-│   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D Windows suite (18 Sectors)
-│   │   │   ├── README.md                        # Hardware specs & 18-sector architecture
+│   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D Windows suite (21 Sectors)
+│   │   │   ├── README.md                        # Hardware specs & 21-sector architecture
 │   │   │   ├── Run-Once.cmd                     # 1-Click double-click launcher
 │   │   │   └── Optimize-Daffodil-DC253D.ps1     # Raptor Lake i3-1315U optimization engine
 │   │   └── universal/                           # Generic Windows fallback maintenance
 │   │       ├── README.md                        # Universal Windows guide
 │   │       └── Optimize-Windows-Universal.ps1   # Hardware-agnostic maintenance script
 │   ├── linux/
-│   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D Fedora/Ubuntu Linux suite
-│   │   │   ├── README.md                        # Linux specs, PipeWire studio mic & touchpad guide
+│   │   ├── daffodil-dc253d/                     # Custom Daffodil DC253D Fedora/Ubuntu Linux suite (21 Sectors)
+│   │   │   ├── README.md                        # Linux specs, PipeWire studio mic & 21-sector guide
 │   │   │   ├── run-once.sh                      # 1-Click bash launcher
-│   │   │   ├── optimize-daffodil-dc253d.sh      # Autonomous Linux kernel & hardware engine
+│   │   │   ├── optimize-daffodil-dc253d.sh      # Autonomous Linux kernel & hardware engine (21 Sectors)
 │   │   │   └── daffodil-charge-mode.sh          # Dual-mode 80%/100% battery charge controller
-│   │   ├── lenovo-thinkpad-t490s/               # Custom ThinkPad T490s Linux suite
-│   │   │   ├── README.md                        # Linux guide & TrackPoint calibration
+│   │   ├── lenovo-thinkpad-t490s/               # Custom ThinkPad T490s Linux suite (21 Sectors)
+│   │   │   ├── README.md                        # Linux guide & 21-sector TrackPoint calibration
 │   │   │   ├── run-once.sh                      # 1-Click bash launcher
-│   │   │   ├── optimize-thinkpad-t490s.sh       # Autonomous Linux optimization engine
+│   │   │   ├── optimize-thinkpad-t490s.sh       # Autonomous Linux optimization engine (21 Sectors)
 │   │   │   └── thinkpad-charge-mode.sh          # Dual-mode battery charge controller
 │   │   └── README.md                            # Linux roadmap & kernel sysctl architecture
 │   └── macos/                                   # Apple Mac systems roadmap

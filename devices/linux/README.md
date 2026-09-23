@@ -24,7 +24,8 @@ This directory contains hardware-specific and distribution-level optimization pr
 ---
 
 ## 📂 Available Device Profiles
-* [**`lenovo-thinkpad-t490s/`**](lenovo-thinkpad-t490s/README.md) ⚡ **100% Autonomous (18 Sectors)**: Lenovo ThinkPad T490s (`20NYS64T00`), Intel Core i7-8665U, 32GB RAM, Intel UHD 620, BBR, DYTC EC thermals, 75%–80% battery protection, systemd watchdog.
+* [**`daffodil-dc253d/`**](daffodil-dc253d/README.md) ⚡ **100% Autonomous (21 Sectors)**: Daffodil Computers Ltd. DC253D (`IDL528`), 13th Gen Intel Core i3-1315U, 8GB DDR4, Raptor Lake UHD, MAXIO MAP1202 NVMe, PipeWire WebRTC studio acoustic filter, I2C touchpad sleep shield, 50Hz anti-flicker webcam, VA-API hardware video acceleration, systemd dynamic AC/battery watchdog.
+* [**`lenovo-thinkpad-t490s/`**](lenovo-thinkpad-t490s/README.md) ⚡ **100% Autonomous (21 Sectors)**: Lenovo ThinkPad T490s (`20NYS64T00`), Intel Core i7-8665U, 32GB RAM, Intel UHD 620, BBR, DYTC EC thermals, 75%–80% battery protection, 50Hz anti-flicker webcam, VA-API video acceleration, systemd watchdog.
 
 ## 🗺️ Upcoming Device Profiles
 * `generic-desktop/` (Debian/Ubuntu/Arch performance tuning).
